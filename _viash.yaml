@@ -1,7 +1,7 @@
 viash_version: 0.9.4
 source: src
 target: target
-name: openpipeline_incubator
+name: openpipeline_runners
 organization: openpipelines-bio
 links:
   repository: https://github.com/openpipelines-bio/openpipeline_incubator
