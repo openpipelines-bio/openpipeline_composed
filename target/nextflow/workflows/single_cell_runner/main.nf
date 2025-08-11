@@ -3035,7 +3035,7 @@ meta = [
   "resources_dir": moduleDir.toRealPath().normalize(),
   "config": processConfig(readJsonBlob('''{
   "name" : "single_cell_runner",
-  "namespace" : "runners",
+  "namespace" : "workflows",
   "version" : "build_main",
   "authors" : [
     {
@@ -4125,12 +4125,12 @@ meta = [
     }
   ],
   "build_info" : {
-    "config" : "/home/runner/work/openpipeline_runners/openpipeline_runners/src/runners/single_cell_runner/config.vsh.yaml",
+    "config" : "/home/runner/work/openpipeline_runners/openpipeline_runners/src/workflows/single_cell_runner/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "native",
-    "output" : "/home/runner/work/openpipeline_runners/openpipeline_runners/target/nextflow/runners/single_cell_runner",
+    "output" : "/home/runner/work/openpipeline_runners/openpipeline_runners/target/nextflow/workflows/single_cell_runner",
     "viash_version" : "0.9.4",
-    "git_commit" : "fd6b0598e311a991f8bab1c6597eee4282f5917b",
+    "git_commit" : "45b687444259d3ac45b88e920115a2e7a670bb61",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_runners"
   },
   "package_config" : {

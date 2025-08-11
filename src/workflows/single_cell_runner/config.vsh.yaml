@@ -1,5 +1,5 @@
 name: "single_cell_runner"
-namespace: "runners"
+namespace: "workflows"
 description: "A pipeline to process and annotate gene expression data."
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
