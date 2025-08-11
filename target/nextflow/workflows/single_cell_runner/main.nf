@@ -4043,7 +4043,7 @@ meta = [
     }
   ],
   "links" : {
-    "repository" : "https://github.com/openpipelines-bio/openpipeline_incubator",
+    "repository" : "https://github.com/openpipelines-bio/openpipeline_runners",
     "docker_registry" : "ghcr.io"
   },
   "runners" : [
@@ -4130,7 +4130,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_runners/openpipeline_runners/target/nextflow/workflows/single_cell_runner",
     "viash_version" : "0.9.4",
-    "git_commit" : "9c8c76b5fc994ab9b2eb1a2a705677222bf960ae",
+    "git_commit" : "7f96228dc4fdf08bcec564f77bfd9f476ebc1989",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_runners"
   },
   "package_config" : {
@@ -4161,7 +4161,7 @@ meta = [
     ],
     "organization" : "openpipelines-bio",
     "links" : {
-      "repository" : "https://github.com/openpipelines-bio/openpipeline_incubator",
+      "repository" : "https://github.com/openpipelines-bio/openpipeline_runners",
       "docker_registry" : "ghcr.io"
     }
   }
