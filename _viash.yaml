@@ -7,7 +7,7 @@ name: openpipeline_runners
 organization: openpipelines-bio
 
 links:
-  repository: https://github.com/openpipelines-bio/openpipeline_incubator
+  repository: https://github.com/openpipelines-bio/openpipeline_runners
   docker_registry: ghcr.io
 
 repositories:
