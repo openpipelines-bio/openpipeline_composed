@@ -4130,7 +4130,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_runners/openpipeline_runners/target/nextflow/workflows/single_cell_runner",
     "viash_version" : "0.9.4",
-    "git_commit" : "7f96228dc4fdf08bcec564f77bfd9f476ebc1989",
+    "git_commit" : "743cbab2a1bab64447e8fa22b564aa198748fa4c",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_runners"
   },
   "package_config" : {
