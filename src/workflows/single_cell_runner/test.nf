@@ -1,6 +1,6 @@
 nextflow.enable.dsl=2
 
-include { single_cell_runner } from params.rootDir + "/target/nextflow/runners/single_cell_runner/main.nf"
+include { single_cell_runner } from params.rootDir + "/target/nextflow/workflows/single_cell_runner/main.nf"
 params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_wf {
