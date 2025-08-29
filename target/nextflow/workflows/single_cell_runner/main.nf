@@ -3986,7 +3986,7 @@ meta = [
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.1.2"
+        "tag" : "3.0.0"
       }
     },
     {
@@ -3994,7 +3994,7 @@ meta = [
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.1.2"
+        "tag" : "3.0.0"
       }
     },
     {
@@ -4003,7 +4003,7 @@ meta = [
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.1.2"
+        "tag" : "3.0.0"
       }
     },
     {
@@ -4012,7 +4012,7 @@ meta = [
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.1.2"
+        "tag" : "3.0.0"
       }
     },
     {
@@ -4021,7 +4021,7 @@ meta = [
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.1.2"
+        "tag" : "3.0.0"
       }
     },
     {
@@ -4030,7 +4030,7 @@ meta = [
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.1.2"
+        "tag" : "3.0.0"
       }
     }
   ],
@@ -4039,7 +4039,7 @@ meta = [
       "type" : "github",
       "name" : "openpipeline",
       "repo" : "openpipelines-bio/openpipeline",
-      "tag" : "2.1.2"
+      "tag" : "3.0.0"
     }
   ],
   "links" : {
@@ -4130,7 +4130,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_runners/openpipeline_runners/target/nextflow/workflows/single_cell_runner",
     "viash_version" : "0.9.4",
-    "git_commit" : "e96c0881faf02a909dedee59bcfd248bd1932f87",
+    "git_commit" : "52485e52e9da3c9d39a1c1c6cc7f61b2e5c18e37",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_runners"
   },
   "package_config" : {
@@ -4150,7 +4150,7 @@ meta = [
         "type" : "github",
         "name" : "openpipeline",
         "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "2.1.2"
+        "tag" : "3.0.0"
       }
     ],
     "viash_version" : "0.9.4",
@@ -4170,16 +4170,16 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { process_samples as process_samples_workflow_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/multiomics/process_samples/main.nf"
+include { process_samples as process_samples_workflow_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/multiomics/process_samples/main.nf"
 process_samples_workflow = process_samples_workflow_viashalias.run(key: "process_samples_workflow")
-include { scgpt_annotation } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/scgpt_annotation/main.nf"
-include { celltypist as celltypist_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/annotate/celltypist/main.nf"
+include { scgpt_annotation } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/annotation/scgpt_annotation/main.nf"
+include { celltypist as celltypist_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/annotate/celltypist/main.nf"
 celltypist_annotation = celltypist_annotation_viashalias.run(key: "celltypist_annotation")
-include { harmony_knn as harmony_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/harmony_knn/main.nf"
+include { harmony_knn as harmony_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/annotation/harmony_knn/main.nf"
 harmony_knn_annotation = harmony_knn_annotation_viashalias.run(key: "harmony_knn_annotation")
-include { scvi_knn as scvi_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/scvi_knn/main.nf"
+include { scvi_knn as scvi_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/annotation/scvi_knn/main.nf"
 scvi_knn_annotation = scvi_knn_annotation_viashalias.run(key: "scvi_knn_annotation")
-include { scanvi_scarches as scanvi_scarches_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/2.1.2/nextflow/workflows/annotation/scanvi_scarches/main.nf"
+include { scanvi_scarches as scanvi_scarches_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/annotation/scanvi_scarches/main.nf"
 scanvi_scarches_annotation = scanvi_scarches_annotation_viashalias.run(key: "scanvi_scarches_annotation")
 
 // inner workflow

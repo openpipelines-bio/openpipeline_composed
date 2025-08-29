@@ -10,7 +10,7 @@ repositories:
   - name: openpipeline
     repo: openpipelines-bio/openpipeline
     type: github
-    tag: 2.1.2
+    tag: 3.0.0
 info:
   test_resources:
     - type: s3
