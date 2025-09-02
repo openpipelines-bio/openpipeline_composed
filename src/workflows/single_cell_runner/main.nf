@@ -8,9 +8,13 @@ workflow run_wf {
       def new_state = state + [ "query_processed": state.output, "_meta": ["join_id": id] ]
       [id, new_state]
     }
-    // Enforce annotation method-specific required arguments
+    // Make sure parameters are filled out correctly
     | map { id, state ->
       def new_state = [:]
+      // check that either an integration method or annotation method is provided
+      if (state.integration_methods.isEmpty() && state.annotation_methods.isEmpty()) {
+        throw new RuntimeException("At least one integration method or annotation method must be provided.")
+      }
       // Check scGPT arguments
       if (state.annotation_methods.contains("scgpt_annotation") && 
         (!state.scgpt_model || !state.scgpt_model_config || !state.scgpt_model_vocab)) {
@@ -57,9 +61,50 @@ workflow run_wf {
       ],
       args: [
         "pca_overwrite": "true",
-        "add_id_obs_output": "sample_id"
+        "add_id_obs_output": "sample_id",
+        "highly_variable_features_var_output": "filter_with_hvg_query"
       ],
       toState: ["query_processed": "output"], 
+    )
+
+    | harmony_integration.run(
+      runIf: { id, state -> 
+        state.integration_methods.contains("harmony") && !state.annotation_methods.contains("harmony_knn") 
+      },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "theta": "harmony_theta",
+        "leiden_resolution": "leiden_resolution",
+      ],
+      args: [
+        "layer": "log_normalized",
+        "embedding": "X_pca",
+        "obsm_integrated": "X_pca_harmony_integrated",
+        "obs_covariates": "sample_id"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
+
+    | scvi_integration.run(
+      runIf: { id, state -> 
+        state.integration_methods.contains("scvi") && !state.annotation_methods.contains("scvi_knn") 
+      },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "layer": "input_layer",
+        "modality": "modality",
+        "theta": "harmony_theta",
+        "leiden_resolution": "leiden_resolution"
+      ],
+      args: [
+        "embedding": "X_pca",
+        "obsm_integrated": "X_pca_harmony_integrated",
+        "obs_covariates": "sample_id"
+      ],
+      toState: [ "query_processed": "output" ]
     )
 
     | scgpt_annotation.run(
@@ -171,7 +216,7 @@ workflow run_wf {
     )
 
     | scvi_knn_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
+      runIf: { id, state -> state.annotation_methods.contains("scvi_knn") },
       fromState: [ 
         "id": "id",
         "input": "query_processed",

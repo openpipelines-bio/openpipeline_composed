@@ -84,15 +84,22 @@ argument_groups:
           .var column containing highly variable genes. By default, do not subset genes.
 
 
-  - name: Annotation methods
-    description: The available annotation methods to annotate the query dataset(s) with.
+  - name: Methods
+    description: The available annotation and integration methods to integrate and/or annotate the query dataset(s) with.
     arguments:
+      - name: "--integration_methods"
+        type: string
+        multiple: true
+        required: false
+        choices: [harmony, scvi]
+        example: harmony;scvi
+        description: Integration methods to be executed.
       - name: "--annotation_methods"
         type: string
         multiple: true
         required: true
         choices: [celltypist, harmony_knn, scgpt_annotation, scvi_knn, scanvi_scarches]
-        example: harmony_knn;scanvi_scarches
+        example: celltypist;scanvi_scarches
         description: Annotation methods to be executed.
         
   - name: "Pre-processing options: RNA filtering"
@@ -208,6 +215,13 @@ argument_groups:
         example: [0, 1, 2]
         multiple: true
 
+  - name: scVI integration options
+    description: Specifications for scVI integration.
+    arguments:
+      - name: "--mock"
+        type: string
+        description: "Mock argument for scVI integration."
+  
   - name: scVI, scANVI and scArches training options
     # TODO - possibly provide separate training options for scVI, scANVI and scArches
     description: Training arguments for scVI, scANVI and scArches. Relevant for --annotation_methods 'scvi_knn' and 'scanvi_scarches'.
@@ -429,6 +443,12 @@ dependencies:
   - name: workflows/annotation/scanvi_scarches
     repository: openpipeline
     alias: scanvi_scarches_annotation
+  - name: workflows/integration/harmony_leiden
+    repository: openpipeline
+    alias: harmony_integration
+  - name: workflows/integration/scvi_leiden
+    repository: openpipeline
+    alias: scvi_integration
 
 resources:
   - type: nextflow_script
