@@ -99,7 +99,7 @@ argument_groups:
         multiple: true
         required: true
         choices: [celltypist, scanvi_scarches]
-        example: harmony_knn;scanvi_scarches
+        example: celltypist;scanvi_scarches
         description: Annotation methods to be executed.
         
   - name: "Pre-processing options: RNA filtering"
@@ -214,14 +214,14 @@ argument_groups:
         default: 2
         example: [0, 1, 2]
         multiple: true
-
-  - name: scVI integration options
-    description: Specifications for scVI integration.
-    arguments:
-      - name: "--mock"
+      - name: "--harmony_obs_covariates"
         type: string
-        description: "Mock argument for scVI integration."
-  
+        description: "The .obs field(s) that define the covariate(s) to regress out."
+        example: ["batch", "sample"]
+        required: true
+        multiple: true
+        default: "sample_id"
+
   - name: scVI, scANVI and scArches training options
     # TODO - possibly provide separate training options for scVI, scANVI and scArches
     description: Training arguments for scVI, scANVI and scArches. Relevant for --annotation_methods 'scvi_knn' and 'scanvi_scarches'.
