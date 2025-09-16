@@ -3259,7 +3259,6 @@ meta = [
           "choices" : [
             "celltypist",
             "harmony_knn",
-            "scgpt_annotation",
             "scvi_knn",
             "scanvi_scarches"
           ],
@@ -3590,182 +3589,6 @@ meta = [
       ]
     },
     {
-      "name" : "scGPT reference model",
-      "description" : "scGPT model input, required for scGPT annotation methods",
-      "arguments" : [
-        {
-          "type" : "file",
-          "name" : "--scgpt_model",
-          "description" : "The model file containing checkpoints and cell type label mapper.\n",
-          "example" : [
-            "best_model.pt"
-          ],
-          "must_exist" : true,
-          "create_parent" : true,
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "file",
-          "name" : "--scgpt_model_config",
-          "description" : "The model configuration file. \n",
-          "example" : [
-            "args.json"
-          ],
-          "must_exist" : true,
-          "create_parent" : true,
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "file",
-          "name" : "--scgpt_model_vocab",
-          "description" : "Model vocabulary file directory.\n",
-          "example" : [
-            "vocab.json"
-          ],
-          "must_exist" : true,
-          "create_parent" : true,
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "string",
-          "name" : "--scgpt_finetuned_checkpoints_key",
-          "description" : "Key in the model file containing the pretrained checkpoints.\n",
-          "default" : [
-            "model_state_dict"
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "string",
-          "name" : "--scgpt_label_mapper_key",
-          "description" : "Key in the model file containing the cell type class to label mapper dictionary.\n",
-          "default" : [
-            "id_to_class"
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        }
-      ]
-    },
-    {
-      "name" : "scGPT annotation options",
-      "description" : "Specifications for scGPT annotation.",
-      "arguments" : [
-        {
-          "type" : "string",
-          "name" : "--scgpt_pad_token",
-          "description" : "Token used for padding.\n",
-          "default" : [
-            "<pad>"
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "integer",
-          "name" : "--scgpt_pad_value",
-          "description" : "The value of the padding token.\n",
-          "default" : [
-            -2
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "integer",
-          "name" : "--scgpt_n_hvg",
-          "description" : "Number of highly variable genes to consider for scGPT annotation.\n",
-          "default" : [
-            1200
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "string",
-          "name" : "--scgpt_hvg_flavor",
-          "description" : "Method to be used for identifying highly variable genes. \nNote that the default for this workflow (`cell_ranger`) is not the default method for scanpy hvg detection (`seurat`).\n",
-          "default" : [
-            "cell_ranger"
-          ],
-          "required" : false,
-          "choices" : [
-            "cell_ranger",
-            "seurat"
-          ],
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "boolean",
-          "name" : "--scgpt_dsbn",
-          "description" : "Apply domain-specific batch normalization\n",
-          "default" : [
-            true
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "integer",
-          "name" : "--scgpt_batch_size",
-          "description" : "The batch size to be used for embedding inference.\n",
-          "default" : [
-            64
-          ],
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "integer",
-          "name" : "--scgpt_n_input_bins",
-          "description" : "The number of bins to discretize the data into; When no value is provided, data won't be binned.\n",
-          "default" : [
-            51
-          ],
-          "required" : false,
-          "min" : 1,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        },
-        {
-          "type" : "integer",
-          "name" : "--scgpt_seed",
-          "description" : "Seed for random number generation used for binning. If not set, no seed is used.\n",
-          "required" : false,
-          "direction" : "input",
-          "multiple" : false,
-          "multiple_sep" : ";"
-        }
-      ]
-    },
-    {
       "name" : "CellTypist reference model",
       "description" : "The CellTypist reference model to use for annotation. If not provided, the reference dataset will be used for model training.",
       "arguments" : [
@@ -3954,10 +3777,6 @@ meta = [
     },
     {
       "type" : "file",
-      "path" : "/resources_test/scgpt/"
-    },
-    {
-      "type" : "file",
       "path" : "/resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"
     },
     {
@@ -3983,14 +3802,6 @@ meta = [
     {
       "name" : "workflows/multiomics/process_samples",
       "alias" : "process_samples_workflow",
-      "repository" : {
-        "type" : "github",
-        "repo" : "openpipelines-bio/openpipeline",
-        "tag" : "3.0.0"
-      }
-    },
-    {
-      "name" : "workflows/annotation/scgpt_annotation",
       "repository" : {
         "type" : "github",
         "repo" : "openpipelines-bio/openpipeline",
@@ -4130,7 +3941,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_runners/openpipeline_runners/target/nextflow/workflows/single_cell_runner",
     "viash_version" : "0.9.4",
-    "git_commit" : "52485e52e9da3c9d39a1c1c6cc7f61b2e5c18e37",
+    "git_commit" : "9fd0df504ecdcc8d5776e9767a84f8d7c881aada",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_runners"
   },
   "package_config" : {
@@ -4172,7 +3983,6 @@ meta = [
 meta["root_dir"] = getRootDir()
 include { process_samples as process_samples_workflow_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/multiomics/process_samples/main.nf"
 process_samples_workflow = process_samples_workflow_viashalias.run(key: "process_samples_workflow")
-include { scgpt_annotation } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/annotation/scgpt_annotation/main.nf"
 include { celltypist as celltypist_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/annotate/celltypist/main.nf"
 celltypist_annotation = celltypist_annotation_viashalias.run(key: "celltypist_annotation")
 include { harmony_knn as harmony_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/annotation/harmony_knn/main.nf"
@@ -4197,11 +4007,6 @@ workflow run_wf {
     // Enforce annotation method-specific required arguments
     | map { id, state ->
       def new_state = [:]
-      // Check scGPT arguments
-      if (state.annotation_methods.contains("scgpt_annotation") && 
-        (!state.scgpt_model || !state.scgpt_model_config || !state.scgpt_model_vocab)) {
-        throw new RuntimeException("Using scgpt_annotation requires --scgpt_model, --scgpt_model_config and --scgp_model_vocab parameters.")
-      }
       // Check CellTypist arguments
       if (state.annotation_methods.contains("celltypist") && 
         (!state.celltypist_model && !state.reference)) {
@@ -4246,36 +4051,6 @@ workflow run_wf {
         "add_id_obs_output": "sample_id"
       ],
       toState: ["query_processed": "output"], 
-    )
-
-    | scgpt_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("scgpt_annotation") },
-      fromState: [ 
-        "id": "id",
-        "input": "query_processed",
-        "modality": "modality",
-        "input_var_gene_names": "input_var_gene_names",
-        "model": "scgpt_model",
-        "model_config": "scgpt_model_config",
-        "model_vocab": "scgpt_model_vocab",
-        "finetuned_checkpoints_key": "scgpt_finetuned_checkpoints_key",
-        "label_mapper_key": "scgpt_label_mapper_key",
-        "pad_token": "scgpt_pad_token",
-        "pad_value": "scgpt_pad_value",
-        "n_hvg": "scgpt_n_hvg",
-        "dsbn": "scgpt_dsbn",
-        "batch_size": "scgpt_batch_size",
-        "n_input_bins": "scgpt_n_input_bins",
-        "seed": "scgpt_seed",
-        "hvg_flavor": "scgpt_hvg_flavor"
-      ],
-      args: [
-        "input_layer": "log_normalized",
-        "input_obs_batch_label": "sample_id",
-        "output_obs_predictions": "scgpt_pred",
-        "output_obs_probability": "scgpt_proba"
-      ],
-      toState: [ "query_processed": "output" ]
     )
 
     | celltypist_annotation.run(

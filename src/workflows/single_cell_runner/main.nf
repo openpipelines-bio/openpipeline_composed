@@ -11,11 +11,6 @@ workflow run_wf {
     // Enforce annotation method-specific required arguments
     | map { id, state ->
       def new_state = [:]
-      // Check scGPT arguments
-      if (state.annotation_methods.contains("scgpt_annotation") && 
-        (!state.scgpt_model || !state.scgpt_model_config || !state.scgpt_model_vocab)) {
-        throw new RuntimeException("Using scgpt_annotation requires --scgpt_model, --scgpt_model_config and --scgp_model_vocab parameters.")
-      }
       // Check CellTypist arguments
       if (state.annotation_methods.contains("celltypist") && 
         (!state.celltypist_model && !state.reference)) {
@@ -60,36 +55,6 @@ workflow run_wf {
         "add_id_obs_output": "sample_id"
       ],
       toState: ["query_processed": "output"], 
-    )
-
-    | scgpt_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("scgpt_annotation") },
-      fromState: [ 
-        "id": "id",
-        "input": "query_processed",
-        "modality": "modality",
-        "input_var_gene_names": "input_var_gene_names",
-        "model": "scgpt_model",
-        "model_config": "scgpt_model_config",
-        "model_vocab": "scgpt_model_vocab",
-        "finetuned_checkpoints_key": "scgpt_finetuned_checkpoints_key",
-        "label_mapper_key": "scgpt_label_mapper_key",
-        "pad_token": "scgpt_pad_token",
-        "pad_value": "scgpt_pad_value",
-        "n_hvg": "scgpt_n_hvg",
-        "dsbn": "scgpt_dsbn",
-        "batch_size": "scgpt_batch_size",
-        "n_input_bins": "scgpt_n_input_bins",
-        "seed": "scgpt_seed",
-        "hvg_flavor": "scgpt_hvg_flavor"
-      ],
-      args: [
-        "input_layer": "log_normalized",
-        "input_obs_batch_label": "sample_id",
-        "output_obs_predictions": "scgpt_pred",
-        "output_obs_probability": "scgpt_proba"
-      ],
-      toState: [ "query_processed": "output" ]
     )
 
     | celltypist_annotation.run(

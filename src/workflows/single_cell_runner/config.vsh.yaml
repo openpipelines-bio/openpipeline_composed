@@ -91,7 +91,7 @@ argument_groups:
         type: string
         multiple: true
         required: true
-        choices: [celltypist, harmony_knn, scgpt_annotation, scvi_knn, scanvi_scarches]
+        choices: [celltypist, harmony_knn, scvi_knn, scanvi_scarches]
         example: harmony_knn;scanvi_scarches
         description: Annotation methods to be executed.
         
@@ -250,88 +250,6 @@ argument_groups:
         default: 30
         min: 0
 
-  - name: scGPT reference model
-    description: scGPT model input, required for scGPT annotation methods
-    arguments:
-      - name: "--scgpt_model"
-        type: file
-        required: false
-        example: best_model.pt
-        description: |
-          The model file containing checkpoints and cell type label mapper.
-      - name: "--scgpt_model_config"
-        type: file
-        required: false
-        example: args.json
-        description: |
-          The model configuration file. 
-      - name: "--scgpt_model_vocab"
-        type: file
-        required: false
-        example: vocab.json
-        description: |
-          Model vocabulary file directory.
-      - name: "--scgpt_finetuned_checkpoints_key"
-        type: string
-        default: model_state_dict
-        description: |
-          Key in the model file containing the pretrained checkpoints.
-      - name: "--scgpt_label_mapper_key"
-        type: string
-        default: id_to_class
-        description: |
-          Key in the model file containing the cell type class to label mapper dictionary.
-
-  - name: scGPT annotation options
-    description: Specifications for scGPT annotation.
-    arguments:
-      - name: "--scgpt_pad_token"
-        type: string
-        default: "<pad>"
-        required: false
-        description: |
-          Token used for padding.
-      - name: "--scgpt_pad_value"
-        type: integer
-        default: -2
-        required: false
-        description: |
-          The value of the padding token.
-      - name: "--scgpt_n_hvg"
-        type: integer
-        default: 1200
-        description: |
-          Number of highly variable genes to consider for scGPT annotation.
-      - name: "--scgpt_hvg_flavor"
-        type: string
-        choices: ["cell_ranger", "seurat"]
-        default: "cell_ranger"
-        description: |
-          Method to be used for identifying highly variable genes. 
-          Note that the default for this workflow (`cell_ranger`) is not the default method for scanpy hvg detection (`seurat`).
-      - name: --scgpt_dsbn
-        type: boolean
-        default: true
-        description: |
-          Apply domain-specific batch normalization
-      - name: "--scgpt_batch_size"
-        type: integer
-        default: 64
-        description: |
-          The batch size to be used for embedding inference.
-      - name: "--scgpt_n_input_bins"
-        type: integer
-        default: 51
-        required: False
-        min: 1
-        description: |
-          The number of bins to discretize the data into; When no value is provided, data won't be binned.
-      - name: "--scgpt_seed"
-        type: integer
-        required: false
-        description: |
-          Seed for random number generation used for binning. If not set, no seed is used.
-
   - name: CellTypist reference model
     description: The CellTypist reference model to use for annotation. If not provided, the reference dataset will be used for model training.
     arguments:
@@ -415,8 +333,6 @@ dependencies:
   - name: workflows/multiomics/process_samples
     alias: process_samples_workflow
     repository: openpipeline
-  - name: workflows/annotation/scgpt_annotation
-    repository: openpipeline
   - name: annotate/celltypist
     repository: openpipeline
     alias: celltypist_annotation
@@ -439,7 +355,6 @@ test_resources:
   - type: nextflow_script
     path: test.nf
     entrypoint: test_wf
-  - path: /resources_test/scgpt/
   - path: /resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
   - path: /resources_test/annotation_test_data/TS_Blood_filtered.h5mu
   - path: /resources_test/annotation_test_data/celltypist_model_Immune_All_Low.pkl
