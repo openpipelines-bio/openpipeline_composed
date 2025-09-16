@@ -96,15 +96,15 @@ workflow run_wf {
         "input": "query_processed",
         "layer": "input_layer",
         "modality": "modality",
-        "theta": "harmony_theta",
         "leiden_resolution": "leiden_resolution"
       ],
       args: [
         "embedding": "X_pca",
         "obsm_integrated": "X_pca_harmony_integrated",
-        "obs_covariates": "sample_id"
+        "obs_batch": "sample_id",
+        "var_input": "filter_with_hvg_query"
       ],
-      toState: [ "query_processed": "output" ]
+      toState: [ "query_processed": "output", "output_model": "output_model" ]
     )
 
     | scgpt_annotation.run(

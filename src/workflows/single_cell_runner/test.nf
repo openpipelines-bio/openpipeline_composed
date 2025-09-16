@@ -9,7 +9,7 @@ workflow test_wf {
   output_ch = Channel.fromList(
     [
       [
-        id: "simple_execution_test",
+        id: "simple_annotation_test",
         input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         reference: resources_test.resolve("annotation_test_data/TS_Blood_filtered.h5mu"),
         reference_var_gene_names: "ensemblid",
@@ -18,6 +18,23 @@ workflow test_wf {
         reference_obs_label: "cell_type",
         max_epochs: "5",
         annotation_methods: "celltypist;scvi_knn;harmony_knn;scanvi_scarches"
+      ],
+      [
+        id: "simple_integration_test",
+        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
+        integration_methods: "harmony;scvi"
+      ],
+      [
+        id: "simple_execution_test",
+        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
+        reference: resources_test.resolve("annotation_test_data/TS_Blood_filtered.h5mu"),
+        reference_var_gene_names: "ensemblid",
+        reference_layer_lognormalized_counts: "log_normalized",
+        reference_obs_batch: "donor_assay",
+        reference_obs_label: "cell_type",
+        max_epochs: "5",
+        annotation_methods: "scanvi_scarches",
+        integration_methods: "harmony"
       ]
     ])
     | view {"State at start: $it"}
@@ -48,22 +65,6 @@ workflow test_wf_2 {
   output_ch = Channel.fromList(
     [
       [
-        id: "pbmc",
-        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
-        var_name_mitochondrial_genes: 'mitochondrial',
-        rna_min_counts: 2,
-        prot_min_counts: 3,
-        add_id_to_obs: true,
-        add_id_make_observation_keys_unique: true,
-        add_id_obs_output: "sample_id",
-        reference: resources_test.resolve("annotation_test_data/TS_Blood_filtered.h5mu"),
-        reference_var_gene_names: "ensemblid",
-        reference_layer_lognormalized_counts: "log_normalized",
-        reference_obs_batch: "donor_assay",
-        reference_obs_label: "cell_type",
-        annotation_methods: "celltypist"
-      ],
-      [
         id: "pbmc_with_more_params",
         input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         rna_min_counts: 2,
@@ -88,7 +89,8 @@ workflow test_wf_2 {
         reference_layer_lognormalized_counts: "log_normalized",
         reference_obs_batch: "donor_assay",
         reference_obs_label: "cell_type",
-        annotation_methods: "celltypist;scvi_knn;harmony_knn;scanvi_scarches"
+        annotation_methods: "celltypist",
+        integration_methods: "scvi"
       ]
     ])
     | view {"State at start: $it"}
