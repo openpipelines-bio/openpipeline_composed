@@ -11,15 +11,6 @@ workflow run_wf {
     // Make sure parameters are filled out correctly
     | map { id, state ->
       def new_state = [:]
-      // check that either an integration method or annotation method is provided
-      if (state.integration_methods.isEmpty() && state.annotation_methods.isEmpty()) {
-        throw new RuntimeException("At least one integration method or annotation method must be provided.")
-      }
-      // Check scGPT arguments
-      if (state.annotation_methods.contains("scgpt_annotation") && 
-        (!state.scgpt_model || !state.scgpt_model_config || !state.scgpt_model_vocab)) {
-        throw new RuntimeException("Using scgpt_annotation requires --scgpt_model, --scgpt_model_config and --scgp_model_vocab parameters.")
-      }
       // Check CellTypist arguments
       if (state.annotation_methods.contains("celltypist") && 
         (!state.celltypist_model && !state.reference)) {
@@ -137,6 +128,8 @@ workflow run_wf {
       toState: [ "query_processed": "output" ]
     )
 
+=======
+>>>>>>> origin/main
     | celltypist_annotation.run(
       runIf: { id, state -> state.annotation_methods.contains("celltypist") && state.celltypist_model },
       fromState: [ 
