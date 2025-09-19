@@ -97,7 +97,7 @@ argument_groups:
       - name: "--annotation_methods"
         type: string
         multiple: true
-        required: true
+        required: false
         choices: [celltypist, scanvi_scarches]
         example: celltypist;scanvi_scarches
         description: Annotation methods to be executed.
@@ -350,12 +350,6 @@ dependencies:
   - name: annotate/celltypist
     repository: openpipeline
     alias: celltypist_annotation
-  - name: workflows/annotation/harmony_knn
-    repository: openpipeline
-    alias: harmony_knn_annotation
-  - name: workflows/annotation/scvi_knn
-    repository: openpipeline
-    alias: scvi_knn_annotation
   - name: workflows/annotation/scanvi_scarches
     repository: openpipeline
     alias: scanvi_scarches_annotation

@@ -12,16 +12,15 @@ workflow run_wf {
     | map { id, state ->
       def new_state = [:]
       // Check that at least one of annotation_methods or integration_methods is not empty
-      if ((!state.annotation_methods || state.annotation_methods.isEmpty()) && 
-          (!state.integration_methods || state.integration_methods.isEmpty())) {
-        throw new RuntimeException("At least one of --annotation_methods or --integration_methods must be provided and non-empty.")
+      if (!state.annotation_methods  && !state.integration_methods) {
+        throw new RuntimeException("At least one of --annotation_methods or --integration_methods must be provided")
       }
       // Check CellTypist arguments
-      if (state.annotation_methods.contains("celltypist") && 
+      if (state.annotation_methods && state.annotation_methods.contains("celltypist") && 
         (!state.celltypist_model && !state.reference)) {
         throw new RuntimeException("Celltypist was selected as an annotation method. Either --celltypist_model or --reference must be provided.")
       }
-      if (state.annotation_methods.contains("celltypist") && state.celltypist_model && state.reference )  {
+      if (state.annotation_methods && state.annotation_methods.contains("celltypist") && state.celltypist_model && state.reference )  {
         System.err.println(
           "Warning: --celltypist_model is set and a --reference was provided. \
           The pre-trained Celltypist model will be used for annotation, the reference will be ignored."
@@ -61,7 +60,7 @@ workflow run_wf {
     // Integration methods
     | harmony_integration.run(
       runIf: { id, state -> 
-        state.integration_methods.contains("harmony") 
+        state.integration_methods && state.integration_methods.contains("harmony") 
       },
       fromState: [ 
         "id": "id",
@@ -69,7 +68,7 @@ workflow run_wf {
         "modality": "modality",
         "theta": "harmony_theta",
         "leiden_resolution": "leiden_resolution",
-        "obs_covariates": "harmony_obs_covariates",
+        "obs_covariates": "harmony_obs_covariates"
       ],
       args: [
         "layer": "log_normalized",
@@ -86,7 +85,7 @@ workflow run_wf {
 
     | scvi_integration.run(
       runIf: { id, state -> 
-        state.integration_methods.contains("scvi")
+        state.integration_methods && state.integration_methods.contains("scvi")
       },
       fromState: [ 
         "id": "id",
@@ -115,9 +114,10 @@ workflow run_wf {
       ],
       toState: [ "query_processed": "output", "scvi_model": "output_model" ]
     )
+
     // Annotation methods
     | celltypist_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("celltypist") && state.celltypist_model },
+      runIf: { id, state -> state.annotation_methods && state.annotation_methods.contains("celltypist") && state.celltypist_model },
       fromState: [ 
         "input": "query_processed",
         "modality": "modality",
@@ -136,7 +136,7 @@ workflow run_wf {
     )
 
     | celltypist_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("celltypist") && !state.celltypist_model },
+      runIf: { id, state -> state.annotation_methods && state.annotation_methods.contains("celltypist") && !state.celltypist_model },
       fromState: [
         "input": "query_processed",
         "modality": "modality",
@@ -165,7 +165,7 @@ workflow run_wf {
     )
 
     | scanvi_scarches_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("scanvi_scarches")},
+      runIf: { id, state -> state.annotation_methods && state.annotation_methods.contains("scanvi_scarches")},
       fromState: [
         "id": "id",
         "input": "query_processed",
