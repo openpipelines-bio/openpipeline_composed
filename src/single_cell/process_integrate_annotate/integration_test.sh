@@ -27,7 +27,7 @@ nextflow \
   -c src/configs/labels_ci.config \
   -c src/configs/integration_tests.config
 
-  nextflow \
+nextflow \
   run . \
   -main-script src/workflows/single_cell_runner/test.nf \
   -profile docker,no_publish \

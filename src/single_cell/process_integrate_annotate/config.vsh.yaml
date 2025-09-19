@@ -1,6 +1,14 @@
-name: "single_cell_runner"
-namespace: "workflows"
-description: "A pipeline to process and annotate gene expression data."
+name: "process_integrate_annotate"
+namespace: "single_cell"
+description: |
+  A pipeline to process, integrate and annotate gene expression data.
+  Available integration methods:
+  - Harmony
+  - scVI
+  Available annotation methods:
+  - CellTypist
+  - scANVI (with scArches)
+
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ author, maintainer ]
