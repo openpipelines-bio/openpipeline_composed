@@ -1,6 +1,6 @@
 nextflow.enable.dsl=2
 
-include { single_cell_runner } from params.rootDir + "/target/nextflow/workflows/single_cell/process_integrate_annotate/main.nf"
+include { process_integrate_annotate } from params.rootDir + "/target/nextflow/single_cell/process_integrate_annotate/main.nf"
 params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_wf {
@@ -39,7 +39,7 @@ workflow test_wf {
     ])
     | view {"State at start: $it"}
     | map{ state -> [state.id, state] }
-    | single_cell_runner 
+    | process_integrate_annotate 
     | view {"After AaaS: $it"}
     | view { output ->
       assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
@@ -95,7 +95,7 @@ workflow test_wf_2 {
     ])
     | view {"State at start: $it"}
     | map { state -> [state.id, state] }
-    | single_cell_runner 
+    | process_integrate_annotate 
     | view {"After AaaS: $it"}
     | view { output ->
       assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
@@ -130,7 +130,7 @@ workflow test_wf_3 {
     ])
     | view {"State at start: $it"}
     | map{ state -> [state.id, state] }
-    | single_cell_runner 
+    | process_integrate_annotate 
     | view {"After AaaS: $it"}
     | view { output ->
       assert output.size() == 2 : "Outputs should contain two elements; [id, state]"

@@ -10,7 +10,7 @@ cd "$REPO_ROOT"
 
 nextflow \
   run . \
-  -main-script src/workflows/single_cell/process_integrate_annotate/test.nf \
+  -main-script src/single_cell/process_integrate_annotate/test.nf \
   -entry test_wf \
   -resume \
   -profile docker \
@@ -20,7 +20,7 @@ nextflow \
 
 nextflow \
   run . \
-  -main-script src/workflows/process_integrate_annotate/test.nf \
+  -main-script src/single_cell/process_integrate_annotate/test.nf \
   -profile docker,no_publish \
   -resume \
   -entry test_wf_2 \
@@ -29,7 +29,7 @@ nextflow \
 
 nextflow \
   run . \
-  -main-script src/workflows/process_integrate_annotate/test.nf \
+  -main-script src/single_cell/process_integrate_annotate/test.nf \
   -profile docker,no_publish \
   -resume \
   -entry test_wf_3 \
