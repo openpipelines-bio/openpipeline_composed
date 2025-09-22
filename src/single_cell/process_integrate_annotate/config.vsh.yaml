@@ -1,7 +1,7 @@
 name: "process_integrate_annotate"
 namespace: "single_cell"
 description: |
-  A pipeline to process, integrate and annotate gene expression data.
+  A pipeline to process, integrate and annotate single cell (multi-)omics data.
   Available integration methods:
   - Harmony
   - scVI
