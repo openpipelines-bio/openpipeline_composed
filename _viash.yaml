@@ -1,10 +1,10 @@
 viash_version: 0.9.4
 source: src
 target: target
-name: openpipeline_runners
+name: openpipeline_composed
 organization: openpipelines-bio
 links:
-  repository: https://github.com/openpipelines-bio/openpipeline_runners
+  repository: https://github.com/openpipelines-bio/openpipeline_composed
   docker_registry: ghcr.io
 repositories:
   - name: openpipeline

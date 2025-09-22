@@ -3854,7 +3854,7 @@ meta = [
     }
   ],
   "links" : {
-    "repository" : "https://github.com/openpipelines-bio/openpipeline_runners",
+    "repository" : "https://github.com/openpipelines-bio/openpipeline_composed",
     "docker_registry" : "ghcr.io"
   },
   "runners" : [
@@ -3936,16 +3936,16 @@ meta = [
     }
   ],
   "build_info" : {
-    "config" : "/home/runner/work/openpipeline_runners/openpipeline_runners/src/workflows/single_cell_runner/config.vsh.yaml",
+    "config" : "/home/runner/work/openpipeline_composed/openpipeline_composed/src/workflows/single_cell_runner/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "native",
-    "output" : "/home/runner/work/openpipeline_runners/openpipeline_runners/target/nextflow/workflows/single_cell_runner",
+    "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/workflows/single_cell_runner",
     "viash_version" : "0.9.4",
-    "git_commit" : "9fd0df504ecdcc8d5776e9767a84f8d7c881aada",
-    "git_remote" : "https://github.com/openpipelines-bio/openpipeline_runners"
+    "git_commit" : "566cb3e20b569a5aed40537a5f12fafdb061a900",
+    "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
-    "name" : "openpipeline_runners",
+    "name" : "openpipeline_composed",
     "version" : "build_main",
     "info" : {
       "test_resources" : [
@@ -3965,14 +3965,14 @@ meta = [
       }
     ],
     "viash_version" : "0.9.4",
-    "source" : "/home/runner/work/openpipeline_runners/openpipeline_runners/src",
-    "target" : "/home/runner/work/openpipeline_runners/openpipeline_runners/target",
+    "source" : "/home/runner/work/openpipeline_composed/openpipeline_composed/src",
+    "target" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target",
     "config_mods" : [
       ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n.runners[.type == 'nextflow'].config.script := 'includeConfig(\\"nextflow_labels.config\\")'\n"
     ],
     "organization" : "openpipelines-bio",
     "links" : {
-      "repository" : "https://github.com/openpipelines-bio/openpipeline_runners",
+      "repository" : "https://github.com/openpipelines-bio/openpipeline_composed",
       "docker_registry" : "ghcr.io"
     }
   }
