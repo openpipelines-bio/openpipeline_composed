@@ -8,23 +8,23 @@ workflow run_wf {
       def new_state = state + [ "query_processed": state.output, "_meta": ["join_id": id] ]
       [id, new_state]
     }
-    // Enforce annotation method-specific required arguments
+    // Make sure parameters are filled out correctly
     | map { id, state ->
       def new_state = [:]
+      // Check that at least one of annotation_methods or integration_methods is not empty
+      if (!state.annotation_methods  && !state.integration_methods) {
+        throw new RuntimeException("At least one of --annotation_methods or --integration_methods must be provided")
+      }
       // Check CellTypist arguments
-      if (state.annotation_methods.contains("celltypist") && 
+      if (state.annotation_methods && state.annotation_methods.contains("celltypist") && 
         (!state.celltypist_model && !state.reference)) {
         throw new RuntimeException("Celltypist was selected as an annotation method. Either --celltypist_model or --reference must be provided.")
       }
-      if (state.annotation_methods.contains("celltypist") && state.celltypist_model && state.reference )  {
+      if (state.annotation_methods && state.annotation_methods.contains("celltypist") && state.celltypist_model && state.reference )  {
         System.err.println(
           "Warning: --celltypist_model is set and a --reference was provided. \
           The pre-trained Celltypist model will be used for annotation, the reference will be ignored."
         )
-      }
-      // Check Harmony KNN arguments
-      if ((state.annotation_methods.contains("harmony_knn") || state.annotation_methods.contains("scvi_knn"))  && !state.reference ) {
-        throw new RuntimeException("When `harmony_knn` or `scvi_knn` are selected as an annotation method, a --reference dataset must be provided.")
       }
 
       [id, state + new_state]
@@ -52,13 +52,72 @@ workflow run_wf {
       ],
       args: [
         "pca_overwrite": "true",
-        "add_id_obs_output": "sample_id"
+        "add_id_obs_output": "sample_id",
+        "highly_variable_features_var_output": "filter_with_hvg_query"
       ],
       toState: ["query_processed": "output"], 
     )
+    // Integration methods
+    | harmony_integration.run(
+      runIf: { id, state -> 
+        state.integration_methods && state.integration_methods.contains("harmony") 
+      },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "modality": "modality",
+        "theta": "harmony_theta",
+        "leiden_resolution": "leiden_resolution",
+        "obs_covariates": "harmony_obs_covariates"
+      ],
+      args: [
+        "layer": "log_normalized",
+        "embedding": "X_pca",
+        "obsm_integrated": "X_harmony_integrated",
+        "uns_neighbors": "harmony_integration_neighbors",
+        "obsp_neighbor_distances": "harmony_integration_neighbor_distances",
+        "obsp_neighbor_connectivities": "harmony_integration_neighbor_connectivities",
+        "obs_cluster": "harmony_integration_leiden",
+        "obsm_umap": "X_harmony_umap"
+      ],
+      toState: [ "query_processed": "output" ]
+    )
 
+    | scvi_integration.run(
+      runIf: { id, state -> 
+        state.integration_methods && state.integration_methods.contains("scvi")
+      },
+      fromState: [ 
+        "id": "id",
+        "input": "query_processed",
+        "layer": "input_layer",
+        "modality": "modality",
+        "leiden_resolution": "leiden_resolution",
+        "early_stopping": "early_stopping",
+        "early_stopping_monitor": "early_stopping_monitor",
+        "early_stopping_patience": "early_stopping_patience",
+        "early_stopping_min_delta": "early_stopping_min_delta",
+        "max_epochs": "max_epochs",
+        "reduce_lr_on_plateau": "reduce_lr_on_plateau",
+        "lr_factor": "lr_factor",
+        "lr_patience": "lr_patience"
+      ],
+      args: [
+        "obsm_output": "X_scvi_integrated",
+        "obs_batch": "sample_id",
+        "var_input": "filter_with_hvg_query",
+        "uns_neighbors": "scvi_integration_neighbors",
+        "obsp_neighbor_distances": "scvi_integration_neighbor_distances",
+        "obsp_neighbor_connectivities": "scvi_integration_neighbor_connectivities",
+        "obs_cluster": "scvi_integration_leiden",
+        "obsm_umap": "X_scvi_umap"
+      ],
+      toState: [ "query_processed": "output", "scvi_model": "output_model" ]
+    )
+
+    // Annotation methods
     | celltypist_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("celltypist") && state.celltypist_model },
+      runIf: { id, state -> state.annotation_methods && state.annotation_methods.contains("celltypist") && state.celltypist_model },
       fromState: [ 
         "input": "query_processed",
         "modality": "modality",
@@ -77,7 +136,7 @@ workflow run_wf {
     )
 
     | celltypist_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("celltypist") && !state.celltypist_model },
+      runIf: { id, state -> state.annotation_methods && state.annotation_methods.contains("celltypist") && !state.celltypist_model },
       fromState: [
         "input": "query_processed",
         "modality": "modality",
@@ -105,76 +164,8 @@ workflow run_wf {
       toState: [ "query_processed": "output" ]
     )
 
-    | harmony_knn_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
-      fromState: [ 
-        "id": "id",
-        "input": "query_processed",
-        "modality": "modality",
-        "input_var_gene_names": "input_var_gene_names",
-        "input_reference_gene_overlap": "input_reference_gene_overlap",
-        "reference": "reference",
-        "reference_layer": "reference_layer_lognormalized_counts",
-        "reference_obs_target": "reference_obs_label",
-        "reference_var_gene_names": "reference_var_gene_names",
-        "reference_obs_batch_label": "reference_obs_batch",
-        "n_hvg": "n_hvg",
-        "harmony_theta": "harmony_theta",
-        "leiden_resolution": "leiden_resolution",
-        "knn_weights": "knn_weights",
-        "knn_n_neighbors": "knn_n_neighbors"
-      ],
-      args: [
-        "input_layer": "log_normalized",
-        "input_obs_batch_label": "sample_id",
-        "output_obs_predictions": "harmony_knn_pred",
-        "output_obs_probability": "harmony_knn_proba",
-        "output_obsm_integrated": "X_integrated_harmony",
-        "overwrite_existing_key": "true"
-      ],
-      toState: [ "query_processed": "output" ]
-    )
-
-    | scvi_knn_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
-      fromState: [ 
-        "id": "id",
-        "input": "query_processed",
-        "modality": "modality",
-        "input_layer": "input_layer",
-        "input_var_gene_names": "input_var_gene_names",
-        "input_reference_gene_overlap": "input_reference_gene_overlap",
-        "reference": "reference",
-        "reference_layer": "reference_layer_raw_counts",
-        "reference_layer_lognormalized": "reference_layer_lognormalized_counts",
-        "reference_obs_target": "reference_obs_label",
-        "reference_var_gene_names": "reference_var_gene_names",
-        "reference_obs_batch_label": "reference_obs_batch",
-        "n_hvg": "n_hvg",
-        "early_stopping": "early_stopping",
-        "early_stopping_patience": "early_stopping_patience",
-        "early_stopping_min_delta": "early_stopping_min_delta",
-        "max_epochs": "max_epochs",
-        "reduce_lr_on_plateau": "reduce_lr_on_plateau",
-        "lr_factor": "lr_factor",
-        "lr_patience": "lr_patience",
-        "leiden_resolution": "leiden_resolution",
-        "knn_weights": "knn_weights",
-        "knn_n_neighbors": "knn_n_neighbors"
-      ],
-      args: [
-        "input_layer_lognormalized": "log_normalized",
-        "input_obs_batch_label": "sample_id",
-        "output_obs_predictions": "scvi_knn_pred",
-        "output_obs_probability": "scvi_knn_proba",
-        "output_obsm_integrated": "X_integrated_scvi",
-        "overwrite_existing_key": "true"
-      ],
-      toState: [ "query_processed": "output" ]
-    )
-
     | scanvi_scarches_annotation.run(
-      runIf: { id, state -> state.annotation_methods.contains("scanvi_scarches")},
+      runIf: { id, state -> state.annotation_methods && state.annotation_methods.contains("scanvi_scarches")},
       fromState: [
         "id": "id",
         "input": "query_processed",

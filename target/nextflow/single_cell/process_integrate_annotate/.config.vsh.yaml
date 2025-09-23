@@ -1,5 +1,5 @@
-name: "single_cell_runner"
-namespace: "workflows"
+name: "process_integrate_annotate"
+namespace: "single_cell"
 version: "build_main"
 authors:
 - name: "Dorien Roosen"
@@ -175,21 +175,32 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
-- name: "Annotation methods"
-  description: "The available annotation methods to annotate the query dataset(s)\
-    \ with."
+- name: "Methods"
+  description: "The available annotation and integration methods to integrate and/or\
+    \ annotate the query dataset(s) with."
   arguments:
+  - type: "string"
+    name: "--integration_methods"
+    description: "Integration methods to be executed."
+    info: null
+    example:
+    - "harmony;scvi"
+    required: false
+    choices:
+    - "harmony"
+    - "scvi"
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
   - type: "string"
     name: "--annotation_methods"
     description: "Annotation methods to be executed."
     info: null
     example:
-    - "harmony_knn;scanvi_scarches"
-    required: true
+    - "celltypist;scanvi_scarches"
+    required: false
     choices:
     - "celltypist"
-    - "harmony_knn"
-    - "scvi_knn"
     - "scanvi_scarches"
     direction: "input"
     multiple: true
@@ -379,6 +390,19 @@ argument_groups:
     default:
     - 2.0
     required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--harmony_obs_covariates"
+    description: "The .obs field(s) that define the covariate(s) to regress out."
+    info: null
+    example:
+    - "batch"
+    - "sample"
+    default:
+    - "sample_id"
+    required: true
     direction: "input"
     multiple: true
     multiple_sep: ";"
@@ -626,7 +650,9 @@ resources:
 - type: "file"
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
-description: "A pipeline to process and annotate gene expression data."
+description: "A pipeline to process, integrate and annotate single cell (multi-)omics\
+  \ data.\nAvailable integration methods:\n- Harmony\n- scVI\nAvailable annotation\
+  \ methods:\n- CellTypist\n- scANVI (with scArches)\n"
 test_resources:
 - type: "nextflow_script"
   path: "test.nf"
@@ -659,20 +685,20 @@ dependencies:
     type: "github"
     repo: "openpipelines-bio/openpipeline"
     tag: "3.0.0"
-- name: "workflows/annotation/harmony_knn"
-  alias: "harmony_knn_annotation"
-  repository:
-    type: "github"
-    repo: "openpipelines-bio/openpipeline"
-    tag: "3.0.0"
-- name: "workflows/annotation/scvi_knn"
-  alias: "scvi_knn_annotation"
-  repository:
-    type: "github"
-    repo: "openpipelines-bio/openpipeline"
-    tag: "3.0.0"
 - name: "workflows/annotation/scanvi_scarches"
   alias: "scanvi_scarches_annotation"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "3.0.0"
+- name: "workflows/integration/harmony_leiden"
+  alias: "harmony_integration"
+  repository:
+    type: "github"
+    repo: "openpipelines-bio/openpipeline"
+    tag: "3.0.0"
+- name: "workflows/integration/scvi_leiden"
+  alias: "scvi_integration"
   repository:
     type: "github"
     repo: "openpipelines-bio/openpipeline"
@@ -750,20 +776,20 @@ runners:
   debug: false
   container: "docker"
 build_info:
-  config: "src/workflows/single_cell_runner/config.vsh.yaml"
+  config: "src/single_cell/process_integrate_annotate/config.vsh.yaml"
   runner: "nextflow"
   engine: "native"
-  output: "target/nextflow/workflows/single_cell_runner"
-  executable: "target/nextflow/workflows/single_cell_runner/main.nf"
+  output: "target/nextflow/single_cell/process_integrate_annotate"
+  executable: "target/nextflow/single_cell/process_integrate_annotate/main.nf"
   viash_version: "0.9.4"
-  git_commit: "566cb3e20b569a5aed40537a5f12fafdb061a900"
+  git_commit: "66bd89d5ba5f8646c8bedeeb9f684af1f78a2c99"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_composed"
   dependencies:
   - "target/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/multiomics/process_samples"
   - "target/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/annotate/celltypist"
-  - "target/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/annotation/harmony_knn"
-  - "target/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/annotation/scvi_knn"
   - "target/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/annotation/scanvi_scarches"
+  - "target/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/integration/harmony_leiden"
+  - "target/dependencies/github/openpipelines-bio/openpipeline/3.0.0/nextflow/workflows/integration/scvi_leiden"
 package_config:
   name: "openpipeline_composed"
   version: "build_main"

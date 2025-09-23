@@ -1,6 +1,14 @@
-name: "single_cell_runner"
-namespace: "workflows"
-description: "A pipeline to process and annotate gene expression data."
+name: "process_integrate_annotate"
+namespace: "single_cell"
+description: |
+  A pipeline to process, integrate and annotate single cell (multi-)omics data.
+  Available integration methods:
+  - Harmony
+  - scVI
+  Available annotation methods:
+  - CellTypist
+  - scANVI (with scArches)
+
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
     roles: [ author, maintainer ]
@@ -84,15 +92,22 @@ argument_groups:
           .var column containing highly variable genes. By default, do not subset genes.
 
 
-  - name: Annotation methods
-    description: The available annotation methods to annotate the query dataset(s) with.
+  - name: Methods
+    description: The available annotation and integration methods to integrate and/or annotate the query dataset(s) with.
     arguments:
+      - name: "--integration_methods"
+        type: string
+        multiple: true
+        required: false
+        choices: [harmony, scvi]
+        example: harmony;scvi
+        description: Integration methods to be executed.
       - name: "--annotation_methods"
         type: string
         multiple: true
-        required: true
-        choices: [celltypist, harmony_knn, scvi_knn, scanvi_scarches]
-        example: harmony_knn;scanvi_scarches
+        required: false
+        choices: [celltypist, scanvi_scarches]
+        example: celltypist;scanvi_scarches
         description: Annotation methods to be executed.
         
   - name: "Pre-processing options: RNA filtering"
@@ -207,6 +222,13 @@ argument_groups:
         default: 2
         example: [0, 1, 2]
         multiple: true
+      - name: "--harmony_obs_covariates"
+        type: string
+        description: "The .obs field(s) that define the covariate(s) to regress out."
+        example: ["batch", "sample"]
+        required: true
+        multiple: true
+        default: "sample_id"
 
   - name: scVI, scANVI and scArches training options
     # TODO - possibly provide separate training options for scVI, scANVI and scArches
@@ -336,15 +358,15 @@ dependencies:
   - name: annotate/celltypist
     repository: openpipeline
     alias: celltypist_annotation
-  - name: workflows/annotation/harmony_knn
-    repository: openpipeline
-    alias: harmony_knn_annotation
-  - name: workflows/annotation/scvi_knn
-    repository: openpipeline
-    alias: scvi_knn_annotation
   - name: workflows/annotation/scanvi_scarches
     repository: openpipeline
     alias: scanvi_scarches_annotation
+  - name: workflows/integration/harmony_leiden
+    repository: openpipeline
+    alias: harmony_integration
+  - name: workflows/integration/scvi_leiden
+    repository: openpipeline
+    alias: scvi_integration
 
 resources:
   - type: nextflow_script
