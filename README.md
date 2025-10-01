@@ -1,6 +1,6 @@
 # OpenPipeline Composed
 
-OpenPipeline Composed provides a comprehensive meta-workflow that combines multiple stand-alone workflows from the [OpenPipeline](https://github.com/openpipelines-bio/openpipeline/) package. The package integrates sample processing, batch integration, and cell type annotation into a unified pipeline for single-cell multi-omics data analysis.
+OpenPipeline Composed provides a comprehensive meta-workflow that combines multiple stand-alone workflows from the [OpenPipeline](https://github.com/openpipelines-bio/openpipeline/) package. The meta-workflow combines sample processing, batch integration, and cell type annotation into a unified pipeline for single-cell multi-omics data analysis.
 
 [![ViashHub](https://img.shields.io/badge/ViashHub-openpipeline_composed-7a4baa.svg)](https://www.viash-hub.com/packages/openpipeline_composed)
 [![GitHub](https://img.shields.io/badge/GitHub-openpipelines--bio%2Fopenpipeline_composed-blue.svg)](https://github.com/openpipelines-bio/openpipeline_composed)
@@ -10,7 +10,7 @@ OpenPipeline Composed provides a comprehensive meta-workflow that combines multi
 
 ## Overview
 
-The sole purpose of this package is to provide a meta-workflow that orchestrates and combines various stand-alone workflows from the OpenPipeline packages. By integrating multiple processing steps into a single workflow, it enables seamless processing from raw data to fully annotated, integrated datasets suitable for downstream analysis and atlas generation.
+The sole purpose of this package is to provide a meta-workflow that orchestrates and combines various stand-alone workflows from the [OpenPipeline](https://github.com/openpipelines-bio/openpipeline/) package. By integrating multiple processing steps into a single workflow, it enables seamless processing from raw data to fully annotated, integrated datasets suitable for downstream analysis and atlas generation.
 
 ## Functionality
 
