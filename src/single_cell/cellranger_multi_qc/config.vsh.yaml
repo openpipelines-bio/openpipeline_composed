@@ -19,16 +19,40 @@ argument_groups:
         example: output_dir/
       - name: "--output_h5mu"
         type: file
+        direction: output
         description: |
           Locations for the output files. Must contain a wildcard (*) character,
           which will be replaced with the sample name.
         example: "*.h5mu"
-        direction: output
         required: true
       - name: "--uns_metrics"
         type: string
         description: Name of the .uns slot under which to QC metrics (if any).
         default: "metrics_cellranger"
+      - name: "--output_qc_report"
+        type: file
+        direction: output
+        required: false
+        multiple: true
+        description: |
+          Output HTML QC report file(s). Generated when --create_sample_qc_report is true.
+        example: "*.sample_qc_report.html"
+      - name: "--output_processed_h5mu"
+        type: file
+        direction: output
+        required: false
+        description: |
+          Folder containing the QC-processed h5mu files. Generated when
+          --create_sample_qc_report is true.
+        example: "processed_h5mu/"
+      - name: "--output_multiqc_report"
+        type: file
+        direction: output
+        required: false
+        description: |
+          Directory containing the MultiQC report. Generated when
+          --create_multiqc_report is true.
+        example: "multiqc_report/"
 
   - name: "QC reports"
     description: "Options for generating optional QC reports."
@@ -51,29 +75,6 @@ argument_groups:
         description: |
           Whether to run CellBender for ambient RNA removal as part of the
           sample QC report generation. Only used when --create_sample_qc_report is true.
-      - name: "--output_qc_report"
-        type: file
-        direction: output
-        required: false
-        multiple: true
-        description: |
-          Output HTML QC report file(s). Generated when --create_sample_qc_report is true.
-        example: "sample_qc_report.html"
-      - name: "--output_processed_h5mu"
-        type: file
-        direction: output
-        required: false
-        description: |
-          Folder containing the QC-processed h5mu files. Generated when
-          --create_sample_qc_report is true.
-      - name: "--output_multiqc_report"
-        type: file
-        direction: output
-        required: false
-        description: |
-          Directory containing the MultiQC report. Generated when
-          --create_multiqc_report is true.
-        example: "multiqc_report"
 
 dependencies:
   - name: workflows/ingestion/cellranger_multi

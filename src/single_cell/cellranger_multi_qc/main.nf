@@ -42,11 +42,11 @@ workflow run_wf {
           fromState: { id, state ->
             [
               input: [state.output_fastqc, state.output_raw],
-              output: state.output_multiqc_report ?: "${id}_multiqc"
+              output: state.output_multiqc_report
             ]
           },
           toState: { id, output, state ->
-            state + [output_multiqc_report: output.output]
+            state + [_multiqc_produced: true, output_multiqc_report: output.output]
           }
         )
 
@@ -58,13 +58,14 @@ workflow run_wf {
               id: id,
               input: state.output_h5mu,
               ingestion_method: "cellranger_multi",
-              run_cellbender: state.run_cellbender ?: false,
-              output_qc_report: state.output_qc_report ?: "${id}_qc_report_*.html",
-              output_processed_h5mu: state.output_processed_h5mu ?: "processed_h5mu"
+              run_cellbender: state.run_cellbender,
+              output_qc_report: state.output_qc_report,
+              output_processed_h5mu: state.output_processed_h5mu
             ]
           },
           toState: { id, output, state ->
             state + [
+              _qc_report_produced: true,
               output_qc_report: output.output_qc_report,
               output_processed_h5mu: output.output_processed_h5mu
             ]
@@ -72,17 +73,13 @@ workflow run_wf {
         )
 
       | map { id, state ->
-          def out = [
-            output_raw: state.output_raw,
-            output_h5mu: state.output_h5mu
-          ]
+          def out = [output_raw: state.output_raw, output_h5mu: state.output_h5mu]
           if (state._meta) out._meta = state._meta
-          // output_qc_report is multiple:true → List[Path] when produced
-          if (state.output_qc_report instanceof List && state.output_qc_report.any { it instanceof java.nio.file.Path }) {
+          if (state._multiqc_produced) out.output_multiqc_report = state.output_multiqc_report
+          if (state._qc_report_produced) {
             out.output_qc_report = state.output_qc_report
+            out.output_processed_h5mu = state.output_processed_h5mu
           }
-          if (state.output_processed_h5mu instanceof java.nio.file.Path) out.output_processed_h5mu = state.output_processed_h5mu
-          if (state.output_multiqc_report instanceof java.nio.file.Path) out.output_multiqc_report = state.output_multiqc_report
           [id, out]
         }
 
