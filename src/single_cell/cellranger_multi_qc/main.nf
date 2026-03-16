@@ -8,14 +8,12 @@ workflow run_wf {
           [id, state + [_meta: [join_id: id]]]
         }
 
-      // Step 1 (optional): FastQC on the input FASTQ files
       | fastqc.run(
           runIf: { id, state -> state.create_multiqc_report },
           fromState: { id, state ->
             def fastq_files = state.gex_input ?: state.input
-            def fastq_dir = fastq_files instanceof List ? fastq_files[0].parent : fastq_files?.parent
             [
-              input: fastq_dir,
+              input: fastq_files[0].parent,
               output: "${id}_fastqc"
             ]
           },
@@ -25,7 +23,6 @@ workflow run_wf {
           }
         )
 
-      // Step 2: Cell Ranger multi
       | cellranger_multi.run(
           fromState: { id, state -> state },
           toState: { id, output, state ->
@@ -36,7 +33,6 @@ workflow run_wf {
           }
         )
 
-      // Step 3 (optional): MultiQC using FastQC results and CellRanger raw output
       | multiqc.run(
           runIf: { id, state -> state.create_multiqc_report },
           fromState: { id, state ->
@@ -50,7 +46,6 @@ workflow run_wf {
           }
         )
 
-      // Step 4 (optional): Sample QC report
       | generate_qc_report.run(
           runIf: { id, state -> state.create_sample_qc_report },
           fromState: { id, state ->
