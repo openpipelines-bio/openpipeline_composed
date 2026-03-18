@@ -9,11 +9,10 @@ workflow run_wf {
         }
 
       | fastqc.run(
-          runIf: { id, state -> state.create_multiqc_report },
+          runIf: { id, state -> state.create_multiqc_report && state.library_type?.contains("Gene Expression") },
           fromState: { id, state ->
-            def fastq_files = state.gex_input ?: state.input
             [
-              input: fastq_files[0].parent,
+              input: state.input[0].parent,
               output: "${id}_fastqc"
             ]
           },
@@ -34,7 +33,7 @@ workflow run_wf {
         )
 
       | multiqc.run(
-          runIf: { id, state -> state.create_multiqc_report },
+          runIf: { id, state -> state.create_multiqc_report && state.library_type?.contains("Gene Expression") },
           fromState: { id, state ->
             [
               input: [state.output_fastqc, state.output_raw],
@@ -47,7 +46,7 @@ workflow run_wf {
         )
 
       | generate_qc_report.run(
-          runIf: { id, state -> state.create_sample_qc_report },
+          runIf: { id, state -> state.create_sample_qc_report && state.library_type?.contains("Gene Expression") },
           fromState: { id, state ->
             [
               id: id,
