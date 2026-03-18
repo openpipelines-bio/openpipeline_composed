@@ -1,3 +1,11 @@
+# openpipeline_composed x.x.x
+
+## MINOR CHANGES
+
+* `workflows/single_cell/process_integrate_annotate`: Set scope to `private` (PR #6).
+
+* Bump `openpipeline` dependency version to `v4.0.4` (PR #9).
+
 # openpipeline_composed 0.1.1
 
 ## MINOR CHANGES
