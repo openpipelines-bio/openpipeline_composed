@@ -3820,8 +3820,8 @@ meta = [
   ],
   "status" : "enabled",
   "scope" : {
-    "image" : "public",
-    "target" : "public"
+    "image" : "private",
+    "target" : "private"
   },
   "requirements" : {
     "commands" : [
@@ -3969,9 +3969,9 @@ meta = [
     "config" : "/home/runner/work/openpipeline_composed/openpipeline_composed/src/single_cell/process_integrate_annotate/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "native",
-    "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/single_cell/process_integrate_annotate",
+    "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/process_integrate_annotate",
     "viash_version" : "0.9.4",
-    "git_commit" : "49aa176662af57fa1e190658afffa9cce4cd80b3",
+    "git_commit" : "7264b953ddee96f1d17571ec53ab8d47685f2499",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
