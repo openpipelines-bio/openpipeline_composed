@@ -1,3 +1,9 @@
+# openpipeline_composed x.x.x
+
+## MINOR CHANGES
+
+* `workflows/single_cell/process_integrate_annotate`: Set scope to `private` (PR #6).
+
 # openpipeline_composed 0.1.1
 
 ## MINOR CHANGES
