@@ -145,7 +145,7 @@ workflow test_wf_both_reports {
       assert state.output_h5mu.toString().endsWith(".h5mu") : "output_h5mu should end with '.h5mu'."
 
       assert state.containsKey("output_multiqc_report") : "State should contain key 'output_multiqc_report'."
-      assert state.output_multiqc_report.isDirectory() : "'output_multiqc_report' should be a directory."
+      assert state.output_multiqc_report.isFile() : "'output_multiqc_report' should be a file."
 
       assert state.containsKey("output_qc_report") : "State should contain key 'output_qc_report'."
       assert state.output_qc_report instanceof List : "'output_qc_report' should be a list."
@@ -198,7 +198,7 @@ workflow test_wf_multiqc_only {
       assert state.output_h5mu.toString().endsWith(".h5mu") : "output_h5mu should end with '.h5mu'."
 
       assert state.containsKey("output_multiqc_report") : "State should contain key 'output_multiqc_report'."
-      assert state.output_multiqc_report.isDirectory() : "'output_multiqc_report' should be a directory."
+      assert state.output_multiqc_report.isFile() : "'output_multiqc_report' should be a file."
 
       assert !state.containsKey("output_qc_report") : "State should NOT contain 'output_qc_report' when only MultiQC is enabled."
       assert !state.containsKey("output_processed_h5mu") : "State should NOT contain 'output_processed_h5mu' when only MultiQC is enabled."

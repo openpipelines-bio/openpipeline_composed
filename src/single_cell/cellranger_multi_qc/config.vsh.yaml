@@ -1,6 +1,6 @@
 name: "cellranger_multi_qc"
 namespace: "single_cell"
-scope: "public"
+scope: "private"
 description: "A pipeline for running Cell Ranger multi followed by QC."
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
@@ -29,13 +29,13 @@ argument_groups:
         type: string
         description: Name of the .uns slot under which to QC metrics (if any).
         default: "metrics_cellranger"
-      - name: "--output_qc_report"
+      - name: "--output_ingestion_qc_report"
         type: file
         direction: output
         required: false
         multiple: true
         description: |
-          Output HTML QC report file(s). Generated when --create_sample_qc_report is true.
+          Ingestion QC report in HTML format. Generated when --create_sample_qc_report is true.
         example: "*.sample_qc_report.html"
       - name: "--output_processed_h5mu"
         type: file
@@ -50,22 +50,21 @@ argument_groups:
         direction: output
         required: false
         description: |
-          Directory containing the MultiQC report. Generated when
+          MultiQC report in HTML format. Generated when
           --create_multiqc_report is true.
-        example: "multiqc_report/"
+        example: "multiqc_report.html"
 
   - name: "QC reports"
     description: "Options for generating optional QC reports."
     arguments:
       - name: "--create_sample_qc_report"
         type: boolean
-        default: false
+        default: true
         description: |
-          Whether to generate a per-sample QC report using the generate_qc_report
-          workflow from openpipeline_qc.
+          Whether to generate an ingestion QC report.
       - name: "--create_multiqc_report"
         type: boolean
-        default: false
+        default: true
         description: |
           Whether to run FastQC on the input FASTQ files and aggregate results
           into a MultiQC report.
@@ -81,10 +80,10 @@ dependencies:
     repository: openpipeline
   - name: workflows/generate_qc_report
     repository: openpipeline_qc
-  - name: qc/fastqc
-    repository: openpipeline
-  - name: qc/multiqc
-    repository: openpipeline
+  - name: fastqc
+    repository: biobox
+  - name: multiqc
+    repository: biobox
 
 resources:
   - type: nextflow_script

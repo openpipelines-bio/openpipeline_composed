@@ -12,13 +12,12 @@ workflow run_wf {
           runIf: { id, state -> state.create_multiqc_report && state.library_type?.contains("Gene Expression") },
           fromState: { id, state ->
             [
-              input: state.input[0].parent,
-              output: "${id}_fastqc"
+              input: state.input,
+              outdir: "${id}_fastqc"
             ]
           },
-          args: [mode: "dir"],
           toState: { id, output, state ->
-            state + [output_fastqc: output.output]
+            state + [output_fastqc: output.outdir]
           }
         )
 
@@ -37,14 +36,14 @@ workflow run_wf {
           fromState: { id, state ->
             [
               input: [state.output_fastqc, state.output_raw],
-              output: state.output_multiqc_report
+              output_report: state.output_multiqc_report
             ]
           },
           toState: { id, output, state ->
-            state + [_multiqc_produced: true, output_multiqc_report: output.output]
+            state + [_multiqc_produced: true, output_multiqc_report: output.output_report]
           }
         )
-
+      
       | generate_qc_report.run(
           runIf: { id, state -> state.create_sample_qc_report && state.library_type?.contains("Gene Expression") },
           fromState: { id, state ->
@@ -53,14 +52,14 @@ workflow run_wf {
               input: state.output_h5mu,
               ingestion_method: "cellranger_multi",
               run_cellbender: state.run_cellbender,
-              output_qc_report: state.output_qc_report,
+              output_qc_report: state.output_ingestion_qc_report,
               output_processed_h5mu: state.output_processed_h5mu
             ]
           },
           toState: { id, output, state ->
             state + [
               _qc_report_produced: true,
-              output_qc_report: output.output_qc_report,
+              output_ingestion_qc_report: output.output_qc_report,
               output_processed_h5mu: output.output_processed_h5mu
             ]
           }
@@ -71,7 +70,7 @@ workflow run_wf {
           if (state._meta) out._meta = state._meta
           if (state._multiqc_produced) out.output_multiqc_report = state.output_multiqc_report
           if (state._qc_report_produced) {
-            out.output_qc_report = state.output_qc_report
+            out.output_ingestion_qc_report = state.output_ingestion_qc_report
             out.output_processed_h5mu = state.output_processed_h5mu
           }
           [id, out]

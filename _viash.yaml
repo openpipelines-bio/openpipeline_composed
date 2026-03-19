@@ -19,6 +19,10 @@ repositories:
     repo: openpipeline_qc
     type: vsh
     tag: v0.2.2
+  - name: biobox
+    repo: biobox
+    type: vsh
+    tag: v0.4.2
 
 info:
   test_resources:
