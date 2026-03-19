@@ -6,6 +6,8 @@
 
 * Bump `openpipeline` dependency version to `v4.0.4` (PR #9).
 
+* Bump `viash` version to `0.9.7` (PR #10).
+
 # openpipeline_composed 0.1.1
 
 ## MINOR CHANGES
