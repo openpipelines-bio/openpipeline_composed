@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "generate_html",
+  "description": "Generate an HTML report from the QC metrics",
+  "type": "object",
+  "$defs": {
+    "inputs": {
+      "title": "Inputs",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "input_data": {
+          "type": "string",
+          "format": "path",
+          "exists": true,
+          "description": "The input JSON file containing the QC metrics",
+          "help_text": "Type: `file`, multiple: `False`, required, direction: `input`, example: `\"path/to/file.json\"`. "
+        },
+        "input_structure": {
+          "type": "string",
+          "format": "path",
+          "exists": true,
+          "description": "The input JSON file containing the structure of the data",
+          "help_text": "Type: `file`, multiple: `False`, required, direction: `input`, example: `\"path/to/file.json\"`. "
+        }
+      }
+    },
+    "outputs": {
+      "title": "Outputs",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "output_qc_report": {
+          "type": "string",
+          "format": "path",
+          "description": "The output HTML report",
+          "help_text": "Type: `file`, multiple: `False`, required, default: `\"$id.$key.output_qc_report.html\"`, direction: `output`, example: `\"path/to/file.html\"`. ",
+          "default": "$id.$key.output_qc_report.html"
+        }
+      }
+    },
+    "nextflow input-output arguments": {
+      "title": "Nextflow input-output arguments",
+      "type": "object",
+      "description": "Input/output parameters for Nextflow itself. Please note that both publishDir and publish_dir are supported but at least one has to be configured.",
+      "properties": {
+        "publish_dir": {
+          "type": "string",
+          "description": "Path to an output directory.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"output/\"`. "
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/inputs"
+    },
+    {
+      "$ref": "#/$defs/outputs"
+    },
+    {
+      "$ref": "#/$defs/nextflow input-output arguments"
+    }
+  ]
+}
