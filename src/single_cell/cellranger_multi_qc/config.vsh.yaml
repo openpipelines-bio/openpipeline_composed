@@ -95,9 +95,7 @@ test_resources:
     path: test.nf
     entrypoint: test_wf
   - path: /resources_test/10x_5k_anticmv/raw/
-    dest: 10x_5k_anticmv/raw/
   - path: /resources_test/10x_5k_fixed/raw/
-    dest: 10x_5k_fixed/raw/ 
   - path: /resources_test/reference_gencodev41_chr1
 runners:
   - type: nextflow
