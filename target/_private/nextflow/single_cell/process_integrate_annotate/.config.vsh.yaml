@@ -790,7 +790,7 @@ build_info:
   output: "target/_private/nextflow/single_cell/process_integrate_annotate"
   executable: "target/_private/nextflow/single_cell/process_integrate_annotate/main.nf"
   viash_version: "0.9.7"
-  git_commit: "1d78120b91077ec8abcb1b147d2d18348a089ee0"
+  git_commit: "ae79a978076f09497491c44345d0fd5434df06b2"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_composed"
   dependencies:
   - "target/dependencies/vsh/vsh/openpipeline/v4.0.4/nextflow/workflows/multiomics/process_samples"
