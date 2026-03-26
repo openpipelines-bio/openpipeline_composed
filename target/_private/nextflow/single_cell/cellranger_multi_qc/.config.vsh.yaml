@@ -741,11 +741,9 @@ test_resources:
   is_executable: true
   entrypoint: "test_wf"
 - type: "file"
-  path: "10x_5k_anticmv/raw/"
-  dest: "10x_5k_anticmv/raw/"
+  path: "raw"
 - type: "file"
-  path: "10x_5k_fixed/raw/"
-  dest: "10x_5k_fixed/raw/"
+  path: "raw"
 - type: "file"
   path: "reference_gencodev41_chr1"
 info: null
@@ -864,7 +862,7 @@ build_info:
   output: "target/_private/nextflow/single_cell/cellranger_multi_qc"
   executable: "target/_private/nextflow/single_cell/cellranger_multi_qc/main.nf"
   viash_version: "0.9.7"
-  git_commit: "8c8bffba1810de5729133b9165150465fbc44310"
+  git_commit: "e2d031d84f20d5a623970b5cdcadb7bb21bf8516"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_composed"
   dependencies:
   - "target/dependencies/vsh/vsh/openpipeline/v4.0.4/nextflow/workflows/ingestion/cellranger_multi"

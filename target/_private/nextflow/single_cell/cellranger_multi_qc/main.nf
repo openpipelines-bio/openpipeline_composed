@@ -3821,13 +3821,11 @@ meta = [
     },
     {
       "type" : "file",
-      "path" : "/resources_test/10x_5k_anticmv/raw/",
-      "dest" : "10x_5k_anticmv/raw/"
+      "path" : "/resources_test/10x_5k_anticmv/raw/"
     },
     {
       "type" : "file",
-      "path" : "/resources_test/10x_5k_fixed/raw/",
-      "dest" : "10x_5k_fixed/raw/"
+      "path" : "/resources_test/10x_5k_fixed/raw/"
     },
     {
       "type" : "file",
@@ -3986,7 +3984,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/cellranger_multi_qc",
     "viash_version" : "0.9.7",
-    "git_commit" : "8c8bffba1810de5729133b9165150465fbc44310",
+    "git_commit" : "e2d031d84f20d5a623970b5cdcadb7bb21bf8516",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
