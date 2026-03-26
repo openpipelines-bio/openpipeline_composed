@@ -23,7 +23,7 @@ workflow test_wf {
         output_raw: "sample_anticmv_raw/",
         output_h5mu: "sample_anticmv.h5mu",
         create_sample_qc_report: true,
-        output_qc_report: "sample_anticmv_qc_report_*.html",
+        output_ingestion_qc_report: "sample_anticmv_qc_report_*.html",
         output_processed_h5mu: "sample_anticmv_processed"
       ]
     ])
@@ -45,9 +45,9 @@ workflow test_wf {
       assert state.output_h5mu.isFile() : "'output_h5mu' should be a file."
       assert state.output_h5mu.toString().endsWith(".h5mu") : "output_h5mu should end with '.h5mu'. Found: ${state.output_h5mu}"
 
-      assert state.containsKey("output_qc_report") : "State should contain key 'output_qc_report'."
-      assert state.output_qc_report instanceof List : "'output_qc_report' should be a list."
-      assert state.output_qc_report.every { it.isFile() } : "All QC report files should exist."
+      assert state.containsKey("output_ingestion_qc_report") : "State should contain key 'output_ingestion_qc_report'."
+      assert state.output_ingestion_qc_report instanceof List : "'output_ingestion_qc_report' should be a list."
+      assert state.output_ingestion_qc_report.every { it.isFile() } : "All QC report files should exist."
 
       assert state.containsKey("output_processed_h5mu") : "State should contain key 'output_processed_h5mu'."
       assert state.output_processed_h5mu.isDirectory() : "'output_processed_h5mu' should be a directory."
@@ -74,7 +74,7 @@ workflow test_wf_ab_only {
         output_h5mu: "sample_ab_only.h5mu",
         create_sample_qc_report: true,
         create_multiqc_report: true,
-        output_qc_report: "sample_ab_only_qc_report_*.html",
+        output_ingestion_qc_report: "sample_ab_only_qc_report_*.html",
         output_processed_h5mu: "sample_ab_only_processed"
       ]
     ])
@@ -95,7 +95,7 @@ workflow test_wf_ab_only {
       assert state.containsKey("output_h5mu") : "State should contain key 'output_h5mu'."
       assert state.output_h5mu.isFile() : "'output_h5mu' should be a file."
 
-      assert !state.containsKey("output_qc_report") : "State should NOT contain 'output_qc_report' for AB-only input."
+      assert !state.containsKey("output_ingestion_qc_report") : "State should NOT contain 'output_ingestion_qc_report' for AB-only input."
       assert !state.containsKey("output_multiqc_report") : "State should NOT contain 'output_multiqc_report' for AB-only input."
 
       "Output: $output"
@@ -122,7 +122,7 @@ workflow test_wf_both_reports {
         output_h5mu: "sample_both_reports.h5mu",
         create_sample_qc_report: true,
         create_multiqc_report: true,
-        output_qc_report: "sample_both_reports_qc_report_*.html",
+        output_ingestion_qc_report: "sample_both_reports_qc_report_*.html",
         output_processed_h5mu: "sample_both_reports_processed"
       ]
     ])
@@ -147,9 +147,9 @@ workflow test_wf_both_reports {
       assert state.containsKey("output_multiqc_report") : "State should contain key 'output_multiqc_report'."
       assert state.output_multiqc_report.isFile() : "'output_multiqc_report' should be a file."
 
-      assert state.containsKey("output_qc_report") : "State should contain key 'output_qc_report'."
-      assert state.output_qc_report instanceof List : "'output_qc_report' should be a list."
-      assert state.output_qc_report.every { it.isFile() } : "All QC report files should exist."
+      assert state.containsKey("output_ingestion_qc_report") : "State should contain key 'output_ingestion_qc_report'."
+      assert state.output_ingestion_qc_report instanceof List : "'output_ingestion_qc_report' should be a list."
+      assert state.output_ingestion_qc_report.every { it.isFile() } : "All QC report files should exist."
 
       assert state.containsKey("output_processed_h5mu") : "State should contain key 'output_processed_h5mu'."
       assert state.output_processed_h5mu.isDirectory() : "'output_processed_h5mu' should be a directory."
@@ -176,6 +176,7 @@ workflow test_wf_multiqc_only {
         library_type: ["Gene Expression", "Antibody Capture"],
         output_raw: "sample_multiqc_only_raw/",
         output_h5mu: "sample_multiqc_only.h5mu",
+        create_sample_qc_report: false,
         create_multiqc_report: true
       ]
     ])
@@ -200,9 +201,10 @@ workflow test_wf_multiqc_only {
       assert state.containsKey("output_multiqc_report") : "State should contain key 'output_multiqc_report'."
       assert state.output_multiqc_report.isFile() : "'output_multiqc_report' should be a file."
 
-      assert !state.containsKey("output_qc_report") : "State should NOT contain 'output_qc_report' when only MultiQC is enabled."
+      assert !state.containsKey("output_ingestion_qc_report") : "State should NOT contain 'output_ingestion_qc_report' when only MultiQC is enabled."
       assert !state.containsKey("output_processed_h5mu") : "State should NOT contain 'output_processed_h5mu' when only MultiQC is enabled."
 
       "Output: $output"
     }
 }
+
