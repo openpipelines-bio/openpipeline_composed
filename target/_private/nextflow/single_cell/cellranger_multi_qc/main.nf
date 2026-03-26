@@ -3986,7 +3986,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/cellranger_multi_qc",
     "viash_version" : "0.9.7",
-    "git_commit" : "ae79a978076f09497491c44345d0fd5434df06b2",
+    "git_commit" : "8c8bffba1810de5729133b9165150465fbc44310",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -3997,6 +3997,11 @@ meta = [
         {
           "type" : "s3",
           "path" : "s3://openpipelines-bio/openpipeline_incubator/resources_test",
+          "dest" : "resources_test"
+        },
+        {
+          "type" : "s3",
+          "path" : "s3://openpipelines-data",
           "dest" : "resources_test"
         }
       ]
