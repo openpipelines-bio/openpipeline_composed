@@ -3993,7 +3993,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/process_integrate_annotate",
     "viash_version" : "0.9.7",
-    "git_commit" : "e2d031d84f20d5a623970b5cdcadb7bb21bf8516",
+    "git_commit" : "50e2a48840aa04f074dcf6c94e456d61b7306f02",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -4004,11 +4004,6 @@ meta = [
         {
           "type" : "s3",
           "path" : "s3://openpipelines-bio/openpipeline_incubator/resources_test",
-          "dest" : "resources_test"
-        },
-        {
-          "type" : "s3",
-          "path" : "s3://openpipelines-data",
           "dest" : "resources_test"
         }
       ]

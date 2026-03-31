@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 include { cellranger_multi_qc } from params.rootDir + "/target/_private/nextflow/single_cell/cellranger_multi_qc/main.nf"
 
-params.resources_test = "s3://openpipelines-data"
+params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_wf {
   resources_test = file(params.resources_test)
