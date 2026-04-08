@@ -1,6 +1,6 @@
 name: "cellranger_multi_qc"
 namespace: "single_cell"
-scope: "private"
+# scope: "private"
 description: "A pipeline for running Cell Ranger multi followed by QC."
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
