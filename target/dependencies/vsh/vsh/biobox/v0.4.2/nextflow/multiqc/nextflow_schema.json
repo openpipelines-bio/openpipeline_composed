@@ -1,0 +1,334 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "multiqc",
+  "description": "MultiQC aggregates results from bioinformatics analyses across many samples into a single report.\nIt searches a given directory for analysis logs and compiles a HTML report. It's a general use tool, perfect for summarising the output from numerous bioinformatics tools.\n",
+  "type": "object",
+  "$defs": {
+    "input": {
+      "title": "Input",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "input": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "format": "path",
+          "exists": true,
+          "description": "File paths to be searched for analysis results to be included in the report.\n",
+          "help_text": "Type: `file`, multiple: `True`, required, direction: `input`, example: `[\"data/results\"]`. "
+        }
+      }
+    },
+    "ouput": {
+      "title": "Ouput",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "output_report": {
+          "type": "string",
+          "format": "path",
+          "description": "Filepath of the generated report.\n",
+          "help_text": "Type: `file`, multiple: `False`, default: `\"$id.$key.output_report.html\"`, direction: `output`, example: `\"multiqc_report.html\"`. ",
+          "default": "$id.$key.output_report.html"
+        },
+        "output_data": {
+          "type": "string",
+          "format": "path",
+          "description": "Output directory for parsed data files",
+          "help_text": "Type: `file`, multiple: `False`, default: `\"$id.$key.output_data\"`, direction: `output`, example: `\"multiqc_data\"`. ",
+          "default": "$id.$key.output_data"
+        },
+        "output_plots": {
+          "type": "string",
+          "format": "path",
+          "description": "Output directory for generated plots",
+          "help_text": "Type: `file`, multiple: `False`, default: `\"$id.$key.output_plots\"`, direction: `output`, example: `\"multiqc_plots\"`. ",
+          "default": "$id.$key.output_plots"
+        }
+      }
+    },
+    "modules and analyses to run": {
+      "title": "Modules and analyses to run",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "include_modules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Use only these module",
+          "help_text": "Type: `string`, multiple: `True`, example: `[\"fastqc\";\"cutadapt\"]`. "
+        },
+        "exclude_modules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Do not use only these modules",
+          "help_text": "Type: `string`, multiple: `True`, example: `[\"fastqc\";\"cutadapt\"]`. "
+        },
+        "ignore_analysis": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "",
+          "help_text": "Type: `string`, multiple: `True`, example: `[\"run_one/*\";\"run_two/*\"]`. "
+        },
+        "ignore_samples": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "",
+          "help_text": "Type: `string`, multiple: `True`, example: `[\"sample_1*\";\"sample_3*\"]`. "
+        },
+        "ignore_symlinks": {
+          "type": "boolean",
+          "description": "Ignore symlinked directories and files",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        }
+      }
+    },
+    "sample name handling": {
+      "title": "Sample name handling",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "dirs": {
+          "type": "boolean",
+          "description": "Prepend directory to sample names to avoid clashing filenames",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "dirs_depth": {
+          "type": "integer",
+          "description": "Prepend n directories to sample names",
+          "help_text": "Type: `integer`, multiple: `False`. "
+        },
+        "full_names": {
+          "type": "boolean",
+          "description": "Do not clean the sample names (leave as full file name)",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "fn_as_s_name": {
+          "type": "boolean",
+          "description": "Use the log filename as the sample name",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "replace_names": {
+          "type": "string",
+          "format": "path",
+          "description": "TSV file to rename sample names during report generation",
+          "help_text": "Type: `file`, multiple: `False`, direction: `input`, example: `\"replace_names.tsv\"`. "
+        }
+      }
+    },
+    "report customisation": {
+      "title": "Report Customisation",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "title": {
+          "type": "string",
+          "description": "Report title",
+          "help_text": "Type: `string`, multiple: `False`. "
+        },
+        "comment": {
+          "type": "string",
+          "description": "Custom comment, will be printed at the top of the report.\n",
+          "help_text": "Type: `string`, multiple: `False`. "
+        },
+        "template": {
+          "type": "string",
+          "description": "Report template to use.\n",
+          "help_text": "Type: `string`, multiple: `False`, choices: ``default`, `gathered`, `geo`, `highcharts`, `sections`, `simple``. ",
+          "enum": [
+            "default",
+            "gathered",
+            "geo",
+            "highcharts",
+            "sections",
+            "simple"
+          ]
+        },
+        "sample_names": {
+          "type": "string",
+          "format": "path",
+          "description": "TSV file containing alternative sample names for renaming buttons in the report.\n",
+          "help_text": "Type: `file`, multiple: `False`, direction: `input`, example: `\"sample_names.tsv\"`. "
+        },
+        "sample_filters": {
+          "type": "string",
+          "format": "path",
+          "description": "TSV file containing show/hide patterns for the report\n",
+          "help_text": "Type: `file`, multiple: `False`, direction: `input`, example: `\"sample_filters.tsv\"`. "
+        },
+        "custom_css_file": {
+          "type": "string",
+          "format": "path",
+          "description": "Custom CSS file to add to the final report\n",
+          "help_text": "Type: `file`, multiple: `False`, direction: `input`, example: `\"custom_style_sheet.css\"`. "
+        },
+        "profile_runtime": {
+          "type": "boolean",
+          "description": "Add analysis of how long MultiQC takes to run to the report\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        }
+      }
+    },
+    "multiqc behaviour": {
+      "title": "MultiQC behaviour",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "verbose": {
+          "type": "boolean",
+          "description": "Increase output verbosity.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "quiet": {
+          "type": "boolean",
+          "description": "Only show log warnings\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "strict": {
+          "type": "boolean",
+          "description": "Don't catch exceptions, run additional code checks to help development.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "development": {
+          "type": "boolean",
+          "description": "Development mode",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "require_logs": {
+          "type": "boolean",
+          "description": "Require all explicitly requested modules to have log files",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "no_megaqc_upload": {
+          "type": "boolean",
+          "description": "Don't upload generated report to MegaQC, even if MegaQC options are found.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "no_ansi": {
+          "type": "boolean",
+          "description": "Disable coloured log output.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "cl_config": {
+          "type": "string",
+          "description": "YAML formatted string that allows to customize MultiQC behaviour like input file detection.\n",
+          "help_text": "Type: `string`, multiple: `False`, example: `\"qualimap_config: { general_stats_coverage: [20,40,200] }\"`. "
+        }
+      }
+    },
+    "output format": {
+      "title": "Output format",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "flat": {
+          "type": "boolean",
+          "description": "Use only flat plots (static images).\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "interactive": {
+          "type": "boolean",
+          "description": "Use only interactive plots (in-browser Javascript).\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "data_dir": {
+          "type": "boolean",
+          "description": "Force the parsed data directory to be created.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "no_data_dir": {
+          "type": "boolean",
+          "description": "Prevent the parsed data directory from being created.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "zip_data_dir": {
+          "type": "boolean",
+          "description": "Compress the data directory.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "data_format": {
+          "type": "string",
+          "description": "Output parsed data in a different format than the default 'txt'.\n",
+          "help_text": "Type: `string`, multiple: `False`, choices: ``tsv`, `csv`, `json`, `yaml``. ",
+          "enum": [
+            "tsv",
+            "csv",
+            "json",
+            "yaml"
+          ]
+        },
+        "pdf": {
+          "type": "boolean",
+          "description": "Creates PDF report with the 'simple' template",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        }
+      }
+    },
+    "nextflow input-output arguments": {
+      "title": "Nextflow input-output arguments",
+      "type": "object",
+      "description": "Input/output parameters for Nextflow itself. Please note that both publishDir and publish_dir are supported but at least one has to be configured.",
+      "properties": {
+        "publish_dir": {
+          "type": "string",
+          "description": "Path to an output directory.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"output/\"`. "
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/input"
+    },
+    {
+      "$ref": "#/$defs/ouput"
+    },
+    {
+      "$ref": "#/$defs/modules and analyses to run"
+    },
+    {
+      "$ref": "#/$defs/sample name handling"
+    },
+    {
+      "$ref": "#/$defs/report customisation"
+    },
+    {
+      "$ref": "#/$defs/multiqc behaviour"
+    },
+    {
+      "$ref": "#/$defs/output format"
+    },
+    {
+      "$ref": "#/$defs/nextflow input-output arguments"
+    }
+  ]
+}

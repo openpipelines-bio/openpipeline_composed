@@ -1,0 +1,388 @@
+name: "fastqc"
+version: "v0.4.2"
+authors:
+- name: "Theodoro Gasperin Terra Camargo"
+  roles:
+  - "author"
+  - "maintainer"
+  info:
+    links:
+      email: "theodorogtc@gmail.com"
+      github: "tgaspe"
+      linkedin: "theodoro-gasperin-terra-camargo"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "file"
+    name: "--input"
+    description: "FASTQ file(s) to be analyzed.\n"
+    info: null
+    example:
+    - "input.fq"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Outputs"
+  description: "At least one of the output options (--html, --zip, --summary, --data)\
+    \ must be used.\n"
+  arguments:
+  - type: "file"
+    name: "--outdir"
+    description: "Output directory where the results will be saved.\n"
+    info: null
+    example:
+    - "results"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--html"
+    description: "Create the HTML report of the results. \n'*' wild card must be provided\
+      \ in the output file name. \nWild card will be replaced by the input file basename.\n\
+      e.g. \n  --input \"sample_1.fq\"\n  --html \"*.html\"\n  would create an output\
+      \ html file named sample_1.html\n"
+    info: null
+    example:
+    - "*.html"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: true
+    multiple_sep: ";"
+  - type: "file"
+    name: "--zip"
+    description: "Create the zip file(s) containing: html report, data, images, icons,\
+      \ summary, etc.\n'*' wild card must be provided in the output file name.\nWild\
+      \ card will be replaced by the input basename.\ne.g. \n  --input \"sample_1.fq\"\
+      \n  --html \"*.zip\"\n  would create an output zip file named sample_1.zip\n"
+    info: null
+    example:
+    - "*.zip"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: true
+    multiple_sep: ";"
+  - type: "file"
+    name: "--summary"
+    description: "Create the summary file(s).\n'*' wild card must be provided in the\
+      \ output file name.\nWild card will be replaced by the input basename.\ne.g.\
+      \ \n  --input \"sample_1.fq\"\n  --summary \"*_summary.txt\"\n  would create\
+      \ an output summary.txt file named sample_1_summary.txt\n"
+    info: null
+    example:
+    - "*_summary.txt"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: true
+    multiple_sep: ";"
+  - type: "file"
+    name: "--data"
+    description: "Create the data file(s).\n'*' wild card must be provided in the\
+      \ output file name.\nWild card will be replaced by the input basename.\ne.g.\
+      \ \n  --input \"sample_1.fq\"\n  --summary \"*_data.txt\"\n  would create an\
+      \ output data.txt file named sample_1_data.txt\n"
+    info: null
+    example:
+    - "*_data.txt"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: true
+    multiple_sep: ";"
+- name: "Options"
+  arguments:
+  - type: "boolean_true"
+    name: "--casava"
+    description: "Files come from raw casava output. Files in the same sample\ngroup\
+      \ (differing only by the group number) will be analysed\nas a set rather than\
+      \ individually. Sequences with the filter\nflag set in the header will be excluded\
+      \ from the analysis.\nFiles must have the same names given to them by casava\n\
+      (including being gzipped and ending with .gz) otherwise they\nwon't be grouped\
+      \ together correctly.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--nano"
+    description: "Files come from nanopore sequences and are in fast5 format. In\n\
+      this mode you can pass in directories to process and the program\nwill take\
+      \ in all fast5 files within those directories and produce\na single output file\
+      \ from the sequences found in all files.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--nofilter"
+    description: "If running with --casava then don't remove read flagged by\ncasava\
+      \ as poor quality when performing the QC analysis.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--nogroup"
+    description: "Disable grouping of bases for reads >50bp. \nAll reports will show\
+      \ data for every base in the read. \nWARNING: Using this option will cause fastqc\
+      \ to crash \nand burn if you use it on really long reads, and your \nplots may\
+      \ end up a ridiculous size. You have been warned!\n"
+    info: null
+    direction: "input"
+  - type: "integer"
+    name: "--min_length"
+    description: "Sets an artificial lower limit on the length of the \nsequence to\
+      \ be shown in the report. As long as you \nset this to a value greater or equal\
+      \ to your longest \nread length then this will be the sequence length used \n\
+      to create your read groups. This can be useful for making\ndirectly comparable\
+      \ statistics from datasets with somewhat \nvariable read lengths.\n"
+    info: null
+    example:
+    - 0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--format"
+    alternatives:
+    - "-f"
+    description: "Bypasses the normal sequence file format detection and \nforces\
+      \ the program to use the specified format. \nValid formats are bam, sam, bam_mapped,\
+      \ sam_mapped, and fastq.\n"
+    info: null
+    example:
+    - "bam"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--contaminants"
+    alternatives:
+    - "-c"
+    description: "Specifies a non-default file which contains the list \nof contaminants\
+      \ to screen overrepresented sequences against. \nThe file must contain sets\
+      \ of named contaminants in the form\nname[tab]sequence. Lines prefixed with\
+      \ a hash will be ignored.\n"
+    info: null
+    example:
+    - "contaminants.txt"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--adapters"
+    alternatives:
+    - "-a"
+    description: "Specifies a non-default file which contains the list of \nadapter\
+      \ sequences which will be explicitly searched against \nthe library. The file\
+      \ must contain sets of named adapters \nin the form name[tab]sequence. Lines\
+      \ prefixed with a hash will be ignored.\n"
+    info: null
+    example:
+    - "adapters.txt"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--limits"
+    alternatives:
+    - "-l"
+    description: "Specifies a non-default file which contains \na set of criteria\
+      \ which will be used to determine \nthe warn/error limits for the various modules.\
+      \ \nThis file can also be used to selectively remove \nsome modules from the\
+      \ output altogether. The format \nneeds to mirror the default limits.txt file\
+      \ found in \nthe Configuration folder.\n"
+    info: null
+    example:
+    - "limits.txt"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--kmers"
+    alternatives:
+    - "-k"
+    description: "Specifies the length of Kmer to look for in the Kmer \ncontent module.\
+      \ Specified Kmer length must be between \n2 and 10. Default length is 7 if not\
+      \ specified.\n"
+    info: null
+    example:
+    - 7
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--quiet"
+    alternatives:
+    - "-q"
+    description: "Suppress all progress messages on stdout and only report errors.\n"
+    info: null
+    direction: "input"
+resources:
+- type: "bash_script"
+  path: "script.sh"
+  is_executable: true
+description: "FastQC - A high throughput sequence QC analysis tool."
+test_resources:
+- type: "bash_script"
+  path: "test.sh"
+  is_executable: true
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+requirements:
+  commands:
+  - "ps"
+keywords:
+- "Quality control"
+- "BAM"
+- "SAM"
+- "FASTQ"
+license: "GPL-3.0, Apache-2.0"
+links:
+  repository: "https://github.com/s-andrews/FastQC"
+  homepage: "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/"
+  documentation: "https://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/"
+  issue_tracker: "https://github.com/s-andrews/FastQC/issues"
+runners:
+- type: "executable"
+  id: "executable"
+  docker_setup_strategy: "ifneedbepullelsecachedbuild"
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+  debug: false
+  container: "docker"
+engines:
+- type: "docker"
+  id: "docker"
+  image: "biocontainers/fastqc:v0.11.9_cv8"
+  target_registry: "images.viash-hub.com"
+  target_tag: "v0.4.2"
+  namespace_separator: "/"
+  setup:
+  - type: "docker"
+    run:
+    - "echo \"fastqc: $(fastqc --version | sed -n 's/^FastQC //p')\" > /var/software_versions.txt\n"
+  entrypoint: []
+  cmd: null
+- type: "native"
+  id: "native"
+build_info:
+  config: "src/fastqc/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "docker|native"
+  output: "target/nextflow/fastqc"
+  executable: "target/nextflow/fastqc/main.nf"
+  viash_version: "0.9.4"
+  git_commit: "02b470d967226478af69c37eae2b1256be1b78fd"
+  git_remote: "https://github.com/viash-hub/biobox"
+package_config:
+  name: "biobox"
+  version: "v0.4.2"
+  summary: "A curated collection of high-quality, standalone bioinformatics components\
+    \ built with [Viash](https://viash.io).\n"
+  description: "`biobox` offers a suite of reliable bioinformatics components, similar\
+    \ to [nf-core/modules](https://github.com/nf-core/modules) and [snakemake-wrappers/bio](https://github.com/snakemake/snakemake-wrappers/tree/master/bio),\
+    \ but built using the [Viash](https://viash.io) framework.\n\nThis approach emphasizes\
+    \ **reusability**, **reproducibility**, and adherence to **best practices**. Key\
+    \ features of `biobox` components include:\n\n* **Standalone & Nextflow Ready:**\
+    \ Run components directly via the command line or seamlessly integrate them into\
+    \ Nextflow workflows.\n* **High Quality Standards:**\n    * Comprehensive documentation\
+    \ for components and parameters.\n    * Full exposure of underlying tool arguments.\n\
+    \    * Containerized (Docker) for dependency management and reproducibility.\n\
+    \    * Unit tested for verified functionality.\n"
+  info: null
+  viash_version: "0.9.4"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".requirements.commands += ['ps']\n"
+  - ".engines += { type: \"native\" }"
+  - ".engines[.type == 'docker'].target_registry := 'images.viash-hub.com'"
+  - ".engines[.type == 'docker'].target_tag := 'v0.4.2'"
+  keywords:
+  - "bioinformatics"
+  - "modules"
+  - "sequencing"
+  license: "MIT"
+  organization: "vsh"
+  links:
+    repository: "https://github.com/viash-hub/biobox"
+    issue_tracker: "https://github.com/viash-hub/biobox/issues"

@@ -1,0 +1,26 @@
+# IDEs and editors
+/.idea
+.project
+.classpath
+*.launch
+.settings/
+.vscode
+
+# Temp
+gitignore
+test_results
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Nextflow
+work
+.nextflow*
+trace-*.txt
+
+# viash
+/resources_test/
+
+# pycache
+*__pycache__*

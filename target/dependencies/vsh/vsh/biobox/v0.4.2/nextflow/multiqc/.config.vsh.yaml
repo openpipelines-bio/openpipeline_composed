@@ -1,0 +1,496 @@
+name: "multiqc"
+version: "v0.4.2"
+authors:
+- name: "Dorien Roosen"
+  roles:
+  - "author"
+  - "maintainer"
+  info:
+    links:
+      email: "dorien@data-intuitive.com"
+      github: "dorien-er"
+      linkedin: "dorien-roosen"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Data Scientist"
+argument_groups:
+- name: "Input"
+  arguments:
+  - type: "file"
+    name: "--input"
+    description: "File paths to be searched for analysis results to be included in\
+      \ the report.\n"
+    info: null
+    example:
+    - "data/results"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Ouput"
+  arguments:
+  - type: "file"
+    name: "--output_report"
+    description: "Filepath of the generated report.\n"
+    info: null
+    example:
+    - "multiqc_report.html"
+    must_exist: false
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_data"
+    description: "Output directory for parsed data files. If not provided, parsed\
+      \ data will not be published.\n"
+    info: null
+    example:
+    - "multiqc_data"
+    must_exist: false
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_plots"
+    description: "Output directory for generated plots. If not provided, plots will\
+      \ not be published.\n"
+    info: null
+    example:
+    - "multiqc_plots"
+    must_exist: false
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+- name: "Modules and analyses to run"
+  arguments:
+  - type: "string"
+    name: "--include_modules"
+    description: "Use only these module"
+    info: null
+    example:
+    - "fastqc"
+    - "cutadapt"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--exclude_modules"
+    description: "Do not use only these modules"
+    info: null
+    example:
+    - "fastqc"
+    - "cutadapt"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--ignore_analysis"
+    info: null
+    example:
+    - "run_one/*"
+    - "run_two/*"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--ignore_samples"
+    info: null
+    example:
+    - "sample_1*"
+    - "sample_3*"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--ignore_symlinks"
+    description: "Ignore symlinked directories and files"
+    info: null
+    direction: "input"
+- name: "Sample name handling"
+  arguments:
+  - type: "boolean_true"
+    name: "--dirs"
+    description: "Prepend directory to sample names to avoid clashing filenames"
+    info: null
+    direction: "input"
+  - type: "integer"
+    name: "--dirs_depth"
+    description: "Prepend n directories to sample names. Negative number to take from\
+      \ start of path."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--full_names"
+    description: "Do not clean the sample names (leave as full file name)"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--fn_as_s_name"
+    description: "Use the log filename as the sample name"
+    info: null
+    direction: "input"
+  - type: "file"
+    name: "--replace_names"
+    description: "TSV file to rename sample names during report generation"
+    info: null
+    example:
+    - "replace_names.tsv"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Report Customisation"
+  arguments:
+  - type: "string"
+    name: "--title"
+    description: "Report title. Printed as page header, used for filename if not otherwise\
+      \ specified.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--comment"
+    description: "Custom comment, will be printed at the top of the report.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--template"
+    description: "Report template to use.\n"
+    info: null
+    required: false
+    choices:
+    - "default"
+    - "gathered"
+    - "geo"
+    - "highcharts"
+    - "sections"
+    - "simple"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--sample_names"
+    description: "TSV file containing alternative sample names for renaming buttons\
+      \ in the report.\n"
+    info: null
+    example:
+    - "sample_names.tsv"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--sample_filters"
+    description: "TSV file containing show/hide patterns for the report\n"
+    info: null
+    example:
+    - "sample_filters.tsv"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--custom_css_file"
+    description: "Custom CSS file to add to the final report\n"
+    info: null
+    example:
+    - "custom_style_sheet.css"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--profile_runtime"
+    description: "Add analysis of how long MultiQC takes to run to the report\n"
+    info: null
+    direction: "input"
+- name: "MultiQC behaviour"
+  arguments:
+  - type: "boolean_true"
+    name: "--verbose"
+    description: "Increase output verbosity.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--quiet"
+    description: "Only show log warnings\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--strict"
+    description: "Don't catch exceptions, run additional code checks to help development.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--development"
+    description: "Development mode. Do not compress and minimise JS, export uncompressed\
+      \ plot data.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--require_logs"
+    description: "Require all explicitly requested modules to have log files. If not,\
+      \ MultiQC will exit with an error.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--no_megaqc_upload"
+    description: "Don't upload generated report to MegaQC, even if MegaQC options\
+      \ are found.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--no_ansi"
+    description: "Disable coloured log output.\n"
+    info: null
+    direction: "input"
+  - type: "string"
+    name: "--cl_config"
+    description: "YAML formatted string that allows to customize MultiQC behaviour\
+      \ like input file detection.\n"
+    info: null
+    example:
+    - "qualimap_config: { general_stats_coverage: [20,40,200] }"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Output format"
+  arguments:
+  - type: "boolean_true"
+    name: "--flat"
+    description: "Use only flat plots (static images).\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--interactive"
+    description: "Use only interactive plots (in-browser Javascript).\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--data_dir"
+    description: "Force the parsed data directory to be created.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--no_data_dir"
+    description: "Prevent the parsed data directory from being created.\n"
+    info: null
+    direction: "input"
+  - type: "boolean_true"
+    name: "--zip_data_dir"
+    description: "Compress the data directory.\n"
+    info: null
+    direction: "input"
+  - type: "string"
+    name: "--data_format"
+    description: "Output parsed data in a different format than the default 'txt'.\n"
+    info: null
+    required: false
+    choices:
+    - "tsv"
+    - "csv"
+    - "json"
+    - "yaml"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--pdf"
+    description: "Creates PDF report with the 'simple' template. Requires Pandoc to\
+      \ be installed.\n"
+    info: null
+    direction: "input"
+resources:
+- type: "bash_script"
+  path: "script.sh"
+  is_executable: true
+description: "MultiQC aggregates results from bioinformatics analyses across many\
+  \ samples into a single report.\nIt searches a given directory for analysis logs\
+  \ and compiles a HTML report. It's a general use tool, perfect for summarising the\
+  \ output from numerous bioinformatics tools.\n"
+test_resources:
+- type: "bash_script"
+  path: "test.sh"
+  is_executable: true
+- type: "file"
+  path: "test_data"
+info:
+  keywords:
+  - "QC"
+  - "html report"
+  - "aggregate analysis"
+  links:
+    homepage: "https://multiqc.info/"
+    documentation: "https://multiqc.info/docs/"
+    repository: "https://github.com/MultiQC/MultiQC"
+  references:
+    doi: "10.1093/bioinformatics/btw354"
+  licence: "GPL v3 or later"
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+requirements:
+  commands:
+  - "ps"
+license: "MIT"
+links:
+  repository: "https://github.com/viash-hub/biobox"
+runners:
+- type: "executable"
+  id: "executable"
+  docker_setup_strategy: "ifneedbepullelsecachedbuild"
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+  debug: false
+  container: "docker"
+engines:
+- type: "docker"
+  id: "docker"
+  image: "quay.io/biocontainers/multiqc:1.21--pyhdfd78af_0"
+  target_registry: "images.viash-hub.com"
+  target_tag: "v0.4.2"
+  namespace_separator: "/"
+  setup:
+  - type: "docker"
+    run:
+    - "multiqc --version | sed 's/multiqc, version\\s\\(.*\\)/multiqc: \"\\1\"/' >\
+      \ /var/software_versions.txt\n"
+  test_setup:
+  - type: "apt"
+    packages:
+    - "jq"
+    interactive: false
+  entrypoint: []
+  cmd: null
+- type: "native"
+  id: "native"
+build_info:
+  config: "src/multiqc/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "docker|native"
+  output: "target/nextflow/multiqc"
+  executable: "target/nextflow/multiqc/main.nf"
+  viash_version: "0.9.4"
+  git_commit: "02b470d967226478af69c37eae2b1256be1b78fd"
+  git_remote: "https://github.com/viash-hub/biobox"
+package_config:
+  name: "biobox"
+  version: "v0.4.2"
+  summary: "A curated collection of high-quality, standalone bioinformatics components\
+    \ built with [Viash](https://viash.io).\n"
+  description: "`biobox` offers a suite of reliable bioinformatics components, similar\
+    \ to [nf-core/modules](https://github.com/nf-core/modules) and [snakemake-wrappers/bio](https://github.com/snakemake/snakemake-wrappers/tree/master/bio),\
+    \ but built using the [Viash](https://viash.io) framework.\n\nThis approach emphasizes\
+    \ **reusability**, **reproducibility**, and adherence to **best practices**. Key\
+    \ features of `biobox` components include:\n\n* **Standalone & Nextflow Ready:**\
+    \ Run components directly via the command line or seamlessly integrate them into\
+    \ Nextflow workflows.\n* **High Quality Standards:**\n    * Comprehensive documentation\
+    \ for components and parameters.\n    * Full exposure of underlying tool arguments.\n\
+    \    * Containerized (Docker) for dependency management and reproducibility.\n\
+    \    * Unit tested for verified functionality.\n"
+  info: null
+  viash_version: "0.9.4"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".requirements.commands += ['ps']\n"
+  - ".engines += { type: \"native\" }"
+  - ".engines[.type == 'docker'].target_registry := 'images.viash-hub.com'"
+  - ".engines[.type == 'docker'].target_tag := 'v0.4.2'"
+  keywords:
+  - "bioinformatics"
+  - "modules"
+  - "sequencing"
+  license: "MIT"
+  organization: "vsh"
+  links:
+    repository: "https://github.com/viash-hub/biobox"
+    issue_tracker: "https://github.com/viash-hub/biobox/issues"

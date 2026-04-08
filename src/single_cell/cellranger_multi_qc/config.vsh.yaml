@@ -1,0 +1,101 @@
+name: "cellranger_multi_qc"
+namespace: "single_cell"
+# scope: "private"
+description: "A pipeline for running Cell Ranger multi followed by QC."
+authors:
+  - __merge__: /src/authors/jakub_majercik.yaml
+    roles: [ author, maintainer ]
+  - __merge__: /src/authors/weiwei_schultz.yaml
+    roles: [ contributor ]
+__merge__: /src/single_cell/cellranger_multi_qc/cellranger_multi.yaml
+argument_groups:
+  - name: Outputs
+    arguments:
+      - name: "--output_raw"
+        type: file
+        direction: output
+        description: "The raw output folder."
+        required: true
+        example: output_dir/
+      - name: "--output_h5mu"
+        type: file
+        direction: output
+        description: |
+          Locations for the output files. Must contain a wildcard (*) character,
+          which will be replaced with the sample name.
+        example: "*.h5mu"
+        required: true
+      - name: "--uns_metrics"
+        type: string
+        description: Name of the .uns slot under which to QC metrics (if any).
+        default: "metrics_cellranger"
+      - name: "--output_ingestion_qc_report"
+        type: file
+        direction: output
+        required: false
+        multiple: true
+        description: |
+          Ingestion QC report in HTML format. Generated when --create_sample_qc_report is true.
+        example: "*.sample_qc_report.html"
+      - name: "--output_processed_h5mu"
+        type: file
+        direction: output
+        required: false
+        description: |
+          Folder containing the QC-processed h5mu files. Generated when
+          --create_sample_qc_report is true.
+        example: "processed_h5mu/"
+      - name: "--output_multiqc_report"
+        type: file
+        direction: output
+        required: false
+        description: |
+          MultiQC report in HTML format. Generated when
+          --create_multiqc_report is true.
+        example: "multiqc_report.html"
+
+  - name: "QC reports"
+    description: "Options for generating optional QC reports."
+    arguments:
+      - name: "--create_sample_qc_report"
+        type: boolean
+        default: true
+        description: |
+          Whether to generate an ingestion QC report.
+      - name: "--create_multiqc_report"
+        type: boolean
+        default: true
+        description: |
+          Whether to run FastQC on the input FASTQ files and aggregate results
+          into a MultiQC report.
+      - name: "--run_cellbender"
+        type: boolean
+        default: false
+        description: |
+          Whether to run CellBender for ambient RNA removal as part of the
+          sample QC report generation. Only used when --create_sample_qc_report is true.
+
+dependencies:
+  - name: workflows/ingestion/cellranger_multi
+    repository: openpipeline
+  - name: workflows/generate_qc_report
+    repository: openpipeline_qc
+  - name: fastqc
+    repository: biobox
+  - name: multiqc
+    repository: biobox
+
+resources:
+  - type: nextflow_script
+    path: main.nf
+    entrypoint: run_wf
+
+test_resources:
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf
+  - path: /resources_test/10x_5k_anticmv/raw/
+  - path: /resources_test/10x_5k_fixed/raw/
+  - path: /resources_test/reference_gencodev41_chr1
+runners:
+  - type: nextflow

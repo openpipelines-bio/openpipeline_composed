@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "fastqc",
+  "description": "FastQC - A high throughput sequence QC analysis tool.",
+  "type": "object",
+  "$defs": {
+    "inputs": {
+      "title": "Inputs",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "input": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "format": "path",
+          "exists": true,
+          "description": "FASTQ file(s) to be analyzed.\n",
+          "help_text": "Type: `file`, multiple: `True`, required, direction: `input`, example: `[\"input.fq\"]`. "
+        }
+      }
+    },
+    "outputs": {
+      "title": "Outputs",
+      "type": "object",
+      "description": "At least one of the output options (--html, --zip, --summary, --data) must be used.\n",
+      "properties": {
+        "outdir": {
+          "type": "string",
+          "format": "path",
+          "description": "Output directory where the results will be saved.\n",
+          "help_text": "Type: `file`, multiple: `False`, default: `\"$id.$key.outdir\"`, direction: `output`, example: `\"results\"`. ",
+          "default": "$id.$key.outdir"
+        },
+        "html": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "format": "path",
+          "description": "Create the HTML report of the results",
+          "help_text": "Type: `file`, multiple: `True`, default: `\"$id.$key.html_*.html\"`, direction: `output`, example: `[\"*.html\"]`. ",
+          "default": "$id.$key.html_*.html"
+        },
+        "zip": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "format": "path",
+          "description": "Create the zip file(s) containing: html report, data, images, icons, summary, etc.\n'*' wild card must be provided in the output file name.\nWild card will be replaced by the input basename.\ne.g",
+          "help_text": "Type: `file`, multiple: `True`, default: `\"$id.$key.zip_*.zip\"`, direction: `output`, example: `[\"*.zip\"]`. ",
+          "default": "$id.$key.zip_*.zip"
+        },
+        "summary": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "format": "path",
+          "description": "Create the summary file(s).\n'*' wild card must be provided in the output file name.\nWild card will be replaced by the input basename.\ne.g",
+          "help_text": "Type: `file`, multiple: `True`, default: `\"$id.$key.summary_*.txt\"`, direction: `output`, example: `[\"*_summary.txt\"]`. ",
+          "default": "$id.$key.summary_*.txt"
+        },
+        "data": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "format": "path",
+          "description": "Create the data file(s).\n'*' wild card must be provided in the output file name.\nWild card will be replaced by the input basename.\ne.g",
+          "help_text": "Type: `file`, multiple: `True`, default: `\"$id.$key.data_*.txt\"`, direction: `output`, example: `[\"*_data.txt\"]`. ",
+          "default": "$id.$key.data_*.txt"
+        }
+      }
+    },
+    "options": {
+      "title": "Options",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "casava": {
+          "type": "boolean",
+          "description": "Files come from raw casava output",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "nano": {
+          "type": "boolean",
+          "description": "Files come from nanopore sequences and are in fast5 format",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "nofilter": {
+          "type": "boolean",
+          "description": "If running with --casava then don't remove read flagged by\ncasava as poor quality when performing the QC analysis.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "nogroup": {
+          "type": "boolean",
+          "description": "Disable grouping of bases for reads >50bp",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "min_length": {
+          "type": "integer",
+          "description": "Sets an artificial lower limit on the length of the \nsequence to be shown in the report",
+          "help_text": "Type: `integer`, multiple: `False`, example: `0`. "
+        },
+        "format": {
+          "type": "string",
+          "description": "Bypasses the normal sequence file format detection and \nforces the program to use the specified format",
+          "help_text": "Type: `string`, multiple: `False`, example: `\"bam\"`. "
+        },
+        "contaminants": {
+          "type": "string",
+          "format": "path",
+          "description": "Specifies a non-default file which contains the list \nof contaminants to screen overrepresented sequences against",
+          "help_text": "Type: `file`, multiple: `False`, direction: `input`, example: `\"contaminants.txt\"`. "
+        },
+        "adapters": {
+          "type": "string",
+          "format": "path",
+          "description": "Specifies a non-default file which contains the list of \nadapter sequences which will be explicitly searched against \nthe library",
+          "help_text": "Type: `file`, multiple: `False`, direction: `input`, example: `\"adapters.txt\"`. "
+        },
+        "limits": {
+          "type": "string",
+          "format": "path",
+          "description": "Specifies a non-default file which contains \na set of criteria which will be used to determine \nthe warn/error limits for the various modules",
+          "help_text": "Type: `file`, multiple: `False`, direction: `input`, example: `\"limits.txt\"`. "
+        },
+        "kmers": {
+          "type": "integer",
+          "description": "Specifies the length of Kmer to look for in the Kmer \ncontent module",
+          "help_text": "Type: `integer`, multiple: `False`, example: `7`. "
+        },
+        "quiet": {
+          "type": "boolean",
+          "description": "Suppress all progress messages on stdout and only report errors.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        }
+      }
+    },
+    "nextflow input-output arguments": {
+      "title": "Nextflow input-output arguments",
+      "type": "object",
+      "description": "Input/output parameters for Nextflow itself. Please note that both publishDir and publish_dir are supported but at least one has to be configured.",
+      "properties": {
+        "publish_dir": {
+          "type": "string",
+          "description": "Path to an output directory.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"output/\"`. "
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/inputs"
+    },
+    {
+      "$ref": "#/$defs/outputs"
+    },
+    {
+      "$ref": "#/$defs/options"
+    },
+    {
+      "$ref": "#/$defs/nextflow input-output arguments"
+    }
+  ]
+}
