@@ -183,6 +183,109 @@ argument_groups:
           * n_batches).
         required: false
 
+  - name: Output slot naming
+    description: |
+      Names of the slots each method writes into its intermediate h5mu and
+      that are subsequently moved into the merged output. The per-resolution
+      leiden columns are named "{obs_cluster}_{resolution}" (e.g.
+      "harmony_integration_leiden_1.0").
+    arguments:
+      - name: "--harmony_obsm_integrated"
+        type: string
+        description: .obsm slot for the harmony-integrated embedding.
+        default: "X_harmony_integrated"
+      - name: "--harmony_obsm_umap"
+        type: string
+        description: .obsm slot for the harmony UMAP embedding.
+        default: "X_harmony_umap"
+      - name: "--harmony_obs_cluster"
+        type: string
+        description: .obs prefix for the harmony leiden cluster columns.
+        default: "harmony_integration_leiden"
+      - name: "--harmony_uns_neighbors"
+        type: string
+        description: .uns slot for harmony neighbor graph metadata.
+        default: "harmony_integration_neighbors"
+      - name: "--harmony_obsp_neighbor_distances"
+        type: string
+        description: .obsp slot for harmony neighbor distances.
+        default: "harmony_integration_neighbor_distances"
+      - name: "--harmony_obsp_neighbor_connectivities"
+        type: string
+        description: .obsp slot for harmony neighbor connectivities.
+        default: "harmony_integration_neighbor_connectivities"
+
+      - name: "--scvi_obsm_integrated"
+        type: string
+        description: .obsm slot for the scVI-integrated latent embedding.
+        default: "X_scvi_integrated"
+      - name: "--scvi_obsm_umap"
+        type: string
+        description: .obsm slot for the scVI UMAP embedding.
+        default: "X_scvi_umap"
+      - name: "--scvi_obs_cluster"
+        type: string
+        description: .obs prefix for the scVI leiden cluster columns.
+        default: "scvi_integration_leiden"
+      - name: "--scvi_uns_neighbors"
+        type: string
+        description: .uns slot for scVI neighbor graph metadata.
+        default: "scvi_integration_neighbors"
+      - name: "--scvi_obsp_neighbor_distances"
+        type: string
+        description: .obsp slot for scVI neighbor distances.
+        default: "scvi_integration_neighbor_distances"
+      - name: "--scvi_obsp_neighbor_connectivities"
+        type: string
+        description: .obsp slot for scVI neighbor connectivities.
+        default: "scvi_integration_neighbor_connectivities"
+
+      - name: "--scanorama_obsm_integrated"
+        type: string
+        description: .obsm slot for the scanorama-integrated embedding.
+        default: "X_scanorama_integrated"
+      - name: "--scanorama_obsm_umap"
+        type: string
+        description: .obsm slot for the scanorama UMAP embedding.
+        default: "X_scanorama_umap"
+      - name: "--scanorama_obs_cluster"
+        type: string
+        description: .obs prefix for the scanorama leiden cluster columns.
+        default: "scanorama_integration_leiden"
+      - name: "--scanorama_uns_neighbors"
+        type: string
+        description: .uns slot for scanorama neighbor graph metadata.
+        default: "scanorama_integration_neighbors"
+      - name: "--scanorama_obsp_neighbor_distances"
+        type: string
+        description: .obsp slot for scanorama neighbor distances.
+        default: "scanorama_integration_neighbor_distances"
+      - name: "--scanorama_obsp_neighbor_connectivities"
+        type: string
+        description: .obsp slot for scanorama neighbor connectivities.
+        default: "scanorama_integration_neighbor_connectivities"
+
+      - name: "--bbknn_obsm_umap"
+        type: string
+        description: .obsm slot for the BBKNN UMAP embedding.
+        default: "X_bbknn_umap"
+      - name: "--bbknn_obs_cluster"
+        type: string
+        description: .obs prefix for the BBKNN leiden cluster columns.
+        default: "bbknn_integration_leiden"
+      - name: "--bbknn_uns_neighbors"
+        type: string
+        description: .uns slot for BBKNN neighbor graph metadata.
+        default: "bbknn_integration_neighbors"
+      - name: "--bbknn_obsp_neighbor_distances"
+        type: string
+        description: .obsp slot for BBKNN neighbor distances.
+        default: "bbknn_integration_neighbor_distances"
+      - name: "--bbknn_obsp_neighbor_connectivities"
+        type: string
+        description: .obsp slot for BBKNN neighbor connectivities.
+        default: "bbknn_integration_neighbor_connectivities"
+
   - name: Output
     arguments:
       - name: "--output"

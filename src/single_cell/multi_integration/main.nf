@@ -36,15 +36,13 @@ workflow run_wf {
           "embedding": "obsm_embedding",
           "obs_covariates": "harmony_obs_covariates",
           "theta": "harmony_theta",
-          "leiden_resolution": "leiden_resolution"
-        ],
-        args: [
-          "obsm_integrated": "X_harmony_integrated",
-          "uns_neighbors": "harmony_integration_neighbors",
-          "obsp_neighbor_distances": "harmony_integration_neighbor_distances",
-          "obsp_neighbor_connectivities": "harmony_integration_neighbor_connectivities",
-          "obs_cluster": "harmony_integration_leiden",
-          "obsm_umap": "X_harmony_umap"
+          "leiden_resolution": "leiden_resolution",
+          "obsm_integrated": "harmony_obsm_integrated",
+          "obsm_umap": "harmony_obsm_umap",
+          "obs_cluster": "harmony_obs_cluster",
+          "uns_neighbors": "harmony_uns_neighbors",
+          "obsp_neighbor_distances": "harmony_obsp_neighbor_distances",
+          "obsp_neighbor_connectivities": "harmony_obsp_neighbor_connectivities"
         ],
         toState: ["harmony_output": "output"]
       )
@@ -64,15 +62,13 @@ workflow run_wf {
           "max_epochs": "max_epochs",
           "reduce_lr_on_plateau": "reduce_lr_on_plateau",
           "lr_factor": "lr_factor",
-          "lr_patience": "lr_patience"
-        ],
-        args: [
-          "obsm_output": "X_scvi_integrated",
-          "uns_neighbors": "scvi_integration_neighbors",
-          "obsp_neighbor_distances": "scvi_integration_neighbor_distances",
-          "obsp_neighbor_connectivities": "scvi_integration_neighbor_connectivities",
-          "obs_cluster": "scvi_integration_leiden",
-          "obsm_umap": "X_scvi_umap"
+          "lr_patience": "lr_patience",
+          "obsm_output": "scvi_obsm_integrated",
+          "obsm_umap": "scvi_obsm_umap",
+          "obs_cluster": "scvi_obs_cluster",
+          "uns_neighbors": "scvi_uns_neighbors",
+          "obsp_neighbor_distances": "scvi_obsp_neighbor_distances",
+          "obsp_neighbor_connectivities": "scvi_obsp_neighbor_connectivities"
         ],
         toState: [
           "scvi_output": "output",
@@ -93,15 +89,13 @@ workflow run_wf {
           "sigma": "scanorama_sigma",
           "approx": "scanorama_approx",
           "alpha": "scanorama_alpha",
-          "leiden_resolution": "leiden_resolution"
-        ],
-        args: [
-          "obsm_output": "X_scanorama_integrated",
-          "uns_neighbors": "scanorama_integration_neighbors",
-          "obsp_neighbor_distances": "scanorama_integration_neighbor_distances",
-          "obsp_neighbor_connectivities": "scanorama_integration_neighbor_connectivities",
-          "obs_cluster": "scanorama_integration_leiden",
-          "obsm_umap": "X_scanorama_umap"
+          "leiden_resolution": "leiden_resolution",
+          "obsm_output": "scanorama_obsm_integrated",
+          "obsm_umap": "scanorama_obsm_umap",
+          "obs_cluster": "scanorama_obs_cluster",
+          "uns_neighbors": "scanorama_uns_neighbors",
+          "obsp_neighbor_distances": "scanorama_obsp_neighbor_distances",
+          "obsp_neighbor_connectivities": "scanorama_obsp_neighbor_connectivities"
         ],
         toState: ["scanorama_output": "output"]
       )
@@ -117,14 +111,12 @@ workflow run_wf {
           "n_neighbors_within_batch": "bbknn_n_neighbors_within_batch",
           "n_pcs": "bbknn_n_pcs",
           "n_trim": "bbknn_n_trim",
-          "leiden_resolution": "leiden_resolution"
-        ],
-        args: [
-          "uns_output": "bbknn_integration_neighbors",
-          "obsp_distances": "bbknn_integration_neighbor_distances",
-          "obsp_connectivities": "bbknn_integration_neighbor_connectivities",
-          "obs_cluster": "bbknn_integration_leiden",
-          "obsm_umap": "X_bbknn_umap"
+          "leiden_resolution": "leiden_resolution",
+          "obsm_umap": "bbknn_obsm_umap",
+          "obs_cluster": "bbknn_obs_cluster",
+          "uns_output": "bbknn_uns_neighbors",
+          "obsp_distances": "bbknn_obsp_neighbor_distances",
+          "obsp_connectivities": "bbknn_obsp_neighbor_connectivities"
         ],
         toState: ["bbknn_output": "output"]
       )
@@ -142,13 +134,13 @@ workflow run_wf {
             "input_target": state.merged,
             "source_modality": state.modality,
             "target_modality": state.modality,
-            "obs": leidenObsColumns("harmony_integration_leiden", state.leiden_resolution),
-            "obsm": ["X_harmony_integrated", "X_harmony_umap"],
+            "obs": leidenObsColumns(state.harmony_obs_cluster, state.leiden_resolution),
+            "obsm": [state.harmony_obsm_integrated, state.harmony_obsm_umap],
             "obsp": [
-              "harmony_integration_neighbor_distances",
-              "harmony_integration_neighbor_connectivities"
+              state.harmony_obsp_neighbor_distances,
+              state.harmony_obsp_neighbor_connectivities
             ],
-            "uns": ["harmony_integration_neighbors"],
+            "uns": [state.harmony_uns_neighbors],
             "allow_overwrite": true,
             "output_compression": state.output_compression
           ]
@@ -164,13 +156,13 @@ workflow run_wf {
             "input_target": state.merged,
             "source_modality": state.modality,
             "target_modality": state.modality,
-            "obs": leidenObsColumns("scvi_integration_leiden", state.leiden_resolution),
-            "obsm": ["X_scvi_integrated", "X_scvi_umap"],
+            "obs": leidenObsColumns(state.scvi_obs_cluster, state.leiden_resolution),
+            "obsm": [state.scvi_obsm_integrated, state.scvi_obsm_umap],
             "obsp": [
-              "scvi_integration_neighbor_distances",
-              "scvi_integration_neighbor_connectivities"
+              state.scvi_obsp_neighbor_distances,
+              state.scvi_obsp_neighbor_connectivities
             ],
-            "uns": ["scvi_integration_neighbors"],
+            "uns": [state.scvi_uns_neighbors],
             "allow_overwrite": true,
             "output_compression": state.output_compression
           ]
@@ -186,13 +178,13 @@ workflow run_wf {
             "input_target": state.merged,
             "source_modality": state.modality,
             "target_modality": state.modality,
-            "obs": leidenObsColumns("scanorama_integration_leiden", state.leiden_resolution),
-            "obsm": ["X_scanorama_integrated", "X_scanorama_umap"],
+            "obs": leidenObsColumns(state.scanorama_obs_cluster, state.leiden_resolution),
+            "obsm": [state.scanorama_obsm_integrated, state.scanorama_obsm_umap],
             "obsp": [
-              "scanorama_integration_neighbor_distances",
-              "scanorama_integration_neighbor_connectivities"
+              state.scanorama_obsp_neighbor_distances,
+              state.scanorama_obsp_neighbor_connectivities
             ],
-            "uns": ["scanorama_integration_neighbors"],
+            "uns": [state.scanorama_uns_neighbors],
             "allow_overwrite": true,
             "output_compression": state.output_compression
           ]
@@ -208,15 +200,15 @@ workflow run_wf {
             "input_target": state.merged,
             "source_modality": state.modality,
             "target_modality": state.modality,
-            "obs": leidenObsColumns("bbknn_integration_leiden", state.leiden_resolution),
+            "obs": leidenObsColumns(state.bbknn_obs_cluster, state.leiden_resolution),
             // bbknn does not produce an integration embedding of its own,
             // only a UMAP derived from the batch-aware graph.
-            "obsm": ["X_bbknn_umap"],
+            "obsm": [state.bbknn_obsm_umap],
             "obsp": [
-              "bbknn_integration_neighbor_distances",
-              "bbknn_integration_neighbor_connectivities"
+              state.bbknn_obsp_neighbor_distances,
+              state.bbknn_obsp_neighbor_connectivities
             ],
-            "uns": ["bbknn_integration_neighbors"],
+            "uns": [state.bbknn_uns_neighbors],
             "allow_overwrite": true,
             "output_compression": state.output_compression
           ]
