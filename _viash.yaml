@@ -10,11 +10,11 @@ repositories:
   - name: openpipeline
     repo: openpipeline
     type: vsh
-    tag: v4.0.4
+    tag: v4.1.0
   - name: openpipeline_qc
     repo: openpipeline_qc
     type: vsh
-    tag: v0.2.2
+    tag: v0.3.0
   - name: biobox
     repo: biobox
     type: vsh

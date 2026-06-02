@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "from_tiledb_to_h5mu",
+  "description": "No description",
+  "type": "object",
+  "$defs": {
+    "input database": {
+      "title": "Input database",
+      "type": "object",
+      "description": "Open a tileDB-SOMA database by URI.",
+      "properties": {
+        "input_uri": {
+          "type": "string",
+          "description": "A URI pointing to a TileDB-SOMA database.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"s3://bucket/path\"`. "
+        },
+        "s3_region": {
+          "type": "string",
+          "description": "Region where the TileDB-SOMA database is hosted.\n",
+          "help_text": "Type: `string`, multiple: `False`. "
+        },
+        "endpoint": {
+          "type": "string",
+          "description": "Custom endpoint to use to connect to S3\n",
+          "help_text": "Type: `string`, multiple: `False`. "
+        },
+        "s3_no_sign_request": {
+          "type": "boolean",
+          "description": "Do not sign S3 requests",
+          "help_text": "Type: `boolean`, multiple: `False`, default: `false`. ",
+          "default": false
+        },
+        "input_modality": {
+          "type": "string",
+          "description": "TileDB-SOMA measurement to take the input from.\n",
+          "help_text": "Type: `string`, multiple: `False`, required. "
+        },
+        "input_layers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Layers to import from TileDB-SOMA database.\n",
+          "help_text": "Type: `string`, multiple: `True`, required. "
+        }
+      }
+    },
+    "mudata output": {
+      "title": "MuData output",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "output": {
+          "type": "string",
+          "format": "path",
+          "description": "The output MuData file.\n",
+          "help_text": "Type: `file`, multiple: `False`, required, default: `\"$id.$key.output.h5mu\"`, direction: `output`, example: `\"output.h5mu\"`. ",
+          "default": "$id.$key.output.h5mu"
+        },
+        "output_modality": {
+          "type": "string",
+          "description": "Name of the modality to write the results to.\n",
+          "help_text": "Type: `string`, multiple: `False`, required. "
+        },
+        "output_compression": {
+          "type": "string",
+          "description": "Compression format to use for the output AnnData and/or Mudata H5 files.\nBy default no compression is applied.\n",
+          "help_text": "Type: `string`, multiple: `False`, example: `\"gzip\"`, choices: ``gzip`, `lzf``. ",
+          "enum": [
+            "gzip",
+            "lzf"
+          ]
+        }
+      }
+    },
+    "nextflow input-output arguments": {
+      "title": "Nextflow input-output arguments",
+      "type": "object",
+      "description": "Input/output parameters for Nextflow itself. Please note that both publishDir and publish_dir are supported but at least one has to be configured.",
+      "properties": {
+        "publish_dir": {
+          "type": "string",
+          "description": "Path to an output directory.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"output/\"`. "
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/input database"
+    },
+    {
+      "$ref": "#/$defs/mudata output"
+    },
+    {
+      "$ref": "#/$defs/nextflow input-output arguments"
+    }
+  ]
+}

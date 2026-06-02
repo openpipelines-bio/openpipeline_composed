@@ -3848,7 +3848,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.0.4"
+        "tag" : "v4.1.0"
       }
     },
     {
@@ -3856,7 +3856,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline_qc",
-        "tag" : "v0.2.2"
+        "tag" : "v0.3.0"
       }
     },
     {
@@ -3881,13 +3881,13 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.0.4"
+      "tag" : "v4.1.0"
     },
     {
       "type" : "vsh",
       "name" : "openpipeline_qc",
       "repo" : "openpipeline_qc",
-      "tag" : "v0.2.2"
+      "tag" : "v0.3.0"
     },
     {
       "type" : "vsh",
@@ -3984,7 +3984,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/cellranger_multi_qc",
     "viash_version" : "0.9.7",
-    "git_commit" : "50e2a48840aa04f074dcf6c94e456d61b7306f02",
+    "git_commit" : "7baf1b2ccd716ac4e73ccfec4f819f946ad64014",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -4004,13 +4004,13 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.0.4"
+        "tag" : "v4.1.0"
       },
       {
         "type" : "vsh",
         "name" : "openpipeline_qc",
         "repo" : "openpipeline_qc",
-        "tag" : "v0.2.2"
+        "tag" : "v0.3.0"
       },
       {
         "type" : "vsh",
@@ -4036,8 +4036,8 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { cellranger_multi } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.0.4/nextflow/workflows/ingestion/cellranger_multi/main.nf"
-include { generate_qc_report } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline_qc/v0.2.2/nextflow/workflows/generate_qc_report/main.nf"
+include { cellranger_multi } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/ingestion/cellranger_multi/main.nf"
+include { generate_qc_report } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline_qc/v0.3.0/nextflow/workflows/generate_qc_report/main.nf"
 include { fastqc } from "${meta.root_dir}/dependencies/vsh/vsh/biobox/v0.4.2/nextflow/fastqc/main.nf"
 include { multiqc } from "${meta.root_dir}/dependencies/vsh/vsh/biobox/v0.4.2/nextflow/multiqc/main.nf"
 
