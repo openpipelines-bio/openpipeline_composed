@@ -37,7 +37,7 @@ workflow run_wf {
         fromState: [
           "input": "input",
           "modality": "modality",
-          "layer": "layer",
+          "layer": "harmony_layer",
           "embedding": "obsm_embedding",
           "obs_covariates": "harmony_obs_covariates",
           "theta": "harmony_theta",
@@ -58,7 +58,9 @@ workflow run_wf {
         fromState: [
           "input": "input",
           "modality": "modality",
-          "layer": "layer",
+          // scVI trains on raw counts, not the log-normalized layer the other
+          // methods use; scvi_layer defaults to unset so scVI reads .X.
+          "layer": "scvi_layer",
           "obs_batch": "scvi_obs_batch",
           "var_input": "scvi_var_input",
           "leiden_resolution": "leiden_resolution",
@@ -90,7 +92,7 @@ workflow run_wf {
           "id": "id",
           "input": "input",
           "modality": "modality",
-          "layer": "layer",
+          "layer": "scanorama_layer",
           "obs_batch": "scanorama_obs_batch",
           "obsm_input": "obsm_embedding",
           "knn": "scanorama_knn",
@@ -116,7 +118,7 @@ workflow run_wf {
           "id": "id",
           "input": "input",
           "modality": "modality",
-          "layer": "layer",
+          "layer": "bbknn_layer",
           "obsm_input": "obsm_embedding",
           "obs_batch": "bbknn_obs_batch",
           "n_neighbors_within_batch": "bbknn_n_neighbors_within_batch",

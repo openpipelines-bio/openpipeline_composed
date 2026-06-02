@@ -33,11 +33,6 @@ argument_groups:
         description: Which modality to process.
         default: "rna"
         required: false
-      - name: "--layer"
-        type: string
-        description: Layer in the modality containing log-normalized counts.
-        default: "log_normalized"
-        required: false
       - name: "--obsm_embedding"
         type: string
         description: |
@@ -68,6 +63,11 @@ argument_groups:
 
   - name: Harmony options
     arguments:
+      - name: "--harmony_layer"
+        type: string
+        description: Layer with the log-normalized counts Harmony reads expression from.
+        default: "log_normalized"
+        required: false
       - name: "--harmony_obs_covariates"
         type: string
         description: ".obs column(s) defining the covariates to regress out."
@@ -83,6 +83,13 @@ argument_groups:
 
   - name: scVI options
     arguments:
+      - name: "--scvi_layer"
+        type: string
+        description: |
+          Layer with the raw (integer) counts scVI must be trained on. Unlike the
+          other methods, scVI requires raw counts rather than log-normalized data.
+          If left unset, scVI reads the counts from the modality's .X.
+        required: false
       - name: "--scvi_obs_batch"
         type: string
         description: ".obs column discriminating between batches for scVI."
@@ -134,6 +141,11 @@ argument_groups:
 
   - name: Scanorama options
     arguments:
+      - name: "--scanorama_layer"
+        type: string
+        description: Layer with the log-normalized counts Scanorama reads expression from.
+        default: "log_normalized"
+        required: false
       - name: "--scanorama_obs_batch"
         type: string
         description: ".obs column discriminating between batches for Scanorama."
@@ -162,6 +174,11 @@ argument_groups:
 
   - name: BBKNN options
     arguments:
+      - name: "--bbknn_layer"
+        type: string
+        description: Layer with the log-normalized counts BBKNN reads expression from.
+        default: "log_normalized"
+        required: false
       - name: "--bbknn_obs_batch"
         type: string
         description: ".obs column discriminating between batches for BBKNN."
