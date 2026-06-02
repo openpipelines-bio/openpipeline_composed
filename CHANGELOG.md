@@ -1,4 +1,8 @@
-# openpipeline_composed x.x.x
+# openpipeline_composed 0.2.0
+
+## MAJOR CHANGES
+
+* Bump `openpipeline` dependency version to `v4.1.0` and `openpipeline_qc` to `v0.3.0`, relevant updates include major changes to memory consumption and runtimes for and support for MuData encoded in Zarr format for `calculate_qc_metrics` (PR #17).
 
 ## MINOR CHANGES
 
