@@ -1,4 +1,4 @@
-name: multi_integration
+name: parallel_integration
 namespace: single_cell
 scope: public
 description: |

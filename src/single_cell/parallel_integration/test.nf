@@ -1,6 +1,6 @@
 nextflow.enable.dsl=2
 
-include { multi_integration } from params.rootDir + "/target/nextflow/single_cell/multi_integration/main.nf"
+include { parallel_integration } from params.rootDir + "/target/nextflow/single_cell/parallel_integration/main.nf"
 params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_wf {
@@ -27,8 +27,8 @@ workflow test_wf {
     ])
     | view { "State at start: $it" }
     | map { state -> [state.id, state] }
-    | multi_integration
-    | view { "After multi_integration: $it" }
+    | parallel_integration
+    | view { "After parallel_integration: $it" }
     | view { output ->
       assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
 
