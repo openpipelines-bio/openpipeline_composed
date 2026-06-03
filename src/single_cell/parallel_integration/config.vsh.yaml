@@ -67,6 +67,22 @@ argument_groups:
         multiple: true
         default: ["sample_id"]
         required: false
+      - name: "--obs_categorical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) with categorical covariates for scVI to correct for in
+          addition to --obs_batch. Treated as nuisance factors, so do not use them
+          for biological signal you want to keep. None by default.
+        required: false
+      - name: "--obs_numerical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) with continuous (numerical) covariates for scVI to correct
+          for in addition to --obs_batch. Treated as nuisance factors, so do not use
+          them for biological signal you want to keep. None by default.
+        required: false
       - name: "--var_input"
         type: string
         description: |
@@ -304,6 +320,14 @@ argument_groups:
         choices: [gzip, lzf]
         required: false
         example: gzip
+      - name: "--output_scvi_model"
+        type: file
+        description: |
+          Output folder with the trained scVI model. Only produced when scVI is
+          among the selected --integration_methods.
+        direction: output
+        required: false
+        example: scvi_model/
 
 dependencies:
   - name: workflows/integration/harmony_leiden

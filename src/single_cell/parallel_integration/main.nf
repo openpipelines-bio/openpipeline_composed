@@ -83,6 +83,8 @@ workflow run_wf {
           // methods use; layer_raw_counts defaults to unset so scVI reads .X.
           "layer": "layer_raw_counts",
           "obs_batch": "obs_batch",
+          "obs_categorical_covariate": "obs_categorical_covariates",
+          "obs_continuous_covariate": "obs_numerical_covariates",
           "var_input": "var_input",
           "leiden_resolution": "leiden_resolution",
           "early_stopping": "scvi_early_stopping",
@@ -169,10 +171,11 @@ workflow run_wf {
     .groupTuple(by: 0, size: 4)
     .map { id, states ->
         def merged_state = states[0] + [
-          "harmony_output": states.collect { it.harmony_output }.find { it != null },
-          "scvi_output": states.collect { it.scvi_output }.find { it != null },
-          "scanorama_output": states.collect { it.scanorama_output }.find { it != null },
-          "bbknn_output": states.collect { it.bbknn_output }.find { it != null }
+          "harmony_output": states.collect { s -> s.harmony_output }.find { v -> v != null },
+          "scvi_output": states.collect { s -> s.scvi_output }.find { v -> v != null },
+          "scanorama_output": states.collect { s -> s.scanorama_output }.find { v -> v != null },
+          "bbknn_output": states.collect { s -> s.bbknn_output }.find { v -> v != null },
+          "scvi_model": states.collect { s -> s.scvi_model }.find { v -> v != null }
         ]
         [id, merged_state]
       }
@@ -274,9 +277,14 @@ workflow run_wf {
       )
 
     | map { id, state ->
-        [id, state + ["output": state.merged]]
+        def out = ["output": state.merged]
+        // scvi_model is only present when scVI was among the selected methods.
+        if (state.scvi_model) {
+          out["output_scvi_model"] = state.scvi_model
+        }
+        [id, state + out]
       }
-    | setState(["output", "_meta"])
+    | setState(["output", "output_scvi_model", "_meta"])
 
   emit:
     output_ch
