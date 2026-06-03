@@ -12,17 +12,15 @@ workflow test_wf {
         id: "all_methods_test",
         input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         integration_methods: "harmony;scvi;scanorama;bbknn",
-        harmony_obs_covariates: "sample_id",
-        scvi_obs_batch: "sample_id",
-        scanorama_obs_batch: "sample_id",
-        bbknn_obs_batch: "sample_id",
+        obs_batch: "sample_id",
+        obs_covariates: "sample_id",
         scvi_max_epochs: "5"
       ],
       [
         id: "single_method_test",
         input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         integration_methods: "harmony",
-        harmony_obs_covariates: "sample_id"
+        obs_covariates: "sample_id"
       ]
     ])
     | view { "State at start: $it" }

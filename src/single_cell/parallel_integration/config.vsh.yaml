@@ -33,12 +33,45 @@ argument_groups:
         description: Which modality to process.
         default: "rna"
         required: false
+      - name: "--layer_log_normalized_counts"
+        type: string
+        description: |
+          Layer with the log-normalized counts. Read by the methods that operate
+          on normalized expression: harmony, scanorama and bbknn.
+        default: "log_normalized"
+        required: false
+      - name: "--layer_raw_counts"
+        type: string
+        description: |
+          Layer with the raw (integer) counts. Read by scVI, which requires raw
+          counts rather than log-normalized data. If left unset, scVI reads the
+          counts from the modality's .X.
+        required: false
       - name: "--obsm_embedding"
         type: string
         description: |
           .obsm slot containing the embedding to use as input for methods that
           require a pre-computed dimensionality reduction (harmony, scanorama, bbknn).
         default: "X_pca"
+        required: false
+      - name: "--obs_batch"
+        type: string
+        description: |
+          .obs column discriminating between batches. Read by scVI, scanorama and bbknn.
+        default: "sample_id"
+        required: false
+      - name: "--obs_covariates"
+        type: string
+        description: |
+          .obs column(s) defining the covariates to regress out. Read by harmony.
+        multiple: true
+        default: ["sample_id"]
+        required: false
+      - name: "--var_input"
+        type: string
+        description: |
+          .var column containing highly variable genes to subset to. Read by scVI.
+          By default, scVI uses all genes.
         required: false
 
   - name: Methods
@@ -63,17 +96,6 @@ argument_groups:
 
   - name: Harmony options
     arguments:
-      - name: "--harmony_layer"
-        type: string
-        description: Layer with the log-normalized counts Harmony reads expression from.
-        default: "log_normalized"
-        required: false
-      - name: "--harmony_obs_covariates"
-        type: string
-        description: ".obs column(s) defining the covariates to regress out."
-        multiple: true
-        default: ["sample_id"]
-        required: false
       - name: "--harmony_theta"
         type: double
         description: |
@@ -83,24 +105,6 @@ argument_groups:
 
   - name: scVI options
     arguments:
-      - name: "--scvi_layer"
-        type: string
-        description: |
-          Layer with the raw (integer) counts scVI must be trained on. Unlike the
-          other methods, scVI requires raw counts rather than log-normalized data.
-          If left unset, scVI reads the counts from the modality's .X.
-        required: false
-      - name: "--scvi_obs_batch"
-        type: string
-        description: ".obs column discriminating between batches for scVI."
-        default: "sample_id"
-        required: false
-      - name: "--scvi_var_input"
-        type: string
-        description: |
-          .var column containing highly variable genes to subset to. By default,
-          scVI uses all genes.
-        required: false
       - name: "--scvi_early_stopping"
         type: boolean
         description: Whether scVI should perform early stopping on the validation set.
@@ -141,16 +145,6 @@ argument_groups:
 
   - name: Scanorama options
     arguments:
-      - name: "--scanorama_layer"
-        type: string
-        description: Layer with the log-normalized counts Scanorama reads expression from.
-        default: "log_normalized"
-        required: false
-      - name: "--scanorama_obs_batch"
-        type: string
-        description: ".obs column discriminating between batches for Scanorama."
-        default: "sample_id"
-        required: false
       - name: "--scanorama_knn"
         type: integer
         description: Number of nearest neighbors used for matching.
@@ -174,16 +168,6 @@ argument_groups:
 
   - name: BBKNN options
     arguments:
-      - name: "--bbknn_layer"
-        type: string
-        description: Layer with the log-normalized counts BBKNN reads expression from.
-        default: "log_normalized"
-        required: false
-      - name: "--bbknn_obs_batch"
-        type: string
-        description: ".obs column discriminating between batches for BBKNN."
-        default: "sample_id"
-        required: false
       - name: "--bbknn_n_neighbors_within_batch"
         type: integer
         description: Top neighbours to report for each batch.

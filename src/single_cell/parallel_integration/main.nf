@@ -15,6 +15,27 @@ workflow run_wf {
 
   main:
     integration_ch = input_ch
+    // === Validate method-specific requirements ===
+    // Fail (or warn) early when a selected method's required input layer is
+    // missing, rather than surfacing the error deep inside a sub-workflow.
+    | map { id, state ->
+        if (state.integration_methods.contains("scvi") && !state.layer_raw_counts) {
+          System.err.println(
+            "Warning: scVI was selected but --layer_raw_counts is not set; scVI " +
+            "will read raw counts from the '${state.modality}' modality's .X."
+          )
+        }
+        def lognorm_methods = state.integration_methods.findAll { method ->
+          method in ["harmony", "scanorama", "bbknn"]
+        }
+        if (lognorm_methods && !state.layer_log_normalized_counts) {
+          throw new RuntimeException(
+            "Methods ${lognorm_methods} require log-normalized counts, but " +
+            "--layer_log_normalized_counts is not set."
+          )
+        }
+        [id, state]
+      }
     | map { id, state ->
         def new_state = state + [
           "merged": state.input,
@@ -37,9 +58,9 @@ workflow run_wf {
         fromState: [
           "input": "input",
           "modality": "modality",
-          "layer": "harmony_layer",
+          "layer": "layer_log_normalized_counts",
           "embedding": "obsm_embedding",
-          "obs_covariates": "harmony_obs_covariates",
+          "obs_covariates": "obs_covariates",
           "theta": "harmony_theta",
           "leiden_resolution": "leiden_resolution",
           "obsm_integrated": "harmony_obsm_integrated",
@@ -59,10 +80,10 @@ workflow run_wf {
           "input": "input",
           "modality": "modality",
           // scVI trains on raw counts, not the log-normalized layer the other
-          // methods use; scvi_layer defaults to unset so scVI reads .X.
-          "layer": "scvi_layer",
-          "obs_batch": "scvi_obs_batch",
-          "var_input": "scvi_var_input",
+          // methods use; layer_raw_counts defaults to unset so scVI reads .X.
+          "layer": "layer_raw_counts",
+          "obs_batch": "obs_batch",
+          "var_input": "var_input",
           "leiden_resolution": "leiden_resolution",
           "early_stopping": "scvi_early_stopping",
           "early_stopping_monitor": "scvi_early_stopping_monitor",
@@ -92,8 +113,8 @@ workflow run_wf {
           "id": "id",
           "input": "input",
           "modality": "modality",
-          "layer": "scanorama_layer",
-          "obs_batch": "scanorama_obs_batch",
+          "layer": "layer_log_normalized_counts",
+          "obs_batch": "obs_batch",
           "obsm_input": "obsm_embedding",
           "knn": "scanorama_knn",
           "batch_size": "scanorama_batch_size",
@@ -118,9 +139,9 @@ workflow run_wf {
           "id": "id",
           "input": "input",
           "modality": "modality",
-          "layer": "bbknn_layer",
+          "layer": "layer_log_normalized_counts",
           "obsm_input": "obsm_embedding",
-          "obs_batch": "bbknn_obs_batch",
+          "obs_batch": "obs_batch",
           "n_neighbors_within_batch": "bbknn_n_neighbors_within_batch",
           "n_pcs": "bbknn_n_pcs",
           "n_trim": "bbknn_n_trim",
