@@ -16,7 +16,7 @@ workflow test_wf {
         scvi_obs_batch: "sample_id",
         scanorama_obs_batch: "sample_id",
         bbknn_obs_batch: "sample_id",
-        max_epochs: "5"
+        scvi_max_epochs: "5"
       ],
       [
         id: "single_method_test",
