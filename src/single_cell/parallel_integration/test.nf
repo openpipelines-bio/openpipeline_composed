@@ -81,4 +81,16 @@ workflow test_wf {
           ]
         }
       )
+
+  // Verify both test cases actually ran through the assert step. Without this
+  // the per-event assertions above would be silently skipped if no events were
+  // emitted, letting a broken run pass.
+  output_ch
+    | toSortedList { a, b -> a[0] <=> b[0] }
+    | map { output_list ->
+        assert output_list.size() == 2 :
+          "output channel should contain 2 events, found ${output_list.size()}"
+        assert output_list.collect { it[0] } == ["all_methods_test", "single_method_test"] :
+          "expected both test cases to complete; found ${output_list.collect { it[0] }}"
+      }
 }
