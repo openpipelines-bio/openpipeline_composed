@@ -3,7 +3,7 @@ workflow run_wf {
     input_ch
 
   main:
-    output_ch = input_ch
+    integration_ch = input_ch
     // === Validate method-specific requirements ===
     // Fail early when a selected method's required inputs are missing, rather
     // than surfacing the error deep inside a sub-workflow.
@@ -43,12 +43,17 @@ workflow run_wf {
       }
 
     // === Parallel annotation runs ===
-    // Each .run() below reads state.input (the ORIGINAL preprocessed query),
-    // NOT the previous step's output. Nextflow's DAG scheduler therefore sees
-    // no dependency between these calls and executes them concurrently.
+    // Each method reads from `integration_ch` independently rather than chaining
+    // one method's output into the next. Chaining the .run() calls with `|` would
+    // make Nextflow treat each method as dependent on the previous one's output
+    // channel, forcing them to run sequentially per sample — even though each only
+    // reads the original preprocessed query. Forking the source channel into
+    // separate branches removes that artificial dependency so the methods run
+    // concurrently; the branches are re-synchronized below.
 
-    // CellTypist: two mutually-exclusive branches.
-    // Branch 1: a pretrained model is provided (no reference needed).
+    // CellTypist: two mutually-exclusive branches chained on one channel — only
+    // one runs per sample (via runIf), producing a single celltypist_output.
+    celltypist_ch = integration_ch
     | celltypist_annotation.run(
         key: "celltypist_with_model",
         runIf: { id, state ->
@@ -96,6 +101,8 @@ workflow run_wf {
         ],
         toState: ["celltypist_output": "output"]
       )
+
+    harmony_knn_ch = integration_ch
     | harmony_knn_annotation.run(
         runIf: { id, state -> state.annotation_methods.contains("harmony_knn") },
         fromState: [
@@ -123,6 +130,8 @@ workflow run_wf {
         ],
         toState: ["harmony_knn_output": "output"]
       )
+
+    scanvi_scarches_ch = integration_ch
     | scanvi_scarches_annotation.run(
         runIf: { id, state -> state.annotation_methods.contains("scanvi_scarches") },
         fromState: [
@@ -162,6 +171,8 @@ workflow run_wf {
           "scanvi_scarches_model": "output_model"
         ]
       )
+
+    scvi_knn_ch = integration_ch
     | scvi_knn_annotation.run(
         runIf: { id, state -> state.annotation_methods.contains("scvi_knn") },
         fromState: [
@@ -199,10 +210,32 @@ workflow run_wf {
         toState: ["scvi_knn_output": "output"]
       )
 
+    // === Synchronize the parallel branches ===
+    // Each branch emits one [id, state] per sample, carrying the shared base
+    // parameters plus that branch's own "*_output" key. Mixing the four branches
+    // and grouping by id brings them back into a single state. Outputs are picked
+    // explicitly per branch rather than via a blind state merge, so a branch that
+    // did not produce an output cannot clobber another's. A method skipped via
+    // runIf still passes its event through, so the group size is always 4.
+    synced_ch = celltypist_ch
+    .mix(harmony_knn_ch, scanvi_scarches_ch, scvi_knn_ch)
+    .groupTuple(by: 0, size: 4)
+    .map { id, states ->
+        def merged_state = states[0] + [
+          "celltypist_output": states.collect { s -> s.celltypist_output }.find { v -> v != null },
+          "harmony_knn_output": states.collect { s -> s.harmony_knn_output }.find { v -> v != null },
+          "scanvi_scarches_output": states.collect { s -> s.scanvi_scarches_output }.find { v -> v != null },
+          "scanvi_scarches_model": states.collect { s -> s.scanvi_scarches_model }.find { v -> v != null },
+          "scvi_knn_output": states.collect { s -> s.scvi_knn_output }.find { v -> v != null }
+        ]
+        [id, merged_state]
+      }
+
     // === Sequential merge of per-method annotations ===
     // Each move_slots call depends on state.merged from the previous one, so
     // these run in order. move_anndata_slots copies the specified slots from
     // the method's output h5mu into the running merged target.
+    output_ch = synced_ch
     | move_slots.run(
         key: "move_celltypist_slots",
         runIf: { id, state -> state.annotation_methods.contains("celltypist") },
