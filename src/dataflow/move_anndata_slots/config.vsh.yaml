@@ -5,7 +5,8 @@ description: |
   Move slots (.obs, .var, .obsm, .varm, .obsp, .varp, .uns) from a modality
   in a source MuData file into a modality in a target MuData file.
   The specified slots are copied from the source modality into the target
-  modality, overwriting any existing data at those slots.
+  modality. By default, copying to a key that already exists in the target
+  raises an error; use --allow_overwrite to overwrite it instead.
 
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
