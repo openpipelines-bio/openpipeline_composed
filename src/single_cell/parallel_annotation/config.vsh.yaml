@@ -1,4 +1,4 @@
-name: multi_annotation
+name: parallel_annotation
 namespace: single_cell
 scope: public
 description: |

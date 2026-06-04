@@ -1,6 +1,6 @@
 nextflow.enable.dsl=2
 
-include { multi_annotation } from params.rootDir + "/target/nextflow/single_cell/multi_annotation/main.nf"
+include { parallel_annotation } from params.rootDir + "/target/nextflow/single_cell/parallel_annotation/main.nf"
 params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_wf {
@@ -24,8 +24,8 @@ workflow test_wf {
     ])
     | view { "State at start: $it" }
     | map { state -> [state.id, state] }
-    | multi_annotation
-    | view { "After multi_annotation: $it" }
+    | parallel_annotation
+    | view { "After parallel_annotation: $it" }
     | view { output ->
       assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
 
@@ -59,8 +59,8 @@ workflow test_wf_2 {
     ])
     | view { "State at start: $it" }
     | map { state -> [state.id, state] }
-    | multi_annotation
-    | view { "After multi_annotation: $it" }
+    | parallel_annotation
+    | view { "After parallel_annotation: $it" }
     | view { output ->
       assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
 
