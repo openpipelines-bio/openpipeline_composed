@@ -4,6 +4,36 @@ workflow run_wf {
 
   main:
     output_ch = input_ch
+    // === Validate method-specific requirements ===
+    // Fail early when a selected method's required inputs are missing, rather
+    // than surfacing the error deep inside a sub-workflow.
+    | map { id, state ->
+        def methods = state.annotation_methods
+        // CellTypist needs either a pretrained model or a reference to train on.
+        if (methods.contains("celltypist") && !state.celltypist_model && !state.reference) {
+          throw new RuntimeException(
+            "celltypist was selected but neither --celltypist_model nor --reference " +
+            "is provided; one of them is required."
+          )
+        }
+        if (methods.contains("celltypist") && state.celltypist_model && state.reference) {
+          System.err.println(
+            "Warning: both --celltypist_model and --reference are set for celltypist; " +
+            "the pretrained model will be used and the reference ignored."
+          )
+        }
+        // The reference-based methods need a labeled reference.
+        def reference_methods = methods.findAll { method ->
+          method in ["harmony_knn", "scanvi_scarches", "scvi_knn"]
+        }
+        if (reference_methods && (!state.reference || !state.reference_obs_target)) {
+          throw new RuntimeException(
+            "Methods ${reference_methods} require a labeled reference, but " +
+            "--reference and/or --reference_obs_target is not set."
+          )
+        }
+        [id, state]
+      }
     | map { id, state ->
         def new_state = state + [
           "merged": state.input,
@@ -108,6 +138,10 @@ workflow run_wf {
           "unlabeled_category": "reference_obs_label_unlabeled_category",
           "reference_var_hvg": "reference_var_input",
           "reference_var_gene_names": "reference_var_gene_names",
+          "input_obs_categorical_covariate": "input_obs_categorical_covariates",
+          "input_obs_continuous_covariate": "input_obs_numerical_covariates",
+          "reference_obs_categorical_covariate": "reference_obs_categorical_covariates",
+          "reference_obs_continuous_covariate": "reference_obs_numerical_covariates",
           "early_stopping": "early_stopping",
           "early_stopping_monitor": "early_stopping_monitor",
           "early_stopping_patience": "early_stopping_patience",
@@ -123,7 +157,10 @@ workflow run_wf {
           "output_obs_probability": "scanvi_scarches_obs_probability",
           "output_obsm_integrated": "scanvi_scarches_obsm_integrated"
         ],
-        toState: ["scanvi_scarches_output": "output"]
+        toState: [
+          "scanvi_scarches_output": "output",
+          "scanvi_scarches_model": "output_model"
+        ]
       )
     | scvi_knn_annotation.run(
         runIf: { id, state -> state.annotation_methods.contains("scvi_knn") },
@@ -236,9 +273,14 @@ workflow run_wf {
       )
 
     | map { id, state ->
-        [id, state + ["output": state.merged]]
+        def out = ["output": state.merged]
+        // scanvi_scarches_model is only present when scanvi_scarches was selected.
+        if (state.scanvi_scarches_model) {
+          out["output_scanvi_model"] = state.scanvi_scarches_model
+        }
+        [id, state + out]
       }
-    | setState(["output", "_meta"])
+    | setState(["output", "output_scanvi_model", "_meta"])
 
   emit:
     output_ch

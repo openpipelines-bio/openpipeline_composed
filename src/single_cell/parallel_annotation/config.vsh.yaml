@@ -62,6 +62,24 @@ argument_groups:
         default: 100
         min: 1
         description: Minimum number of genes required to overlap between query and reference.
+      - name: "--input_obs_categorical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) in the input query with categorical covariates for
+          scanvi_scarches to correct for in addition to the batch label. Treated as
+          nuisance factors; their order must match --reference_obs_categorical_covariates.
+          None by default.
+        required: false
+      - name: "--input_obs_numerical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) in the input query with continuous (numerical) covariates for
+          scanvi_scarches to correct for in addition to the batch label. Treated as
+          nuisance factors; their order must match --reference_obs_numerical_covariates.
+          None by default.
+        required: false
 
   - name: Reference
     arguments:
@@ -100,6 +118,24 @@ argument_groups:
           .var column in the reference flagging highly-variable genes (boolean).
           Used by celltypist (--reference_var_input) and scanvi_scarches
           (mapped to --reference_var_hvg) to subset features.
+        required: false
+      - name: "--reference_obs_categorical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) in the reference with categorical covariates for
+          scanvi_scarches to correct for in addition to the batch label. Treated as
+          nuisance factors; their order must match --input_obs_categorical_covariates.
+          None by default.
+        required: false
+      - name: "--reference_obs_numerical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) in the reference with continuous (numerical) covariates for
+          scanvi_scarches to correct for in addition to the batch label. Treated as
+          nuisance factors; their order must match --input_obs_numerical_covariates.
+          None by default.
         required: false
       - name: "--reference_obs_label_unlabeled_category"
         type: string
@@ -300,6 +336,14 @@ argument_groups:
         required: false
         example: gzip
         description: Compression format for the output h5mu file.
+      - name: "--output_scanvi_model"
+        type: file
+        description: |
+          Output folder with the trained scANVI/scArches model. Only produced when
+          scanvi_scarches is among the selected --annotation_methods.
+        direction: output
+        required: false
+        example: scanvi_model/
 
 dependencies:
   - name: workflows/annotation/celltypist
