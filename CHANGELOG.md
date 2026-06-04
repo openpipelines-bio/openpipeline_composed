@@ -1,5 +1,9 @@
 # openpipeline_composed x.x.x
 
+## NEW FUNCTIONALITY
+
+* `workflows/single_cell/parallel_integration`: Add a workflow that runs multiple integration methods (harmony, scvi, scanorama, bbknn) in parallel on a preprocessed h5mu and merges each method's annotations into a single output (PR #15).
+
 ## MINOR CHANGES
 
 * `workflows/single_cell/process_integrate_annotate`: Set scope to `private` (PR #6).
