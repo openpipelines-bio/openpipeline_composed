@@ -39,7 +39,7 @@ workflow test_wf {
         reference_obs_batch_label: "donor_assay",
         reference_obs_target: "cell_type",
         annotation_methods: "celltypist;harmony_knn;scanvi_scarches;scvi_knn",
-        max_epochs: 5
+        scvi_max_epochs: 5
       ]
     ])
     | view { "State at start: $it" }

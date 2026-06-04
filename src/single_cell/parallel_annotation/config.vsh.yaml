@@ -180,39 +180,39 @@ argument_groups:
       Training arguments shared by scanvi_scarches and scvi_knn. (scvi_knn maps
       these to its --scvi_* prefixed arguments at dispatch time.)
     arguments:
-      - name: "--early_stopping"
+      - name: "--scvi_early_stopping"
         type: boolean
         description: Whether to perform early stopping with respect to the validation set.
         required: false
-      - name: "--early_stopping_monitor"
+      - name: "--scvi_early_stopping_monitor"
         type: string
         choices: [elbo_validation, reconstruction_loss_validation, kl_local_validation]
         default: "elbo_validation"
         description: Metric logged during validation set epoch.
-      - name: "--early_stopping_patience"
+      - name: "--scvi_early_stopping_patience"
         type: integer
         min: 1
         default: 45
         description: Number of validation epochs with no improvement after which training stops.
-      - name: "--early_stopping_min_delta"
+      - name: "--scvi_early_stopping_min_delta"
         type: double
         min: 0
         default: 0.0
         description: Minimum change in the monitored metric to qualify as an improvement.
-      - name: "--max_epochs"
+      - name: "--scvi_max_epochs"
         type: integer
         description: Number of training passes through the dataset.
         required: false
-      - name: "--reduce_lr_on_plateau"
+      - name: "--scvi_reduce_lr_on_plateau"
         type: boolean
         default: true
         description: Reduce learning rate when validation metric plateaus.
-      - name: "--lr_factor"
+      - name: "--scvi_lr_factor"
         type: double
         min: 0
         default: 0.6
         description: Factor by which to reduce learning rate.
-      - name: "--lr_patience"
+      - name: "--scvi_lr_patience"
         type: double
         min: 0
         default: 30
