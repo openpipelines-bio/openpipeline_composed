@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 include { parallel_annotation } from params.rootDir + "/target/nextflow/single_cell/parallel_annotation/main.nf"
-include { assert_integration_output } from params.rootDir + "/target/_test/nextflow/test_workflows/assert_integration_output/main.nf"
+include { assert_h5mu_slots } from params.rootDir + "/target/_test/nextflow/test_workflows/assert_h5mu_slots/main.nf"
 params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 // Default .obs prediction/probability and .obsm embedding slots each method
@@ -60,7 +60,7 @@ workflow test_wf {
 
       "Output: $output"
     }
-    | assert_integration_output.run(
+    | assert_h5mu_slots.run(
         fromState: { id, state ->
           def slots = annotationSlots(methods)
           ["input": state.output, "modality": "rna", "obs": slots.obs, "obsm": slots.obsm]
@@ -108,7 +108,7 @@ workflow test_wf_2 {
 
       "Output: $output"
     }
-    | assert_integration_output.run(
+    | assert_h5mu_slots.run(
         fromState: { id, state ->
           def slots = annotationSlots(["celltypist"])
           ["input": state.output, "modality": "rna", "obs": slots.obs, "obsm": slots.obsm]
