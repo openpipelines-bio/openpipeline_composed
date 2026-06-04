@@ -1,10 +1,30 @@
 nextflow.enable.dsl=2
 
 include { parallel_annotation } from params.rootDir + "/target/nextflow/single_cell/parallel_annotation/main.nf"
+include { assert_integration_output } from params.rootDir + "/target/_test/nextflow/test_workflows/assert_integration_output/main.nf"
 params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
+
+// Default .obs prediction/probability and .obsm embedding slots each method
+// writes into the merged output. celltypist produces predictions only.
+def annotationSlots(methods) {
+  def perMethod = [
+    "celltypist":      [obs: ["celltypist_pred", "celltypist_probability"], obsm: []],
+    "harmony_knn":     [obs: ["harmony_knn_pred", "harmony_knn_probability"], obsm: ["X_integrated_harmony"]],
+    "scanvi_scarches": [obs: ["scanvi_pred", "scanvi_probabilities"], obsm: ["X_integrated_scanvi"]],
+    "scvi_knn":        [obs: ["scvi_knn_pred", "scvi_knn_probability"], obsm: ["X_integrated_scvi"]]
+  ]
+  def obs = [], obsm = []
+  methods.each { method ->
+    obs += perMethod[method].obs
+    obsm += perMethod[method].obsm
+  }
+  [obs: obs, obsm: obsm]
+}
 
 workflow test_wf {
   resources_test = file(params.resources_test)
+
+  def methods = ["celltypist", "harmony_knn", "scanvi_scarches", "scvi_knn"]
 
   output_ch = Channel.fromList(
     [
@@ -40,6 +60,22 @@ workflow test_wf {
 
       "Output: $output"
     }
+    | assert_integration_output.run(
+        fromState: { id, state ->
+          def slots = annotationSlots(methods)
+          ["input": state.output, "modality": "rna", "obs": slots.obs, "obsm": slots.obsm]
+        }
+      )
+
+  // Verify the test case actually ran through the assert step.
+  output_ch
+    | toSortedList { a, b -> a[0] <=> b[0] }
+    | map { output_list ->
+        assert output_list.size() == 1 :
+          "output channel should contain 1 event, found ${output_list.size()}"
+        assert output_list.collect { ev -> ev[0] } == ["all_methods_test"] :
+          "expected the test case to complete; found ${output_list.collect { ev -> ev[0] }}"
+      }
 }
 
 workflow test_wf_2 {
@@ -72,4 +108,19 @@ workflow test_wf_2 {
 
       "Output: $output"
     }
+    | assert_integration_output.run(
+        fromState: { id, state ->
+          def slots = annotationSlots(["celltypist"])
+          ["input": state.output, "modality": "rna", "obs": slots.obs, "obsm": slots.obsm]
+        }
+      )
+
+  output_ch
+    | toSortedList { a, b -> a[0] <=> b[0] }
+    | map { output_list ->
+        assert output_list.size() == 1 :
+          "output channel should contain 1 event, found ${output_list.size()}"
+        assert output_list.collect { ev -> ev[0] } == ["celltypist_model_test"] :
+          "expected the test case to complete; found ${output_list.collect { ev -> ev[0] }}"
+      }
 }
