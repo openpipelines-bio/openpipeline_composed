@@ -862,7 +862,7 @@ build_info:
   output: "target/_private/nextflow/single_cell/cellranger_multi_qc"
   executable: "target/_private/nextflow/single_cell/cellranger_multi_qc/main.nf"
   viash_version: "0.9.7"
-  git_commit: "7baf1b2ccd716ac4e73ccfec4f819f946ad64014"
+  git_commit: "fc7a41482eab66d37239eb4da3cfdf043f2a05dd"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_composed"
   dependencies:
   - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/ingestion/cellranger_multi"
