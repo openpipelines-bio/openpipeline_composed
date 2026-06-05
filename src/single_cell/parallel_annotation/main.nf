@@ -225,12 +225,18 @@ workflow run_wf {
           "reference_obs_target": "reference_obs_target",
           "reference_var_gene_names": "reference_var_gene_names",
           "reference_var_input": "reference_var_input",
+          "input_obs_clusters": "singler_input_obs_clusters",
           "de_method": "singler_de_method",
           "de_n_genes": "singler_de_n_genes",
           "quantile": "singler_quantile",
           "fine_tune": "singler_fine_tune",
+          "fine_tuning_threshold": "singler_fine_tuning_threshold",
+          "prune": "singler_prune",
+          "sanitize_ensembl_ids": "singler_sanitize_ensembl_ids",
           "output_obs_predictions": "singler_obs_predictions",
           "output_obs_probability": "singler_obs_probability",
+          "output_obs_delta_next": "singler_obs_delta_next",
+          "output_obs_pruned_predictions": "singler_obs_pruned_predictions",
           "output_obsm_scores": "singler_obsm_scores"
         ],
         toState: ["singler_output": "output"]
@@ -335,12 +341,21 @@ workflow run_wf {
         key: "move_singler_slots",
         runIf: { id, state -> state.annotation_methods.contains("singler") },
         fromState: { id, state ->
+          def singler_obs = [
+            state.singler_obs_predictions,
+            state.singler_obs_probability,
+            state.singler_obs_delta_next
+          ]
+          // The pruned-predictions slot is only produced when pruning is enabled.
+          if (state.singler_prune) {
+            singler_obs << state.singler_obs_pruned_predictions
+          }
           [
             "input_source": state.singler_output,
             "input_target": state.merged,
             "source_modality": state.modality,
             "target_modality": state.modality,
-            "obs": [state.singler_obs_predictions, state.singler_obs_probability],
+            "obs": singler_obs,
             "obsm": [state.singler_obsm_scores],
             "allow_overwrite": true,
             "output_compression": state.output_compression

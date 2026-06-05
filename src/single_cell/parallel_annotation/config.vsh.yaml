@@ -284,6 +284,12 @@ argument_groups:
 
   - name: SingleR options
     arguments:
+      - name: "--singler_input_obs_clusters"
+        type: string
+        required: false
+        description: |
+          .obs column with cluster identities. If provided, SingleR annotates the
+          aggregated cluster profiles; otherwise it annotates per observation.
       - name: "--singler_de_method"
         type: string
         choices: [classic, t, wilcox]
@@ -306,6 +312,20 @@ argument_groups:
         type: boolean
         default: true
         description: Whether to fine-tune label assignment after the initial classification.
+      - name: "--singler_fine_tuning_threshold"
+        type: double
+        default: 0.05
+        description: Maximum difference from the maximum correlation to use in fine-tuning.
+      - name: "--singler_prune"
+        type: boolean
+        default: true
+        description: |
+          Whether to prune low-quality labels (replaced with NA in the pruned
+          predictions output).
+      - name: "--singler_sanitize_ensembl_ids"
+        type: boolean
+        default: true
+        description: Whether to sanitize ensembl ids by removing version numbers.
 
   - name: Output slot naming
     description: |
@@ -355,6 +375,12 @@ argument_groups:
       - name: "--singler_obs_probability"
         type: string
         default: "singler_probability"
+      - name: "--singler_obs_delta_next"
+        type: string
+        default: "singler_delta_next"
+      - name: "--singler_obs_pruned_predictions"
+        type: string
+        default: "singler_pruned_labels"
       - name: "--singler_obsm_scores"
         type: string
         default: "singler_scores"

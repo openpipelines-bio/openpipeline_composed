@@ -12,7 +12,7 @@ def annotationSlots(methods) {
     "harmony_knn":     [obs: ["harmony_knn_pred", "harmony_knn_probability"], obsm: ["X_integrated_harmony"]],
     "scanvi_scarches": [obs: ["scanvi_pred", "scanvi_probabilities"], obsm: ["X_integrated_scanvi"]],
     "scvi_knn":        [obs: ["scvi_knn_pred", "scvi_knn_probability"], obsm: ["X_integrated_scvi"]],
-    "singler":         [obs: ["singler_pred", "singler_probability"], obsm: ["singler_scores"]]
+    "singler":         [obs: ["singler_pred", "singler_probability", "singler_delta_next", "singler_pruned_labels"], obsm: ["singler_scores"]]
   ]
   def obs = [], obsm = []
   methods.each { method ->
