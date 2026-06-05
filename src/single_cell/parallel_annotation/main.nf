@@ -24,7 +24,7 @@ workflow run_wf {
         }
         // The reference-based methods need a labeled reference.
         def reference_methods = methods.findAll { method ->
-          method in ["harmony_knn", "scanvi_scarches", "scvi_knn"]
+          method in ["harmony_knn", "scanvi_scarches", "scvi_knn", "singler"]
         }
         if (reference_methods && (!state.reference || !state.reference_obs_target)) {
           throw new RuntimeException(
@@ -210,6 +210,32 @@ workflow run_wf {
         toState: ["scvi_knn_output": "output"]
       )
 
+    singler_ch = integration_ch
+    | singler_annotation.run(
+        runIf: { id, state -> state.annotation_methods.contains("singler") },
+        fromState: [
+          "input": "input",
+          "modality": "modality",
+          // SingleR annotates on log-normalized counts.
+          "input_layer": "input_layer_lognormalized",
+          "input_var_gene_names": "input_var_gene_names",
+          "input_reference_gene_overlap": "input_reference_gene_overlap",
+          "reference": "reference",
+          "reference_layer": "reference_layer_lognormalized",
+          "reference_obs_target": "reference_obs_target",
+          "reference_var_gene_names": "reference_var_gene_names",
+          "reference_var_input": "reference_var_input",
+          "de_method": "singler_de_method",
+          "de_n_genes": "singler_de_n_genes",
+          "quantile": "singler_quantile",
+          "fine_tune": "singler_fine_tune",
+          "output_obs_predictions": "singler_obs_predictions",
+          "output_obs_probability": "singler_obs_probability",
+          "output_obsm_scores": "singler_obsm_scores"
+        ],
+        toState: ["singler_output": "output"]
+      )
+
     // === Synchronize the parallel branches ===
     // Each branch emits one [id, state] per sample, carrying the shared base
     // parameters plus that branch's own "*_output" key. Mixing the four branches
@@ -218,15 +244,16 @@ workflow run_wf {
     // did not produce an output cannot clobber another's. A method skipped via
     // runIf still passes its event through, so the group size is always 4.
     synced_ch = celltypist_ch
-    .mix(harmony_knn_ch, scanvi_scarches_ch, scvi_knn_ch)
-    .groupTuple(by: 0, size: 4)
+    .mix(harmony_knn_ch, scanvi_scarches_ch, scvi_knn_ch, singler_ch)
+    .groupTuple(by: 0, size: 5)
     .map { id, states ->
         def merged_state = states[0] + [
           "celltypist_output": states.collect { s -> s.celltypist_output }.find { v -> v != null },
           "harmony_knn_output": states.collect { s -> s.harmony_knn_output }.find { v -> v != null },
           "scanvi_scarches_output": states.collect { s -> s.scanvi_scarches_output }.find { v -> v != null },
           "scanvi_scarches_model": states.collect { s -> s.scanvi_scarches_model }.find { v -> v != null },
-          "scvi_knn_output": states.collect { s -> s.scvi_knn_output }.find { v -> v != null }
+          "scvi_knn_output": states.collect { s -> s.scvi_knn_output }.find { v -> v != null },
+          "singler_output": states.collect { s -> s.singler_output }.find { v -> v != null }
         ]
         [id, merged_state]
       }
@@ -298,6 +325,23 @@ workflow run_wf {
             "target_modality": state.modality,
             "obs": [state.scvi_knn_obs_predictions, state.scvi_knn_obs_probability],
             "obsm": [state.scvi_knn_obsm_integrated],
+            "allow_overwrite": true,
+            "output_compression": state.output_compression
+          ]
+        },
+        toState: ["merged": "output"]
+      )
+    | move_slots.run(
+        key: "move_singler_slots",
+        runIf: { id, state -> state.annotation_methods.contains("singler") },
+        fromState: { id, state ->
+          [
+            "input_source": state.singler_output,
+            "input_target": state.merged,
+            "source_modality": state.modality,
+            "target_modality": state.modality,
+            "obs": [state.singler_obs_predictions, state.singler_obs_probability],
+            "obsm": [state.singler_obsm_scores],
             "allow_overwrite": true,
             "output_compression": state.output_compression
           ]

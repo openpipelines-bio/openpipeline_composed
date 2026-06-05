@@ -8,7 +8,7 @@
 
 * `workflows/single_cell/parallel_integration`: Add a workflow that runs multiple integration methods (harmony, scvi, scanorama, bbknn) in parallel on a preprocessed h5mu and merges each method's annotations into a single output (PR #15).
 
-* `workflows/single_cell/parallel_annotation`: Add a workflow that runs multiple annotation methods (celltypist, harmony_knn, scanvi_scarches, scvi_knn) in parallel on a preprocessed query h5mu and merges each method's predictions into a single output (PR #16).
+* `workflows/single_cell/parallel_annotation`: Add a workflow that runs multiple annotation methods (celltypist, harmony_knn, scanvi_scarches, scvi_knn, singler) in parallel on a preprocessed query h5mu and merges each method's predictions into a single output (PR #16).
 
 * `dataflow/move_anndata_slots`: Add a component that moves selected slots (`.obs`, `.var`, `.obsm`, `.varm`, `.obsp`, `.varp`, `.uns`) from a modality in a source MuData file into a modality in a target MuData file (PR #15).
 

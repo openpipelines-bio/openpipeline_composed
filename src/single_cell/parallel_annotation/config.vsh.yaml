@@ -91,7 +91,7 @@ argument_groups:
       - name: "--annotation_methods"
         type: string
         description: Annotation methods to run in parallel.
-        choices: [celltypist, harmony_knn, scanvi_scarches, scvi_knn]
+        choices: [celltypist, harmony_knn, scanvi_scarches, scvi_knn, singler]
         multiple: true
         required: true
         example: [celltypist, harmony_knn]
@@ -282,6 +282,31 @@ argument_groups:
         default: 2000
         description: Number of highly-variable genes to keep for scvi_knn.
 
+  - name: SingleR options
+    arguments:
+      - name: "--singler_de_method"
+        type: string
+        choices: [classic, t, wilcox]
+        default: "classic"
+        description: Method to detect differentially expressed genes between pairs of labels.
+      - name: "--singler_de_n_genes"
+        type: integer
+        min: 1
+        required: false
+        description: |
+          Number of differentially expressed genes per label pair to use as markers.
+          Defaults to a SingleR heuristic based on the number of labels.
+      - name: "--singler_quantile"
+        type: double
+        min: 0
+        max: 1
+        default: 0.8
+        description: Quantile of the correlation distribution used to score each label.
+      - name: "--singler_fine_tune"
+        type: boolean
+        default: true
+        description: Whether to fine-tune label assignment after the initial classification.
+
   - name: Output slot naming
     description: |
       Names of the .obs and .obsm slots each method writes into its
@@ -324,6 +349,16 @@ argument_groups:
         type: string
         default: "X_integrated_scvi"
 
+      - name: "--singler_obs_predictions"
+        type: string
+        default: "singler_pred"
+      - name: "--singler_obs_probability"
+        type: string
+        default: "singler_probability"
+      - name: "--singler_obsm_scores"
+        type: string
+        default: "singler_scores"
+
   - name: Output
     arguments:
       - name: "--output"
@@ -363,6 +398,9 @@ dependencies:
   - name: workflows/annotation/scvi_knn
     repository: openpipeline
     alias: scvi_knn_annotation
+  - name: annotate/singler
+    repository: openpipeline
+    alias: singler_annotation
   - name: dataflow/move_anndata_slots
     alias: move_slots
 

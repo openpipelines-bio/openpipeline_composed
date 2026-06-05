@@ -11,7 +11,8 @@ def annotationSlots(methods) {
     "celltypist":      [obs: ["celltypist_pred", "celltypist_probability"], obsm: []],
     "harmony_knn":     [obs: ["harmony_knn_pred", "harmony_knn_probability"], obsm: ["X_integrated_harmony"]],
     "scanvi_scarches": [obs: ["scanvi_pred", "scanvi_probabilities"], obsm: ["X_integrated_scanvi"]],
-    "scvi_knn":        [obs: ["scvi_knn_pred", "scvi_knn_probability"], obsm: ["X_integrated_scvi"]]
+    "scvi_knn":        [obs: ["scvi_knn_pred", "scvi_knn_probability"], obsm: ["X_integrated_scvi"]],
+    "singler":         [obs: ["singler_pred", "singler_probability"], obsm: ["singler_scores"]]
   ]
   def obs = [], obsm = []
   methods.each { method ->
@@ -24,7 +25,7 @@ def annotationSlots(methods) {
 workflow test_wf {
   resources_test = file(params.resources_test)
 
-  def methods = ["celltypist", "harmony_knn", "scanvi_scarches", "scvi_knn"]
+  def methods = ["celltypist", "harmony_knn", "scanvi_scarches", "scvi_knn", "singler"]
 
   output_ch = Channel.fromList(
     [
@@ -38,7 +39,7 @@ workflow test_wf {
         reference_var_gene_names: "ensemblid",
         reference_obs_batch_label: "donor_assay",
         reference_obs_target: "cell_type",
-        annotation_methods: "celltypist;harmony_knn;scanvi_scarches;scvi_knn",
+        annotation_methods: "celltypist;harmony_knn;scanvi_scarches;scvi_knn;singler",
         scvi_max_epochs: 5
       ]
     ])
