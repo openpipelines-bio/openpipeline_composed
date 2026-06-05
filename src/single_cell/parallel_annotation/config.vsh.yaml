@@ -7,6 +7,11 @@ description: |
   (predicted labels and probabilities in .obs, and integrated embeddings in
   .obsm for the integration-based methods) back into a single output h5mu.
 
+  These are label-projection (reference-based) methods: they transfer labels from
+  a labelled --reference onto the query (CellTypist can alternatively use a
+  pretrained --celltypist_model). The reference is expected to be preprocessed in
+  the same way as the query.
+
   Available annotation methods: CellTypist, harmony_knn, scanvi_scarches, scvi_knn.
 
 authors:
@@ -37,8 +42,8 @@ argument_groups:
         type: string
         description: |
           The layer of the input query containing raw counts. Required by
-          celltypist, scanvi_scarches and scvi_knn (which all log-normalize
-          internally).
+          celltypist (which log-normalizes internally), scanvi_scarches and
+          scvi_knn (which model raw counts directly).
         required: false
       - name: "--input_layer_lognormalized"
         type: string
@@ -80,6 +85,16 @@ argument_groups:
           nuisance factors; their order must match --reference_obs_numerical_covariates.
           None by default.
         required: false
+
+  - name: Methods
+    arguments:
+      - name: "--annotation_methods"
+        type: string
+        description: Annotation methods to run in parallel.
+        choices: [celltypist, harmony_knn, scanvi_scarches, scvi_knn]
+        multiple: true
+        required: true
+        example: [celltypist, harmony_knn]
 
   - name: Reference
     arguments:
@@ -141,16 +156,6 @@ argument_groups:
         type: string
         default: "Unknown"
         description: Value in --reference_obs_target that indicates unlabeled observations.
-
-  - name: Methods
-    arguments:
-      - name: "--annotation_methods"
-        type: string
-        description: Annotation methods to run in parallel.
-        choices: [celltypist, harmony_knn, scanvi_scarches, scvi_knn]
-        multiple: true
-        required: true
-        example: [celltypist, harmony_knn]
 
   - name: Clustering options
     description: Leiden clustering options shared by harmony_knn, scanvi_scarches, scvi_knn.
