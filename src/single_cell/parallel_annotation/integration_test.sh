@@ -10,7 +10,7 @@ cd "$REPO_ROOT"
 
 nextflow \
   run . \
-  -main-script src/single_cell/multi_integration/test.nf \
+  -main-script src/single_cell/parallel_annotation/test.nf \
   -entry test_wf \
   -resume \
   -profile docker \
