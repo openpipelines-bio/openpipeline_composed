@@ -1,0 +1,69 @@
+name: assert_integration_output
+namespace: "test_workflows"
+scope: "test"
+description: |
+  Test helper for the parallel_integration workflow. Reads a modality from an
+  output h5mu and asserts that the expected .obs columns, .obsm keys, .obsp keys
+  and .uns keys are all present. Raises an error listing any missing slots.
+
+authors:
+  - __merge__: /src/authors/jakub_majercik.yaml
+    roles: [ author ]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--input"
+        type: file
+        description: Output h5mu file to validate.
+        required: true
+        example: output.h5mu
+      - name: "--modality"
+        type: string
+        description: Modality to inspect.
+        default: "rna"
+        required: false
+  - name: Expected slots
+    arguments:
+      - name: "--obs"
+        type: string
+        multiple: true
+        description: Expected .obs column names.
+        required: false
+      - name: "--obsm"
+        type: string
+        multiple: true
+        description: Expected .obsm keys.
+        required: false
+      - name: "--obsp"
+        type: string
+        multiple: true
+        description: Expected .obsp keys.
+        required: false
+      - name: "--uns"
+        type: string
+        multiple: true
+        description: Expected .uns keys.
+        required: false
+
+resources:
+  - type: python_script
+    path: script.py
+  - path: /src/utils/setup_logger.py
+
+engines:
+  - type: docker
+    image: python:3.13-slim
+    setup:
+      - type: apt
+        packages:
+          - procps
+      - type: python
+        __merge__: /src/base/requirements/anndata_mudata.yaml
+    __merge__: [/src/base/requirements/python_test_setup.yaml, .]
+
+runners:
+  - type: executable
+  - type: nextflow
+    directives:
+      label: [ singlecpu, lowmem ]
