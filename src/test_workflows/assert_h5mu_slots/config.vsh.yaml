@@ -1,10 +1,10 @@
-name: assert_integration_output
+name: assert_h5mu_slots
 namespace: "test_workflows"
 scope: "test"
 description: |
-  Test helper for the parallel_integration workflow. Reads a modality from an
-  output h5mu and asserts that the expected .obs columns, .obsm keys, .obsp keys
-  and .uns keys are all present. Raises an error listing any missing slots.
+  Test helper. Reads a modality from an output h5mu and asserts that the expected
+  .obs columns, .obsm keys, .obsp keys and .uns keys are all present. Raises an
+  error listing any missing slots.
 
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml

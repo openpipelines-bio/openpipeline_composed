@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 include { parallel_integration } from params.rootDir + "/target/nextflow/single_cell/parallel_integration/main.nf"
-include { assert_integration_output } from params.rootDir + "/target/_test/nextflow/test_workflows/assert_integration_output/main.nf"
+include { assert_h5mu_slots } from params.rootDir + "/target/_test/nextflow/test_workflows/assert_h5mu_slots/main.nf"
 params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 // Build the set of slots each selected method is expected to write into the
@@ -68,7 +68,7 @@ workflow test_wf {
       "Output: $output"
     }
     // Assert that every expected per-method slot is present in the output h5mu.
-    | assert_integration_output.run(
+    | assert_h5mu_slots.run(
         fromState: { id, state ->
           def slots = expectedSlots(methodsById[id], resolutions)
           [
