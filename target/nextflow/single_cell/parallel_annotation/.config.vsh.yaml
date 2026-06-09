@@ -1,0 +1,974 @@
+name: "parallel_annotation"
+namespace: "single_cell"
+version: "build_main"
+authors:
+- name: "Jakub Majercik"
+  roles:
+  - "author"
+  - "maintainer"
+  info:
+    role: "Contributor"
+    links:
+      email: "jakub@data-intuitive.com"
+      github: "jakubmajercik"
+      linkedin: "jakubmajercik"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Bioinformatics Engineer"
+argument_groups:
+- name: "Inputs"
+  arguments:
+  - type: "string"
+    name: "--id"
+    description: "ID of the sample."
+    info: null
+    example:
+    - "foo"
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input"
+    description: "Input query h5mu file. Must be preprocessed in the same way as the\n\
+      reference (raw counts and log-normalized counts available).\n"
+    info: null
+    example:
+    - "input.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--modality"
+    description: "Which modality to process. Must match the modality in --reference."
+    info: null
+    default:
+    - "rna"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_layer"
+    description: "The layer of the input query containing raw counts. Required by\n\
+      celltypist (which log-normalizes internally), scanvi_scarches and\nscvi_knn\
+      \ (which model raw counts directly).\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_layer_lognormalized"
+    description: "The layer of the input query containing log-normalized counts.\n\
+      Required by harmony_knn and scvi_knn.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obs_batch_label"
+    description: ".obs column in the input query containing batch labels. Required\
+      \ by\nharmony_knn, scanvi_scarches and scvi_knn.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_var_gene_names"
+    description: ".var column containing gene names. By default the .var index is\
+      \ used.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--input_reference_gene_overlap"
+    description: "Minimum number of genes required to overlap between query and reference."
+    info: null
+    default:
+    - 100
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--sanitize_ensembl_ids"
+    description: "Whether to sanitize ensembl gene ids by removing version numbers.\
+      \ Read by\ncelltypist, scanvi_scarches, scvi_knn and singler.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obs_categorical_covariates"
+    description: ".obs column(s) in the input query with categorical covariates for\n\
+      scanvi_scarches to correct for in addition to the batch label. Treated as\n\
+      nuisance factors; their order must match --reference_obs_categorical_covariates.\n\
+      None by default.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obs_numerical_covariates"
+    description: ".obs column(s) in the input query with continuous (numerical) covariates\
+      \ for\nscanvi_scarches to correct for in addition to the batch label. Treated\
+      \ as\nnuisance factors; their order must match --reference_obs_numerical_covariates.\n\
+      None by default.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Methods"
+  arguments:
+  - type: "string"
+    name: "--annotation_methods"
+    description: "Annotation methods to run in parallel."
+    info: null
+    example:
+    - "celltypist"
+    - "harmony_knn"
+    required: true
+    choices:
+    - "celltypist"
+    - "harmony_knn"
+    - "scanvi_scarches"
+    - "scvi_knn"
+    - "singler"
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Reference"
+  arguments:
+  - type: "file"
+    name: "--reference"
+    description: "Reference h5mu file with labeled observations. Required by harmony_knn,\n\
+      scanvi_scarches, scvi_knn, and by celltypist when --celltypist_model\nis not\
+      \ provided.\n"
+    info: null
+    example:
+    - "reference.h5mu"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_layer"
+    description: "Layer of the reference containing raw counts."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_layer_lognormalized"
+    description: "Layer of the reference containing log-normalized counts."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_target"
+    description: ".obs column in the reference containing the target cell-type labels."
+    info: null
+    example:
+    - "cell_type"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_batch_label"
+    description: ".obs column in the reference containing batch labels."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_var_gene_names"
+    description: ".var column in the reference containing gene names. Defaults to\
+      \ the .var index."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_var_input"
+    description: ".var column in the reference flagging highly-variable genes (boolean).\n\
+      Used by celltypist (--reference_var_input) and scanvi_scarches\n(mapped to --reference_var_hvg)\
+      \ to subset features.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_categorical_covariates"
+    description: ".obs column(s) in the reference with categorical covariates for\n\
+      scanvi_scarches to correct for in addition to the batch label. Treated as\n\
+      nuisance factors; their order must match --input_obs_categorical_covariates.\n\
+      None by default.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_numerical_covariates"
+    description: ".obs column(s) in the reference with continuous (numerical) covariates\
+      \ for\nscanvi_scarches to correct for in addition to the batch label. Treated\
+      \ as\nnuisance factors; their order must match --input_obs_numerical_covariates.\n\
+      None by default.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_label_unlabeled_category"
+    description: "Value in --reference_obs_target that indicates unlabeled observations."
+    info: null
+    default:
+    - "Unknown"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Clustering options"
+  description: "Leiden clustering options shared by harmony_knn, scanvi_scarches,\
+    \ scvi_knn."
+  arguments:
+  - type: "double"
+    name: "--leiden_resolution"
+    description: "Leiden clustering resolution(s). Higher values lead to more clusters."
+    info: null
+    default:
+    - 1.0
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Neighbor classifier options"
+  description: "KNN options shared by harmony_knn, scanvi_scarches, scvi_knn."
+  arguments:
+  - type: "string"
+    name: "--knn_weights"
+    description: "Weight function for KNN classifier."
+    info: null
+    default:
+    - "uniform"
+    required: false
+    choices:
+    - "uniform"
+    - "distance"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--knn_n_neighbors"
+    description: "Number of neighbors for the KNN classifier."
+    info: null
+    default:
+    - 15
+    required: false
+    min: 5
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "scVI / scANVI / scArches training options"
+  description: "Training arguments shared by scanvi_scarches and scvi_knn. (scvi_knn\
+    \ maps\nthese to its --scvi_* prefixed arguments at dispatch time.)\n"
+  arguments:
+  - type: "boolean"
+    name: "--scvi_early_stopping"
+    description: "Whether to perform early stopping with respect to the validation\
+      \ set."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scvi_early_stopping_monitor"
+    description: "Metric logged during validation set epoch."
+    info: null
+    default:
+    - "elbo_validation"
+    required: false
+    choices:
+    - "elbo_validation"
+    - "reconstruction_loss_validation"
+    - "kl_local_validation"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scvi_early_stopping_patience"
+    description: "Number of validation epochs with no improvement after which training\
+      \ stops."
+    info: null
+    default:
+    - 45
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--scvi_early_stopping_min_delta"
+    description: "Minimum change in the monitored metric to qualify as an improvement."
+    info: null
+    default:
+    - 0.0
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scvi_max_epochs"
+    description: "Number of training passes through the dataset."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--scvi_reduce_lr_on_plateau"
+    description: "Reduce learning rate when validation metric plateaus."
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--scvi_lr_factor"
+    description: "Factor by which to reduce learning rate."
+    info: null
+    default:
+    - 0.6
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--scvi_lr_patience"
+    description: "Number of epochs with no improvement after which lr is reduced."
+    info: null
+    default:
+    - 30.0
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "CellTypist options"
+  arguments:
+  - type: "file"
+    name: "--celltypist_model"
+    description: "Pretrained CellTypist model in .pkl format. If not provided, the\n\
+      model is trained on --reference.\n"
+    info: null
+    example:
+    - "pretrained_model.pkl"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--celltypist_majority_voting"
+    description: "Refine predicted labels by majority voting after over-clustering."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--celltypist_feature_selection"
+    description: "Whether to perform feature selection during training."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--celltypist_C"
+    description: "Inverse of regularization strength in logistic regression."
+    info: null
+    default:
+    - 1.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--celltypist_max_iter"
+    description: "Maximum iterations before reaching the cost-function minimum."
+    info: null
+    default:
+    - 1000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--celltypist_use_SGD"
+    description: "Whether to use stochastic gradient descent."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--celltypist_min_prop"
+    description: "Minimum proportion of cells in a sub-cluster supporting a label\
+      \ for\nmajority voting; only relevant if --celltypist_majority_voting is set.\n"
+    info: null
+    default:
+    - 0.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "harmony_knn options"
+  arguments:
+  - type: "integer"
+    name: "--harmony_knn_n_hvg"
+    description: "Number of highly-variable genes to keep for harmony_knn."
+    info: null
+    default:
+    - 2000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--harmony_knn_pca_num_components"
+    description: "Number of principal components to compute for harmony_knn."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--harmony_knn_theta"
+    description: "Diversity clustering penalty for harmony."
+    info: null
+    default:
+    - 2.0
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "scvi_knn options"
+  arguments:
+  - type: "integer"
+    name: "--scvi_knn_n_hvg"
+    description: "Number of highly-variable genes to keep for scvi_knn."
+    info: null
+    default:
+    - 2000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "SingleR options"
+  arguments:
+  - type: "string"
+    name: "--singler_input_obs_clusters"
+    description: ".obs column with cluster identities. If provided, SingleR annotates\
+      \ the\naggregated cluster profiles; otherwise it annotates per observation.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--singler_de_method"
+    description: "Method to detect differentially expressed genes between pairs of\
+      \ labels."
+    info: null
+    default:
+    - "classic"
+    required: false
+    choices:
+    - "classic"
+    - "t"
+    - "wilcox"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--singler_de_n_genes"
+    description: "Number of differentially expressed genes per label pair to use as\
+      \ markers.\nDefaults to a SingleR heuristic based on the number of labels.\n"
+    info: null
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--singler_quantile"
+    description: "Quantile of the correlation distribution used to score each label."
+    info: null
+    default:
+    - 0.8
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--singler_fine_tune"
+    description: "Whether to fine-tune label assignment after the initial classification."
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--singler_fine_tuning_threshold"
+    description: "Maximum difference from the maximum correlation to use in fine-tuning."
+    info: null
+    default:
+    - 0.05
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--singler_prune"
+    description: "Whether to prune low-quality labels (replaced with NA in the pruned\n\
+      predictions output).\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Output slot naming"
+  description: "Names of the .obs and .obsm slots each method writes into its\nintermediate\
+    \ h5mu and that are subsequently moved into the merged output.\n"
+  arguments:
+  - type: "string"
+    name: "--celltypist_obs_predictions"
+    info: null
+    default:
+    - "celltypist_pred"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--celltypist_obs_probability"
+    info: null
+    default:
+    - "celltypist_probability"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--harmony_knn_obs_predictions"
+    info: null
+    default:
+    - "harmony_knn_pred"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--harmony_knn_obs_probability"
+    info: null
+    default:
+    - "harmony_knn_probability"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--harmony_knn_obsm_integrated"
+    info: null
+    default:
+    - "X_integrated_harmony"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scanvi_scarches_obs_predictions"
+    info: null
+    default:
+    - "scanvi_pred"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scanvi_scarches_obs_probability"
+    info: null
+    default:
+    - "scanvi_probability"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scanvi_scarches_obsm_integrated"
+    info: null
+    default:
+    - "X_integrated_scanvi"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scvi_knn_obs_predictions"
+    info: null
+    default:
+    - "scvi_knn_pred"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scvi_knn_obs_probability"
+    info: null
+    default:
+    - "scvi_knn_probability"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--scvi_knn_obsm_integrated"
+    info: null
+    default:
+    - "X_integrated_scvi"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--singler_obs_predictions"
+    info: null
+    default:
+    - "singler_pred"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--singler_obs_probability"
+    info: null
+    default:
+    - "singler_probability"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--singler_obs_delta_next"
+    info: null
+    default:
+    - "singler_delta_next"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--singler_obs_pruned_predictions"
+    info: null
+    default:
+    - "singler_pruned_labels"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--singler_obsm_scores"
+    info: null
+    default:
+    - "singler_scores"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Output"
+  arguments:
+  - type: "file"
+    name: "--output"
+    alternatives:
+    - "-o"
+    description: "Output h5mu file — the input query with each selected method's\n\
+      predictions and embeddings merged into the target modality.\n"
+    info: null
+    example:
+    - "output.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_compression"
+    description: "Compression format for the output h5mu file."
+    info: null
+    example:
+    - "gzip"
+    required: false
+    choices:
+    - "gzip"
+    - "lzf"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_scanvi_model"
+    description: "Output folder with the trained scANVI/scArches model. Only produced\
+      \ when\nscanvi_scarches is among the selected --annotation_methods.\n"
+    info: null
+    example:
+    - "scanvi_model"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "nextflow_script"
+  path: "main.nf"
+  is_executable: true
+  entrypoint: "run_wf"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "Run multiple annotation methods from OpenPipeline in parallel on the\
+  \ same\npreprocessed query h5mu input, then merge each method's predictions\n(predicted\
+  \ labels and probabilities in .obs, and integrated embeddings in\n.obsm for the\
+  \ integration-based methods) back into a single output h5mu.\n\nThese are label-projection\
+  \ (reference-based) methods: they transfer labels from\na labelled --reference onto\
+  \ the query (CellTypist can alternatively use a\npretrained --celltypist_model).\
+  \ The reference is expected to be preprocessed in\nthe same way as the query.\n\n\
+  Available annotation methods: CellTypist, harmony_knn, scanvi_scarches, scvi_knn,\
+  \ SingleR.\n"
+test_resources:
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_wf"
+- type: "file"
+  path: "pbmc_1k_protein_v3_mms.h5mu"
+- type: "file"
+  path: "TS_Blood_filtered.h5mu"
+- type: "file"
+  path: "celltypist_model_Immune_All_Low.pkl"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+requirements:
+  commands:
+  - "ps"
+dependencies:
+- name: "workflows/annotation/celltypist"
+  alias: "celltypist_annotation"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "workflows/annotation/harmony_knn"
+  alias: "harmony_knn_annotation"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "workflows/annotation/scanvi_scarches"
+  alias: "scanvi_scarches_annotation"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "workflows/annotation/scvi_knn"
+  alias: "scvi_knn_annotation"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "annotate/singler"
+  alias: "singler_annotation"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+- name: "dataflow/move_anndata_slots"
+  alias: "move_slots"
+  repository:
+    type: "local"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.1.0"
+- type: "vsh"
+  name: "openpipeline_qc"
+  repo: "openpipeline_qc"
+  tag: "v0.3.0"
+- type: "vsh"
+  name: "biobox"
+  repo: "biobox"
+  tag: "v0.4.2"
+links:
+  repository: "https://github.com/openpipelines-bio/openpipeline_composed"
+  docker_registry: "ghcr.io"
+runners:
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+build_info:
+  config: "src/single_cell/parallel_annotation/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "native"
+  output: "target/nextflow/single_cell/parallel_annotation"
+  executable: "target/nextflow/single_cell/parallel_annotation/main.nf"
+  viash_version: "0.9.7"
+  git_commit: "a252528bd8939453ad25711df0bc98ee0479f6ee"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_composed"
+  dependencies:
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/annotation/celltypist"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/annotation/harmony_knn"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/annotation/scanvi_scarches"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/annotation/scvi_knn"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/annotate/singler"
+  - "target/nextflow/dataflow/move_anndata_slots"
+package_config:
+  name: "openpipeline_composed"
+  version: "build_main"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_incubator/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.1.0"
+  - type: "vsh"
+    name: "openpipeline_qc"
+    repo: "openpipeline_qc"
+    tag: "v0.3.0"
+  - type: "vsh"
+    name: "biobox"
+    repo: "biobox"
+    tag: "v0.4.2"
+  viash_version: "0.9.7"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag\
+    \ := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'\n"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_composed"
+    docker_registry: "ghcr.io"

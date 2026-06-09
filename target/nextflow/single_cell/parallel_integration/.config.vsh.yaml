@@ -774,7 +774,7 @@ build_info:
   output: "target/nextflow/single_cell/parallel_integration"
   executable: "target/nextflow/single_cell/parallel_integration/main.nf"
   viash_version: "0.9.7"
-  git_commit: "fc7a41482eab66d37239eb4da3cfdf043f2a05dd"
+  git_commit: "a252528bd8939453ad25711df0bc98ee0479f6ee"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_composed"
   dependencies:
   - "target/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/integration/harmony_leiden"

@@ -3984,7 +3984,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/cellranger_multi_qc",
     "viash_version" : "0.9.7",
-    "git_commit" : "fc7a41482eab66d37239eb4da3cfdf043f2a05dd",
+    "git_commit" : "a252528bd8939453ad25711df0bc98ee0479f6ee",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
