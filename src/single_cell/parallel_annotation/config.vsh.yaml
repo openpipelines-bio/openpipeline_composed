@@ -12,7 +12,7 @@ description: |
   pretrained --celltypist_model). The reference is expected to be preprocessed in
   the same way as the query.
 
-  Available annotation methods: CellTypist, harmony_knn, scanvi_scarches, scvi_knn.
+  Available annotation methods: CellTypist, harmony_knn, scanvi_scarches, scvi_knn, SingleR.
 
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
@@ -67,6 +67,12 @@ argument_groups:
         default: 100
         min: 1
         description: Minimum number of genes required to overlap between query and reference.
+      - name: "--sanitize_ensembl_ids"
+        type: boolean
+        default: true
+        description: |
+          Whether to sanitize ensembl gene ids by removing version numbers. Read by
+          celltypist, scanvi_scarches, scvi_knn and singler.
       - name: "--input_obs_categorical_covariates"
         type: string
         multiple: true
@@ -322,10 +328,6 @@ argument_groups:
         description: |
           Whether to prune low-quality labels (replaced with NA in the pruned
           predictions output).
-      - name: "--singler_sanitize_ensembl_ids"
-        type: boolean
-        default: true
-        description: Whether to sanitize ensembl ids by removing version numbers.
 
   - name: Output slot naming
     description: |
@@ -354,7 +356,7 @@ argument_groups:
         default: "scanvi_pred"
       - name: "--scanvi_scarches_obs_probability"
         type: string
-        default: "scanvi_probabilities"
+        default: "scanvi_probability"
       - name: "--scanvi_scarches_obsm_integrated"
         type: string
         default: "X_integrated_scanvi"

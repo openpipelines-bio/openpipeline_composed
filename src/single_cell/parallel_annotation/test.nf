@@ -10,7 +10,7 @@ def annotationSlots(methods) {
   def perMethod = [
     "celltypist":      [obs: ["celltypist_pred", "celltypist_probability"], obsm: []],
     "harmony_knn":     [obs: ["harmony_knn_pred", "harmony_knn_probability"], obsm: ["X_integrated_harmony"]],
-    "scanvi_scarches": [obs: ["scanvi_pred", "scanvi_probabilities"], obsm: ["X_integrated_scanvi"]],
+    "scanvi_scarches": [obs: ["scanvi_pred", "scanvi_probability"], obsm: ["X_integrated_scanvi"]],
     "scvi_knn":        [obs: ["scvi_knn_pred", "scvi_knn_probability"], obsm: ["X_integrated_scvi"]],
     "singler":         [obs: ["singler_pred", "singler_probability", "singler_delta_next", "singler_pruned_labels"], obsm: ["singler_scores"]]
   ]
@@ -51,7 +51,7 @@ workflow test_wf {
       assert output.size() == 2 : "Outputs should contain two elements; [id, state]"
 
       def id = output[0]
-      assert id.endsWith("_test") || id == "merged" : "Output ID should end with _test or be 'merged'. Found: ${id}"
+      assert id.endsWith("_test") : "Output ID should end with _test. Found: ${id}"
 
       def state = output[1]
       assert state instanceof Map : "State should be a map. Found: ${state}"
