@@ -3115,7 +3115,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--input_layer",
-          "description" : "The layer of the input query containing raw counts. Required by\ncelltypist (which log-normalizes internally), scanvi_scarches and\nscvi_knn (which model raw counts directly).\n",
+          "description" : "The layer of the input query containing raw counts. Required by\ncelltypist (which log-normalizes internally), scanvi_scarches and\nscvi_knn (which model raw counts directly). If not provided, .X \nwill be used.\n",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3125,6 +3125,9 @@ meta = [
           "type" : "string",
           "name" : "--input_layer_lognormalized",
           "description" : "The layer of the input query containing log-normalized counts.\nRequired by harmony_knn and scvi_knn.\n",
+          "default" : [
+            "log_normalized"
+          ],
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3134,6 +3137,9 @@ meta = [
           "type" : "string",
           "name" : "--input_obs_batch_label",
           "description" : ".obs column in the input query containing batch labels. Required by\nharmony_knn, scanvi_scarches and scvi_knn.\n",
+          "default" : [
+            "sample_id"
+          ],
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3238,7 +3244,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--reference_layer",
-          "description" : "Layer of the reference containing raw counts.",
+          "description" : "Layer of the reference containing raw counts. If not provided, .X will be used.",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3248,6 +3254,9 @@ meta = [
           "type" : "string",
           "name" : "--reference_layer_lognormalized",
           "description" : "Layer of the reference containing log-normalized counts.",
+          "default" : [
+            "log_normalized"
+          ],
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3269,6 +3278,9 @@ meta = [
           "type" : "string",
           "name" : "--reference_obs_batch_label",
           "description" : ".obs column in the reference containing batch labels.",
+          "default" : [
+            "sample_id"
+          ],
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3287,6 +3299,9 @@ meta = [
           "type" : "string",
           "name" : "--reference_var_input",
           "description" : ".var column in the reference flagging highly-variable genes (boolean).\nUsed by celltypist (--reference_var_input) and scanvi_scarches\n(mapped to --reference_var_hvg) to subset features.\n",
+          "default" : [
+            "filter_with_hvg"
+          ],
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3967,7 +3982,7 @@ meta = [
       "dest" : "nextflow_labels.config"
     }
   ],
-  "description" : "Run multiple annotation methods from OpenPipeline in parallel on the same\npreprocessed query h5mu input, then merge each method's predictions\n(predicted labels and probabilities in .obs, and integrated embeddings in\n.obsm for the integration-based methods) back into a single output h5mu.\n\nThese are label-projection (reference-based) methods: they transfer labels from\na labelled --reference onto the query (CellTypist can alternatively use a\npretrained --celltypist_model). The reference is expected to be preprocessed in\nthe same way as the query.\n\nAvailable annotation methods: CellTypist, harmony_knn, scanvi_scarches, scvi_knn, SingleR.\n",
+  "description" : "Run multiple annotation methods from OpenPipeline in parallel on the same\npreprocessed query h5mu input, then merge each method's predictions\n(predicted labels and probabilities in .obs, and integrated embeddings in\n.obsm for the integration-based methods) back into a single output h5mu.\n\nThese are label-projection (reference-based) methods: they transfer labels from\na labelled --reference onto the query (CellTypist can alternatively use a\npretrained --celltypist_model). The reference is expected to be preprocessed in\nthe same way as the query.\n\nAvailable annotation methods: \n- CellTypist\n- ScanVI with scArches\n- SingleR\n- SCVI integration followed by KNN label transfer\n- Harmony integration followed by KNN label transfer\n",
   "test_resources" : [
     {
       "type" : "nextflow_script",
@@ -4160,7 +4175,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/single_cell/parallel_annotation",
     "viash_version" : "0.9.7",
-    "git_commit" : "a252528bd8939453ad25711df0bc98ee0479f6ee",
+    "git_commit" : "c5639aee50c1fbf3dbc0eac6f9b17246553080c1",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {

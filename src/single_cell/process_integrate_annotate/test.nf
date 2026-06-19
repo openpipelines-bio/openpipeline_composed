@@ -13,6 +13,7 @@ workflow test_wf {
         input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         reference: resources_test.resolve("annotation_test_data/TS_Blood_filtered.h5mu"),
         reference_var_gene_names: "ensemblid",
+        reference_var_input: "highly_variable",
         reference_layer_lognormalized_counts: "log_normalized",
         reference_obs_batch: "donor_assay",
         reference_obs_label: "cell_type",
@@ -29,6 +30,7 @@ workflow test_wf {
         input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         reference: resources_test.resolve("annotation_test_data/TS_Blood_filtered.h5mu"),
         reference_var_gene_names: "ensemblid",
+        reference_var_input: "highly_variable",
         reference_layer_lognormalized_counts: "log_normalized",
         reference_obs_batch: "donor_assay",
         reference_obs_label: "cell_type",
@@ -86,6 +88,7 @@ workflow test_wf_2 {
         add_id_obs_output: "sample_id",
         reference: resources_test.resolve("annotation_test_data/TS_Blood_filtered.h5mu"),
         reference_var_gene_names: "ensemblid",
+        reference_var_input: "highly_variable",
         reference_layer_lognormalized_counts: "log_normalized",
         reference_obs_batch: "donor_assay",
         reference_obs_label: "cell_type",
@@ -124,6 +127,7 @@ workflow test_wf_3 {
         id: "celltypist_model",
         input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         celltypist_model: resources_test.resolve("annotation_test_data/celltypist_model_Immune_All_Low.pkl"),
+        reference_var_input: "highly_variable",
         annotation_methods: "celltypist",
         input_var_gene_names: "gene_symbol"
       ]

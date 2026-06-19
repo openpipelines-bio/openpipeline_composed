@@ -3214,6 +3214,9 @@ meta = [
           "type" : "string",
           "name" : "--reference_obs_batch",
           "description" : "The .obs column of the reference dataset containing the batch information.\n",
+          "default" : [
+            "sample_id"
+          ],
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3247,6 +3250,9 @@ meta = [
           "type" : "string",
           "name" : "--reference_var_input",
           "description" : ".var column containing highly variable genes. By default, do not subset genes.\n",
+          "default" : [
+            "filter_with_hvg"
+          ],
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3993,7 +3999,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/process_integrate_annotate",
     "viash_version" : "0.9.7",
-    "git_commit" : "a252528bd8939453ad25711df0bc98ee0479f6ee",
+    "git_commit" : "c5639aee50c1fbf3dbc0eac6f9b17246553080c1",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
