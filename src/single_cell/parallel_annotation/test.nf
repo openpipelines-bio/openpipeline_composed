@@ -39,6 +39,7 @@ workflow test_wf {
         reference_var_gene_names: "ensemblid",
         reference_obs_batch_label: "donor_assay",
         reference_obs_target: "cell_type",
+        reference_var_input: "highly_variable",
         annotation_methods: "celltypist;harmony_knn;scanvi_scarches;scvi_knn;singler",
         scvi_max_epochs: 5
       ]

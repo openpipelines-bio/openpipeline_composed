@@ -12,7 +12,12 @@ description: |
   pretrained --celltypist_model). The reference is expected to be preprocessed in
   the same way as the query.
 
-  Available annotation methods: CellTypist, harmony_knn, scanvi_scarches, scvi_knn, SingleR.
+  Available annotation methods: 
+  - CellTypist
+  - ScanVI with scArches
+  - SingleR
+  - SCVI integration followed by KNN label transfer
+  - Harmony integration followed by KNN label transfer
 
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
@@ -43,19 +48,22 @@ argument_groups:
         description: |
           The layer of the input query containing raw counts. Required by
           celltypist (which log-normalizes internally), scanvi_scarches and
-          scvi_knn (which model raw counts directly).
+          scvi_knn (which model raw counts directly). If not provided, .X 
+          will be used.
         required: false
       - name: "--input_layer_lognormalized"
         type: string
         description: |
           The layer of the input query containing log-normalized counts.
           Required by harmony_knn and scvi_knn.
+        default: log_normalized
         required: false
       - name: "--input_obs_batch_label"
         type: string
         description: |
           .obs column in the input query containing batch labels. Required by
           harmony_knn, scanvi_scarches and scvi_knn.
+        default: sample_id
         required: false
       - name: "--input_var_gene_names"
         type: string
@@ -114,12 +122,13 @@ argument_groups:
         example: reference.h5mu
       - name: "--reference_layer"
         type: string
-        description: Layer of the reference containing raw counts.
+        description: Layer of the reference containing raw counts. If not provided, .X will be used.
         required: false
       - name: "--reference_layer_lognormalized"
         type: string
         description: Layer of the reference containing log-normalized counts.
         required: false
+        default: log_normalized
       - name: "--reference_obs_target"
         type: string
         description: .obs column in the reference containing the target cell-type labels.
@@ -129,6 +138,7 @@ argument_groups:
         type: string
         description: .obs column in the reference containing batch labels.
         required: false
+        default: sample_id
       - name: "--reference_var_gene_names"
         type: string
         description: .var column in the reference containing gene names. Defaults to the .var index.
@@ -140,6 +150,7 @@ argument_groups:
           Used by celltypist (--reference_var_input) and scanvi_scarches
           (mapped to --reference_var_hvg) to subset features.
         required: false
+        default: filter_with_hvg
       - name: "--reference_obs_categorical_covariates"
         type: string
         multiple: true

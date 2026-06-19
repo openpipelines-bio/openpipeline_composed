@@ -74,7 +74,8 @@ argument_groups:
           The name of the adata .var column containing gene names if the .var index is not to be used.
       - name: "--reference_obs_batch"
         type: string
-        required: false 
+        required: false
+        default: sample_id
         description: |
           The .obs column of the reference dataset containing the batch information.
       - name: "--reference_obs_label"
@@ -89,6 +90,7 @@ argument_groups:
       - name: "--reference_var_input"
         type: string
         required: false
+        default: filter_with_hvg
         description: |
           .var column containing highly variable genes. By default, do not subset genes.
 
