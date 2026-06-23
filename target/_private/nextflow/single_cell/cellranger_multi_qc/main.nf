@@ -3848,7 +3848,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       }
     },
     {
@@ -3881,7 +3881,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.1.0"
+      "tag" : "v4.1.1"
     },
     {
       "type" : "vsh",
@@ -3984,7 +3984,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/cellranger_multi_qc",
     "viash_version" : "0.9.7",
-    "git_commit" : "c5639aee50c1fbf3dbc0eac6f9b17246553080c1",
+    "git_commit" : "c5178510909b06282fa61736e46bc19fdfc9c68b",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -4004,7 +4004,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       },
       {
         "type" : "vsh",
@@ -4036,7 +4036,7 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { cellranger_multi } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/ingestion/cellranger_multi/main.nf"
+include { cellranger_multi } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/ingestion/cellranger_multi/main.nf"
 include { generate_qc_report } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline_qc/v0.3.0/nextflow/workflows/generate_qc_report/main.nf"
 include { fastqc } from "${meta.root_dir}/dependencies/vsh/vsh/biobox/v0.4.2/nextflow/fastqc/main.nf"
 include { multiqc } from "${meta.root_dir}/dependencies/vsh/vsh/biobox/v0.4.2/nextflow/multiqc/main.nf"

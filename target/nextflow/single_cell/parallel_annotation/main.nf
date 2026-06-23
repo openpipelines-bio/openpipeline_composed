@@ -4020,7 +4020,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       }
     },
     {
@@ -4029,7 +4029,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       }
     },
     {
@@ -4038,7 +4038,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       }
     },
     {
@@ -4047,7 +4047,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       }
     },
     {
@@ -4056,7 +4056,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       }
     },
     {
@@ -4072,7 +4072,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.1.0"
+      "tag" : "v4.1.1"
     },
     {
       "type" : "vsh",
@@ -4175,7 +4175,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/single_cell/parallel_annotation",
     "viash_version" : "0.9.7",
-    "git_commit" : "c5639aee50c1fbf3dbc0eac6f9b17246553080c1",
+    "git_commit" : "c5178510909b06282fa61736e46bc19fdfc9c68b",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -4195,7 +4195,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       },
       {
         "type" : "vsh",
@@ -4227,15 +4227,15 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { celltypist as celltypist_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/annotation/celltypist/main.nf"
+include { celltypist as celltypist_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/annotation/celltypist/main.nf"
 celltypist_annotation = celltypist_annotation_viashalias.run(key: "celltypist_annotation")
-include { harmony_knn as harmony_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/annotation/harmony_knn/main.nf"
+include { harmony_knn as harmony_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/annotation/harmony_knn/main.nf"
 harmony_knn_annotation = harmony_knn_annotation_viashalias.run(key: "harmony_knn_annotation")
-include { scanvi_scarches as scanvi_scarches_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/annotation/scanvi_scarches/main.nf"
+include { scanvi_scarches as scanvi_scarches_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/annotation/scanvi_scarches/main.nf"
 scanvi_scarches_annotation = scanvi_scarches_annotation_viashalias.run(key: "scanvi_scarches_annotation")
-include { scvi_knn as scvi_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/workflows/annotation/scvi_knn/main.nf"
+include { scvi_knn as scvi_knn_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/annotation/scvi_knn/main.nf"
 scvi_knn_annotation = scvi_knn_annotation_viashalias.run(key: "scvi_knn_annotation")
-include { singler as singler_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.0/nextflow/annotate/singler/main.nf"
+include { singler as singler_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/annotate/singler/main.nf"
 singler_annotation = singler_annotation_viashalias.run(key: "singler_annotation")
 include { move_anndata_slots as move_slots_viashalias } from "${meta.resources_dir}/../../../nextflow/dataflow/move_anndata_slots/main.nf"
 move_slots = move_slots_viashalias.run(key: "move_slots")

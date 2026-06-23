@@ -3175,7 +3175,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.1.0"
+      "tag" : "v4.1.1"
     },
     {
       "type" : "vsh",
@@ -3332,7 +3332,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_test/nextflow/test_workflows/assert_h5mu_slots",
     "viash_version" : "0.9.7",
-    "git_commit" : "c5639aee50c1fbf3dbc0eac6f9b17246553080c1",
+    "git_commit" : "c5178510909b06282fa61736e46bc19fdfc9c68b",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -3352,7 +3352,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.1.0"
+        "tag" : "v4.1.1"
       },
       {
         "type" : "vsh",

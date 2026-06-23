@@ -10,7 +10,7 @@ repositories:
   - name: openpipeline
     repo: openpipeline
     type: vsh
-    tag: v4.1.0
+    tag: v4.1.1
   - name: openpipeline_qc
     repo: openpipeline_qc
     type: vsh
