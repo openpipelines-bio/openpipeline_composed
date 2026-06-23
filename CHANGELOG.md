@@ -1,3 +1,9 @@
+# openpipeline_composed 0.2.1
+
+## MINOR CHANGES
+
+* Bump `openpipeline` dependency version to `v4.1.1` (PR #20).
+
 # openpipeline_composed 0.2.0
 
 ## MAJOR CHANGES
