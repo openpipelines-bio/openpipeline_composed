@@ -1,5 +1,9 @@
 # openpipeline_composed 0.2.1
 
+## MAJOR CHANGES
+
+* `workflows/single_cell/process_integrate_annotate`: Replace the inlined integration and annotation steps with the `single_cell/parallel_integration` and `single_cell/parallel_annotation` sub-workflows, so the selected methods run in parallel. This exposes the full set of methods: integration now also supports `scanorama` and `bbknn`, and annotation now also supports `harmony_knn`, `scvi_knn` and `singler`. The trained scVI and scANVI/scArches models are now emitted as optional outputs (`--output_scvi_model`, `--output_scanvi_model`).
+
 ## MINOR CHANGES
 
 * Bump `openpipeline` dependency version to `v4.1.1` (PR #20).
