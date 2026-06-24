@@ -129,7 +129,8 @@ workflow test_wf_3 {
         celltypist_model: resources_test.resolve("annotation_test_data/celltypist_model_Immune_All_Low.pkl"),
         reference_var_input: "highly_variable",
         annotation_methods: "celltypist",
-        input_var_gene_names: "gene_symbol"
+        input_var_gene_names: "gene_symbol",
+        sanitize_ensembl_ids: false
       ]
     ])
     | view {"State at start: $it"}
