@@ -6,21 +6,15 @@ description: |
 
   The input is expected to already carry a major cell-type annotation in
   .obs (--obs_major_cell_type) on the modality to be subtyped (--modality).
-  The workflow then:
+  Each major cell type is then subtyped independently, so that the annotation
+  is tailored to the cells within that group rather than the dataset as a
+  whole. When the reference carries a matching major cell-type annotation
+  (--reference_obs_major_cell_type), it is likewise split so that each major
+  cell type is subtyped only against the reference cells of that same type.
+  The resulting subtype labels are combined back into a single output h5mu,
+  preserving all original modalities and cells.
 
-  1. Splits the input into one file per modality (dataflow/split_modalities).
-     Only --modality is processed further; other modalities flow through
-     unaltered and are merged back at the end.
-  2. Splits the target modality by major cell type (dataflow/split_h5mu), so
-     each major cell type is subtyped independently.
-  3. Runs parallel_annotation (label-projection annotation with several
-     methods in parallel) on each per-cell-type file.
-  4. Concatenates the subtyped per-cell-type files back into a single
-     unimodal file (dataflow/concatenate_h5mu).
-  5. Merges the modalities back together into a single output h5mu
-     (dataflow/merge).
-
-  The annotation methods, reference and per-method options are those of the
+  The annotation methods and per-method options are those of the
   parallel_annotation workflow and are applied identically to every major
   cell type.
 
@@ -158,6 +152,24 @@ argument_groups:
         description: .obs column in the reference containing the target (sub)cell-type labels.
         required: false
         example: cell_type
+      - name: "--reference_obs_major_cell_type"
+        type: string
+        description: |
+          The .obs column in --reference holding the major cell-type labels,
+          matching the label set in --obs_major_cell_type. When provided, the
+          reference is split by this column and each query major cell type is
+          subtyped against the matching subset of the reference.
+        required: false
+        example: major_cell_type
+      - name: "--allow_missing_reference_cell_type"
+        type: boolean
+        default: false
+        description: |
+          Controls what happens when a query major cell type has no matching
+          subset in the reference (only relevant with
+          --reference_obs_major_cell_type). When false (default), the workflow
+          errors. When true, such cell types are passed through unannotated and
+          merged back into the output alongside the subtyped cell types.
       - name: "--reference_obs_batch_label"
         type: string
         description: .obs column in the reference containing batch labels.

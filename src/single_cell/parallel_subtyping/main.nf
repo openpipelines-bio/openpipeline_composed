@@ -62,7 +62,7 @@ workflow run_wf {
     // Split the target modality by major cell type, run parallel annotation on
     // each per-cell-type file, then concatenate the subtyped files back into a
     // single unimodal file per (sample, modality).
-    subtyped_ch = target_ch
+    per_cell_type_ch = target_ch
     | split_h5mu.run(
         fromState: [
           "input": "input",
@@ -77,6 +77,25 @@ workflow run_wf {
           "split_h5mu_files": "output_files"
         ]
       )
+    // When the reference carries a matching major cell-type annotation, split
+    // it the same way (target modality only) so each major cell type can be
+    // subtyped against the reference cells of that same type. These subsets are
+    // only consumed by parallel_annotation below and are not part of the output.
+    | split_h5mu.run(
+        key: "split_reference_h5mu",
+        runIf: { id, state -> state.reference != null && state.reference_obs_major_cell_type != null },
+        fromState: [
+          "input": "reference",
+          "modality": "modality",
+          "obs_feature": "reference_obs_major_cell_type",
+          "output_compression": "output_compression"
+        ],
+        args: ["ensure_unique_filenames": true],
+        toState: [
+          "split_reference_output": "output",
+          "split_reference_files": "output_files"
+        ]
+      )
     // Fan out into one event per major cell type (csv columns `name`,
     // `filename`). Keep the modality-level id as the group key so the subsets
     // can be concatenated back together after annotation.
@@ -87,21 +106,68 @@ workflow run_wf {
           .findAll { !it[0].startsWith("#") }
         def header = csv.head()
         def rows = csv.tail().collect { row -> [header, row].transpose().collectEntries() }
+
+        // Map each major cell-type name to its reference subset (when the
+        // reference was split by major cell type).
+        def refByCellType = [:]
+        def referenceWasSplit = state.split_reference_output != null
+        if (referenceWasSplit) {
+          def refDir = state.split_reference_output
+          def refCsv = state.split_reference_files
+            .splitCsv(strip: true, sep: ",")
+            .findAll { !it[0].startsWith("#") }
+          def refHeader = refCsv.head()
+          refCsv.tail()
+            .collect { row -> [refHeader, row].transpose().collectEntries() }
+            .each { refByCellType[it.name] = refDir.resolve(it.filename) }
+        }
+
         rows.collect { dat ->
           def new_id = "${id}_${dat.name}"
+
+          // Match the query major cell type to its reference subset. When the
+          // reference is not split by major cell type, every cell type is
+          // subtyped against the full reference (or a pretrained model). When it
+          // is split, a query cell type absent from the reference either errors
+          // or, with --allow_missing_reference_cell_type, is passed through
+          // unannotated.
+          def reference = state.reference
+          def annotate = true
+          if (referenceWasSplit) {
+            if (refByCellType.containsKey(dat.name)) {
+              reference = refByCellType[dat.name]
+            } else if (state.allow_missing_reference_cell_type) {
+              annotate = false
+            } else {
+              throw new RuntimeException(
+                "Major cell type '${dat.name}' has no matching subset in the " +
+                "reference (--reference_obs_major_cell_type). Set " +
+                "--allow_missing_reference_cell_type to true to pass such cell " +
+                "types through without subtyping instead."
+              )
+            }
+          }
+
           def new_state = state + [
             "id": new_id,
             "input": outputDir.resolve(dat.filename),
             "subtype_group_id": id,
-            "major_cell_type": dat.name
+            "major_cell_type": dat.name,
+            "reference": reference,
+            "annotate": annotate
           ]
           [new_id, new_state]
         }
       }
     | map { id, state ->
-        def keysToRemove = ["split_h5mu_output", "split_h5mu_files"]
+        def keysToRemove = ["split_h5mu_output", "split_h5mu_files", "split_reference_output", "split_reference_files"]
         [id, state.findAll { it.key !in keysToRemove }]
       }
+
+    // Cell types with a matching reference (or, when the reference is not split
+    // by major cell type, all cell types) are subtyped by parallel_annotation.
+    annotated_ch = per_cell_type_ch
+    | filter { id, state -> state.annotate }
     // Derive the predicted-label / probability .obs column names from the
     // reference target so subtype predictions are tagged with the label set
     // they were transferred from. Explicitly provided names take precedence;
@@ -206,9 +272,17 @@ workflow run_wf {
         ],
         toState: ["input": "output"]
       )
-    // Concatenate the subtyped per-cell-type subsets back into one unimodal
-    // file. The subsets hold disjoint observations, so concatenation restores
-    // the full set of cells for the modality.
+
+    // Cell types absent from the split reference are passed through unannotated
+    // (only reached when --allow_missing_reference_cell_type is set); their
+    // per-cell-type subset file flows straight to concatenation.
+    passthrough_cell_types_ch = per_cell_type_ch
+    | filter { id, state -> !state.annotate }
+
+    // Concatenate the per-cell-type subsets back into one unimodal file. The
+    // subsets hold disjoint observations, so concatenation restores the full
+    // set of cells for the modality.
+    subtyped_ch = annotated_ch.mix(passthrough_cell_types_ch)
     | map { id, state -> [state.subtype_group_id, id, state] }
     | groupTuple(by: 0, sort: "hash")
     | map { group_id, cell_type_ids, states ->
