@@ -1,3 +1,7 @@
+# openpipeline_composed x.x.x
+
+* `workflows/single_cell/parallel_annotation`: Add consensus voting based on per-method weighted probabilities via `--run_consensus` flag (default is true) (PR #22).
+
 # openpipeline_composed 0.2.1
 
 ## MAJOR CHANGES

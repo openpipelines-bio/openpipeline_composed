@@ -65,7 +65,9 @@ workflow test_wf {
     | assert_h5mu_slots.run(
         fromState: { id, state ->
           def slots = annotationSlots(methods)
-          ["input": state.output, "modality": "rna", "obs": slots.obs, "obsm": slots.obsm]
+          // The consensus_vote step adds a consensus prediction and score.
+          def obs = slots.obs + ["consensus_pred", "consensus_score"]
+          ["input": state.output, "modality": "rna", "obs": obs, "obsm": slots.obsm]
         }
       )
 
@@ -112,6 +114,8 @@ workflow test_wf_2 {
     }
     | assert_h5mu_slots.run(
         fromState: { id, state ->
+          // Only one method selected, so consensus_vote is skipped: no consensus
+          // slots are expected.
           def slots = annotationSlots(["celltypist"])
           ["input": state.output, "modality": "rna", "obs": slots.obs, "obsm": slots.obsm]
         }
