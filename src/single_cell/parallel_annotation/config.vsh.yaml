@@ -398,6 +398,42 @@ argument_groups:
         type: string
         default: "singler_scores"
 
+  - name: Consensus vote options
+    description: |
+      A final consensus_vote step combines the per-method predictions into a
+      single consensus label via a (probability-weighted) majority vote.
+    arguments:
+      - name: "--run_consensus"
+        type: boolean
+        default: true
+        description: |
+          Run a final consensus vote combining the per-method predictions. Only
+          takes effect when more than one --annotation_methods is selected; with a
+          single method there is nothing to combine and the step is skipped.
+      - name: "--consensus_obs_predictions"
+        type: string
+        default: "consensus_pred"
+        description: .obs slot in which to store the consensus predicted cell type.
+      - name: "--consensus_obs_score"
+        type: string
+        default: "consensus_score"
+        description: |
+          .obs slot in which to store the consensus score, defined as the fraction
+          of total weight assigned to the winning cell type.
+      - name: "--consensus_use_probabilities"
+        type: boolean
+        default: true
+        description: |
+          Scale each method's vote by its per-cell prediction probability. When
+          false, every method votes with equal weight regardless of confidence.
+      - name: "--consensus_tie_label"
+        type: string
+        description: |
+          Label to assign when two or more cell types receive equal votes. If not
+          provided, tied cells are assigned a missing value.
+        required: false
+        example: "Unknown"
+
   - name: Output
     arguments:
       - name: "--output"
@@ -440,6 +476,9 @@ dependencies:
   - name: annotate/singler
     repository: openpipeline
     alias: singler_annotation
+  - name: annotate/consensus_vote
+    repository: openpipeline
+    alias: consensus_vote
   - name: dataflow/move_anndata_slots
     alias: move_slots
 
