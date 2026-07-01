@@ -181,6 +181,11 @@ workflow run_wf {
         "singler_fine_tune": state.singler_fine_tune,
         "singler_fine_tuning_threshold": state.singler_fine_tuning_threshold,
         "singler_prune": state.singler_prune,
+        "run_consensus": state.run_consensus,
+        "consensus_obs_predictions": state.consensus_obs_predictions,
+        "consensus_obs_score": state.consensus_obs_score,
+        "consensus_use_probabilities": state.consensus_use_probabilities,
+        "consensus_tie_label": state.consensus_tie_label,
         "output_compression": state.output_compression
       ]},
       toState: [ "query_processed": "output", "output_scanvi_model": "output_scanvi_model" ]

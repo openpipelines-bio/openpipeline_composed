@@ -93,10 +93,13 @@ workflow test_wf {
     | assert_h5mu_slots.run(
         fromState: { id, state ->
           def slots = expectedSlots(integration_methods, annotation_methods)
+          // Multiple annotation methods selected, so the consensus_vote step runs
+          // and adds a consensus prediction and score.
+          def obs = slots.obs + ["consensus_pred", "consensus_score"]
           [
             "input": state.output,
             "modality": "rna",
-            "obs": slots.obs,
+            "obs": obs,
             "obsm": slots.obsm,
             "obsp": slots.obsp,
             "uns": slots.uns
