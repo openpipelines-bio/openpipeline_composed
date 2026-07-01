@@ -21,7 +21,11 @@ workflow run_wf {
       fromState: [
         "input": "input",
         "id": "id",
+        // Modality input layers
         "rna_layer": "input_layer",
+        "prot_layer": "prot_layer",
+        "gdo_layer": "gdo_layer",
+        // RNA filtering
         "rna_min_counts": "rna_min_counts",
         "rna_max_counts": "rna_max_counts",
         "rna_min_genes_per_cell": "rna_min_genes_per_cell",
@@ -31,12 +35,47 @@ workflow run_wf {
         "rna_max_fraction_mito": "rna_max_fraction_mito",
         "rna_min_fraction_ribo": "rna_min_fraction_ribo",
         "rna_max_fraction_ribo": "rna_max_fraction_ribo",
+        "skip_scrublet_doublet_detection": "skip_scrublet_doublet_detection",
+        // Protein (CITE-seq) filtering
+        "prot_min_counts": "prot_min_counts",
+        "prot_max_counts": "prot_max_counts",
+        "prot_min_proteins_per_cell": "prot_min_proteins_per_cell",
+        "prot_max_proteins_per_cell": "prot_max_proteins_per_cell",
+        "prot_min_cells_per_protein": "prot_min_cells_per_protein",
+        // GDO filtering
+        "gdo_min_counts": "gdo_min_counts",
+        "gdo_max_counts": "gdo_max_counts",
+        "gdo_min_guides_per_cell": "gdo_min_guides_per_cell",
+        "gdo_max_guides_per_cell": "gdo_max_guides_per_cell",
+        "gdo_min_cells_per_guide": "gdo_min_cells_per_guide",
+        // Cross-modality filtering
+        "intersect_obs": "intersect_obs",
+        // Sample ID handling
+        "add_id_make_observation_keys_unique": "add_id_make_observation_keys_unique",
+        // Mitochondrial & ribosomal gene detection
+        "obs_name_mitochondrial_fraction": "obs_name_mitochondrial_fraction",
+        "obs_name_ribosomal_fraction": "obs_name_ribosomal_fraction",
         "var_name_mitochondrial_genes": "var_name_mitochondrial_genes",
         "var_name_ribosomal_genes": "var_name_ribosomal_genes",
         "var_gene_names": "input_var_gene_names",
         "mitochondrial_gene_regex": "mitochondrial_gene_regex",
         "ribosomal_gene_regex": "ribosomal_gene_regex",
-        "var_qc_metrics": "var_qc_metrics"
+        // QC metrics
+        "var_qc_metrics": "var_qc_metrics",
+        "top_n_vars": "top_n_vars",
+        // Highly variable features detection
+        "highly_variable_features_obs_batch_key": "highly_variable_features_obs_batch_key",
+        // CLR (protein normalization)
+        "clr_axis": "clr_axis",
+        // RNA scaling
+        "rna_enable_scaling": "rna_enable_scaling",
+        "rna_scaling_output_layer": "rna_scaling_output_layer",
+        "rna_scaling_max_value": "rna_scaling_max_value",
+        "rna_scaling_zero_center": "rna_scaling_zero_center",
+        "rna_scaling_pca_obsm_output": "rna_scaling_pca_obsm_output",
+        "rna_scaling_pca_loadings_varm_output": "rna_scaling_pca_loadings_varm_output",
+        "rna_scaling_pca_variance_uns_output": "rna_scaling_pca_variance_uns_output",
+        "rna_scaling_umap_obsm_output": "rna_scaling_umap_obsm_output"
       ],
       args: [
         "pca_overwrite": "true",

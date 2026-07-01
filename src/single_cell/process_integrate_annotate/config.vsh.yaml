@@ -41,7 +41,15 @@ argument_groups:
         description: Modality to be processed. Should match the modality in the --reference dataset, if provided.
       - name: "--input_layer"
         type: string
-        description: "The layer in the input data containing the raw counts, if .X is not to be used."
+        description: "The layer in the input data containing the raw RNA counts, if .X is not to be used."
+        required: false
+      - name: "--prot_layer"
+        type: string
+        description: "Input layer for the antibody capture (CITE-seq) modality, if .X is not to be used."
+        required: false
+      - name: "--gdo_layer"
+        type: string
+        description: "Input layer for the guide-derived oligonucleotide (GDO) modality, if .X is not to be used."
         required: false
       - name: "--input_var_gene_names"
         type: string
@@ -109,7 +117,7 @@ argument_groups:
         type: string
         example: cell_type
         required: false
-        description: The `.obs` key of the target labels to tranfer.
+        description: The `.obs` key of the target labels to transfer.
       - name: "--reference_obs_label_unlabeled_category"
         type: string
         default: "Unknown"
@@ -187,6 +195,85 @@ argument_groups:
         type: double
         example: 0.2
         description: Maximum fraction of UMIs that are mitochondrial.
+      - name: "--rna_min_fraction_ribo"
+        example: 0
+        type: double
+        description: Minimum fraction of UMIs that are ribosomal.
+      - name: "--rna_max_fraction_ribo"
+        type: double
+        example: 0.2
+        description: Maximum fraction of UMIs that are ribosomal.
+      - name: "--skip_scrublet_doublet_detection"
+        type: boolean_true
+        description: Skip the scrublet doublet detection step.
+
+  - name: "Pre-processing options: Protein (CITE-seq) filtering"
+    description: Pre-processing options for filtering the antibody capture modality.
+    arguments:
+      - name: "--prot_min_counts"
+        type: integer
+        example: 3
+        description: Minimum number of counts captured per cell.
+      - name: "--prot_max_counts"
+        type: integer
+        example: 5000000
+        description: Maximum number of counts captured per cell.
+      - name: "--prot_min_proteins_per_cell"
+        type: integer
+        example: 200
+        description: Minimum of non-zero values per cell.
+      - name: "--prot_max_proteins_per_cell"
+        type: integer
+        example: 100000000
+        description: Maximum of non-zero values per cell.
+      - name: "--prot_min_cells_per_protein"
+        type: integer
+        example: 3
+        description: Minimum of non-zero values per protein.
+
+  - name: "Pre-processing options: GDO filtering"
+    description: Pre-processing options for filtering the guide-derived oligonucleotide modality.
+    arguments:
+      - name: "--gdo_min_counts"
+        type: integer
+        example: 3
+        description: Minimum number of counts captured per cell.
+      - name: "--gdo_max_counts"
+        type: integer
+        example: 5000000
+        description: Maximum number of counts captured per cell.
+      - name: "--gdo_min_guides_per_cell"
+        type: integer
+        example: 200
+        description: Minimum of non-zero values per cell.
+      - name: "--gdo_max_guides_per_cell"
+        type: integer
+        example: 100000000
+        description: Maximum of non-zero values per cell.
+      - name: "--gdo_min_cells_per_guide"
+        type: integer
+        example: 3
+        description: Minimum of non-zero values per guide.
+
+  - name: "Pre-processing options: Cross-modality filtering"
+    description: Pre-processing options that operate across modalities.
+    arguments:
+      - name: "--intersect_obs"
+        type: boolean_true
+        description: |
+          After per-modality filtering and multisample processing, remove observations
+          that are not present in all processed modalities so that each modality shares
+          the same set of cells.
+
+  - name: "Pre-processing options: Sample ID handling"
+    description: Options for adding the sample id to the observations of the MuData object.
+    arguments:
+      - name: "--add_id_make_observation_keys_unique"
+        type: boolean
+        default: true
+        description: |
+          Join the sample id to the .obs index (.obs_names) to make observation
+          keys unique across samples.
 
   - name: "Pre-processing options: Mitochondrial & Ribosomal Gene Detection"
     description: Pre-processing options for detecting mitochondrial genes
@@ -244,6 +331,81 @@ argument_groups:
         multiple_sep: ','
         required: false
         example: "ercc,highly_variable"
+      - name: "--top_n_vars"
+        type: integer
+        multiple: true
+        multiple_sep: ','
+        required: false
+        default: [50, 100, 200, 500]
+        description: |
+          Number of top vars to be used to calculate cumulative proportions.
+          If not specified, proportions are not calculated.
+
+  - name: "Pre-processing options: Highly variable features detection"
+    description: Pre-processing options for detecting highly variable features.
+    arguments:
+      - name: "--highly_variable_features_obs_batch_key"
+        type: string
+        default: sample_id
+        required: false
+        description: |
+          If specified, highly-variable genes are selected within each batch separately
+          and merged. This avoids the selection of batch-specific genes and acts as a
+          lightweight batch correction method.
+
+  - name: "Pre-processing options: CLR (protein normalization)"
+    description: Pre-processing options for the centered log-ratio transformation applied to the protein modality.
+    arguments:
+      - name: "--clr_axis"
+        type: integer
+        default: 0
+        required: false
+        description: Axis to perform the CLR transformation on.
+
+  - name: "Pre-processing options: RNA scaling"
+    description: |
+      Options for enabling scaling of the log-normalized RNA data to unit variance and
+      zero mean. The scaled data is written to a separate layer and an additional
+      dimensionality-reduced representation is created and stored alongside the
+      non-scaled data.
+    arguments:
+      - name: "--rna_enable_scaling"
+        type: boolean_true
+        description: Enable scaling for the RNA modality.
+      - name: "--rna_scaling_output_layer"
+        type: string
+        default: "scaled"
+        required: false
+        description: Output layer where the scaled log-normalized data will be stored.
+      - name: "--rna_scaling_max_value"
+        type: double
+        required: false
+        description: Clip (truncate) data to this value after scaling. If not specified, do not clip.
+      - name: "--rna_scaling_zero_center"
+        type: boolean_false
+        description: If set, omit zero-centering variables, which allows to handle sparse input efficiently.
+      - name: "--rna_scaling_pca_obsm_output"
+        type: string
+        default: "scaled_pca"
+        required: false
+        description: Name of the .obsm key where the PCA representation of the scaled data is stored.
+      - name: "--rna_scaling_pca_loadings_varm_output"
+        type: string
+        default: "scaled_pca_loadings"
+        required: false
+        description: Name of the .varm key where the PCA loadings of the scaled data are stored.
+      - name: "--rna_scaling_pca_variance_uns_output"
+        type: string
+        default: "scaled_pca_variance"
+        required: false
+        description: |
+          Name of the .uns key where the variance and variance ratio of the scaled data
+          are stored as a map (keys: variance and variance_ratio).
+      - name: "--rna_scaling_umap_obsm_output"
+        type: string
+        default: "scaled_umap"
+        required: false
+        description: Name of the .obsm key where the UMAP representation of the scaled data is stored.
 
   - name: Harmony integration options
     description: Specifications for harmony integration.
