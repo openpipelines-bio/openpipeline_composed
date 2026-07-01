@@ -740,6 +740,64 @@ argument_groups:
     direction: "input"
     multiple: false
     multiple_sep: ";"
+- name: "Consensus vote options"
+  description: "A final consensus_vote step combines the per-method predictions into\
+    \ a\nsingle consensus label via a (probability-weighted) majority vote.\n"
+  arguments:
+  - type: "boolean"
+    name: "--run_consensus"
+    description: "Run a final consensus vote combining the per-method predictions.\
+      \ Only\ntakes effect when more than one --annotation_methods is selected.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--consensus_obs_predictions"
+    description: ".obs slot in which to store the consensus predicted cell type."
+    info: null
+    default:
+    - "consensus_pred"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--consensus_obs_score"
+    description: ".obs slot in which to store the consensus score, defined as the\
+      \ fraction\nof total weight assigned to the winning cell type.\n"
+    info: null
+    default:
+    - "consensus_score"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--consensus_use_probabilities"
+    description: "Scale each method's vote by its per-cell prediction probability.\
+      \ When\nfalse, every method votes with equal weight regardless of confidence.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--consensus_tie_label"
+    description: "Label to assign when two or more cell types receive equal votes.\
+      \ If not\nprovided, tied cells are assigned a missing value.\n"
+    info: null
+    example:
+    - "Unknown"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
 - name: "Output"
   arguments:
   - type: "file"
@@ -851,6 +909,12 @@ dependencies:
     type: "vsh"
     repo: "openpipeline"
     tag: "v4.1.1"
+- name: "annotate/consensus_vote"
+  alias: "consensus_vote"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.1.1"
 - name: "dataflow/move_anndata_slots"
   alias: "move_slots"
   repository:
@@ -942,7 +1006,7 @@ build_info:
   output: "target/nextflow/single_cell/parallel_annotation"
   executable: "target/nextflow/single_cell/parallel_annotation/main.nf"
   viash_version: "0.9.7"
-  git_commit: "c5178510909b06282fa61736e46bc19fdfc9c68b"
+  git_commit: "0e712e1e71c0cb31d627673aeda8152e9ecad98d"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_composed"
   dependencies:
   - "target/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/annotation/celltypist"
@@ -950,6 +1014,7 @@ build_info:
   - "target/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/annotation/scanvi_scarches"
   - "target/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/annotation/scvi_knn"
   - "target/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/annotate/singler"
+  - "target/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/annotate/consensus_vote"
   - "target/nextflow/dataflow/move_anndata_slots"
 package_config:
   name: "openpipeline_composed"

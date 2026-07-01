@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component test_workflows assert_h5mu_slots"
-LABEL org.opencontainers.image.created="2026-06-23T17:13:41Z"
+LABEL org.opencontainers.image.created="2026-07-01T12:50:19Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_composed"
-LABEL org.opencontainers.image.revision="c5178510909b06282fa61736e46bc19fdfc9c68b"
+LABEL org.opencontainers.image.revision="0e712e1e71c0cb31d627673aeda8152e9ecad98d"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER

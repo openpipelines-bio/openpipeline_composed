@@ -367,6 +367,39 @@ workflow run_wf {
         toState: ["merged": "output"]
       )
 
+    // === Consensus vote ===
+    // Combine the per-method predictions merged above into a single consensus
+    // label via a (probability-weighted) majority vote.
+    | consensus_vote.run(
+        runIf: { id, state -> state.run_consensus && state.annotation_methods.size() > 1 },
+        fromState: { id, state ->
+          def method_slots = [
+            "celltypist":      [pred: state.celltypist_obs_predictions,      prob: state.celltypist_obs_probability],
+            "harmony_knn":     [pred: state.harmony_knn_obs_predictions,     prob: state.harmony_knn_obs_probability],
+            "scanvi_scarches": [pred: state.scanvi_scarches_obs_predictions, prob: state.scanvi_scarches_obs_probability],
+            "scvi_knn":        [pred: state.scvi_knn_obs_predictions,        prob: state.scvi_knn_obs_probability],
+            "singler":         [pred: state.singler_obs_predictions,         prob: state.singler_obs_probability]
+          ]
+          def selected = method_slots.findAll { method, slots -> state.annotation_methods.contains(method) }
+          def args = [
+            "input": state.merged,
+            "modality": state.modality,
+            "input_obs_predictions": selected.collect { method, slots -> slots.pred },
+            "output_obs_predictions": state.consensus_obs_predictions,
+            "output_obs_score": state.consensus_obs_score,
+            "output_compression": state.output_compression
+          ]
+          if (state.consensus_use_probabilities) {
+            args["input_obs_probabilities"] = selected.collect { method, slots -> slots.prob }
+          }
+          if (state.consensus_tie_label) {
+            args["tie_label"] = state.consensus_tie_label
+          }
+          args
+        },
+        toState: ["merged": "output"]
+      )
+
     | map { id, state ->
         def out = ["output": state.merged]
         // scanvi_scarches_model is only present when scanvi_scarches was selected.

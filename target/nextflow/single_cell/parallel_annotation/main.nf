@@ -3917,6 +3917,72 @@ meta = [
       ]
     },
     {
+      "name" : "Consensus vote options",
+      "description" : "A final consensus_vote step combines the per-method predictions into a\nsingle consensus label via a (probability-weighted) majority vote.\n",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--run_consensus",
+          "description" : "Run a final consensus vote combining the per-method predictions. Only\ntakes effect when more than one --annotation_methods is selected.\n",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--consensus_obs_predictions",
+          "description" : ".obs slot in which to store the consensus predicted cell type.",
+          "default" : [
+            "consensus_pred"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--consensus_obs_score",
+          "description" : ".obs slot in which to store the consensus score, defined as the fraction\nof total weight assigned to the winning cell type.\n",
+          "default" : [
+            "consensus_score"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--consensus_use_probabilities",
+          "description" : "Scale each method's vote by its per-cell prediction probability. When\nfalse, every method votes with equal weight regardless of confidence.\n",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--consensus_tie_label",
+          "description" : "Label to assign when two or more cell types receive equal votes. If not\nprovided, tied cells are assigned a missing value.\n",
+          "example" : [
+            "Unknown"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
       "name" : "Output",
       "arguments" : [
         {
@@ -4060,6 +4126,15 @@ meta = [
       }
     },
     {
+      "name" : "annotate/consensus_vote",
+      "alias" : "consensus_vote",
+      "repository" : {
+        "type" : "vsh",
+        "repo" : "openpipeline",
+        "tag" : "v4.1.1"
+      }
+    },
+    {
       "name" : "dataflow/move_anndata_slots",
       "alias" : "move_slots",
       "repository" : {
@@ -4175,7 +4250,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/single_cell/parallel_annotation",
     "viash_version" : "0.9.7",
-    "git_commit" : "c5178510909b06282fa61736e46bc19fdfc9c68b",
+    "git_commit" : "0e712e1e71c0cb31d627673aeda8152e9ecad98d",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -4237,6 +4312,8 @@ include { scvi_knn as scvi_knn_annotation_viashalias } from "${meta.root_dir}/de
 scvi_knn_annotation = scvi_knn_annotation_viashalias.run(key: "scvi_knn_annotation")
 include { singler as singler_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/annotate/singler/main.nf"
 singler_annotation = singler_annotation_viashalias.run(key: "singler_annotation")
+include { consensus_vote as consensus_vote_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/annotate/consensus_vote/main.nf"
+consensus_vote = consensus_vote_viashalias.run(key: "consensus_vote")
 include { move_anndata_slots as move_slots_viashalias } from "${meta.resources_dir}/../../../nextflow/dataflow/move_anndata_slots/main.nf"
 move_slots = move_slots_viashalias.run(key: "move_slots")
 
@@ -4607,6 +4684,39 @@ workflow run_wf {
             "allow_overwrite": true,
             "output_compression": state.output_compression
           ]
+        },
+        toState: ["merged": "output"]
+      )
+
+    // === Consensus vote ===
+    // Combine the per-method predictions merged above into a single consensus
+    // label via a (probability-weighted) majority vote.
+    | consensus_vote.run(
+        runIf: { id, state -> state.run_consensus && state.annotation_methods.size() > 1 },
+        fromState: { id, state ->
+          def method_slots = [
+            "celltypist":      [pred: state.celltypist_obs_predictions,      prob: state.celltypist_obs_probability],
+            "harmony_knn":     [pred: state.harmony_knn_obs_predictions,     prob: state.harmony_knn_obs_probability],
+            "scanvi_scarches": [pred: state.scanvi_scarches_obs_predictions, prob: state.scanvi_scarches_obs_probability],
+            "scvi_knn":        [pred: state.scvi_knn_obs_predictions,        prob: state.scvi_knn_obs_probability],
+            "singler":         [pred: state.singler_obs_predictions,         prob: state.singler_obs_probability]
+          ]
+          def selected = method_slots.findAll { method, slots -> state.annotation_methods.contains(method) }
+          def args = [
+            "input": state.merged,
+            "modality": state.modality,
+            "input_obs_predictions": selected.collect { method, slots -> slots.pred },
+            "output_obs_predictions": state.consensus_obs_predictions,
+            "output_obs_score": state.consensus_obs_score,
+            "output_compression": state.output_compression
+          ]
+          if (state.consensus_use_probabilities) {
+            args["input_obs_probabilities"] = selected.collect { method, slots -> slots.prob }
+          }
+          if (state.consensus_tie_label) {
+            args["tie_label"] = state.consensus_tie_label
+          }
+          args
         },
         toState: ["merged": "output"]
       )
