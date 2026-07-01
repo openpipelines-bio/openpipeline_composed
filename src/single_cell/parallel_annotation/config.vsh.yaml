@@ -408,8 +408,7 @@ argument_groups:
         default: true
         description: |
           Run a final consensus vote combining the per-method predictions. Only
-          takes effect when more than one --annotation_methods is selected; with a
-          single method there is nothing to combine and the step is skipped.
+          takes effect when more than one --annotation_methods is selected.
       - name: "--consensus_obs_predictions"
         type: string
         default: "consensus_pred"
