@@ -2,17 +2,17 @@ name: parallel_subtyping
 namespace: single_cell
 scope: public
 description: |
-  Cell subtyping of a multi-sample, uni- or multi-modal annotated h5mu file.
+  Cell subtyping of h5mu file annotated with major types.
 
   The input is expected to already carry a major cell-type annotation in
   .obs (--obs_major_cell_type) on the modality to be subtyped (--modality).
   Each major cell type is then subtyped independently, so that the annotation
   is tailored to the cells within that group rather than the dataset as a
-  whole. When the reference carries a matching major cell-type annotation
-  (--reference_obs_major_cell_type), it is likewise split so that each major
-  cell type is subtyped only against the reference cells of that same type.
-  The resulting subtype labels are combined back into a single output h5mu,
-  preserving all original modalities and cells.
+  whole. The reference is likewise split by its matching major cell-type
+  annotation (--reference_obs_major_cell_type) so that each major cell type is
+  subtyped only against the reference cells of that same type. The resulting
+  subtype labels are combined back into a single output h5mu, preserving all
+  original modalities and cells.
 
   The annotation methods and per-method options are those of the
   parallel_annotation workflow and are applied identically to every major
@@ -41,8 +41,7 @@ argument_groups:
         type: file
         description: |
           Input query h5mu file with a major cell-type annotation. Must be
-          preprocessed in the same way as the reference (raw counts and
-          log-normalized counts available).
+          preprocessed in the same way as the reference.
         required: true
         example: input.h5mu
       - name: "--modality"
@@ -133,10 +132,9 @@ argument_groups:
       - name: "--reference"
         type: file
         description: |
-          Reference h5mu file with labeled observations. Required by harmony_knn,
-          scanvi_scarches, scvi_knn, and by celltypist when --celltypist_model
-          is not provided.
-        required: false
+          Reference h5mu file with labeled observations. Used by all annotation
+          methods (celltypist, harmony_knn, scanvi_scarches and scvi_knn).
+        required: true
         example: reference.h5mu
       - name: "--reference_layer"
         type: string
@@ -156,20 +154,18 @@ argument_groups:
         type: string
         description: |
           The .obs column in --reference holding the major cell-type labels,
-          matching the label set in --obs_major_cell_type. When provided, the
-          reference is split by this column and each query major cell type is
-          subtyped against the matching subset of the reference.
-        required: false
+          matching the label set in --obs_major_cell_type. The reference is split
+          by this column and each query major cell type is subtyped against the
+          matching subset of the reference.
+        required: true
         example: major_cell_type
       - name: "--allow_missing_reference_cell_type"
-        type: boolean
-        default: false
+        type: boolean_true
         description: |
           Controls what happens when a query major cell type has no matching
-          subset in the reference (only relevant with
-          --reference_obs_major_cell_type). When false (default), the workflow
-          errors. When true, such cell types are passed through unannotated and
-          merged back into the output alongside the subtyped cell types.
+          subset in the reference. When false (default), the workflow errors.
+          When true, such cell types are passed through unannotated and merged
+          back into the output alongside the subtyped cell types.
       - name: "--reference_obs_batch_label"
         type: string
         description: .obs column in the reference containing batch labels.
@@ -183,8 +179,7 @@ argument_groups:
         type: string
         description: |
           .var column in the reference flagging highly-variable genes (boolean).
-          Used by celltypist (--reference_var_input) and scanvi_scarches
-          (mapped to --reference_var_hvg) to subset features.
+          Used by celltypist and scanvi_scarches to subset features if provided.
         required: false
         default: filter_with_hvg
       - name: "--reference_obs_categorical_covariates"
@@ -235,8 +230,7 @@ argument_groups:
 
   - name: scVI / scANVI / scArches training options
     description: |
-      Training arguments shared by scanvi_scarches and scvi_knn. (scvi_knn maps
-      these to its --scvi_* prefixed arguments at dispatch time.)
+      Training arguments shared by scanvi_scarches and scvi_knn.
     arguments:
       - name: "--scvi_early_stopping"
         type: boolean
@@ -278,13 +272,6 @@ argument_groups:
 
   - name: CellTypist options
     arguments:
-      - name: "--celltypist_model"
-        type: file
-        description: |
-          Pretrained CellTypist model in .pkl format. If not provided, the
-          model is trained on --reference.
-        required: false
-        example: pretrained_model.pkl
       - name: "--celltypist_majority_voting"
         type: boolean
         default: false
@@ -376,19 +363,51 @@ argument_groups:
           Whether to prune low-quality labels (replaced with NA in the pruned
           predictions output).
 
+  - name: Consensus vote options
+    description: |
+      A final consensus_vote step (run inside parallel_annotation on each major
+      cell type) combines the per-method predictions into a single consensus
+      label via a (probability-weighted) majority vote.
+
+      As with the per-method slots, the consensus .obs columns default to
+      consensus_pred_<reference_obs_target> and
+      consensus_score_<reference_obs_target> when not set, and the suffix is
+      omitted when no --reference_obs_target is set.
+    arguments:
+      - name: "--run_consensus"
+        type: boolean
+        default: true
+        description: |
+          Run a final consensus vote combining the per-method predictions. Only
+          takes effect when more than one --annotation_methods is selected.
+      - name: "--consensus_obs_predictions"
+        type: string
+        required: false
+        description: .obs slot for the consensus predicted cell type. Defaults to consensus_pred_<reference_obs_target>.
+      - name: "--consensus_obs_score"
+        type: string
+        required: false
+        description: |
+          .obs slot for the consensus score, defined as the fraction of total
+          weight assigned to the winning cell type. Defaults to
+          consensus_score_<reference_obs_target>.
+      - name: "--consensus_use_probabilities"
+        type: boolean
+        default: true
+        description: |
+          Scale each method's vote by its per-cell prediction probability. When
+          false, every method votes with equal weight regardless of confidence.
+      - name: "--consensus_tie_label"
+        type: string
+        description: |
+          Label to assign when two or more cell types receive equal votes. If not
+          provided, tied cells are assigned a missing value.
+        required: false
+        example: "Unknown"
+
   - name: Output slot naming
     description: |
-      Names of the .obs and .obsm slots each method writes into its
-      intermediate h5mu and that are subsequently moved into the merged output.
-
-      When not set, the predicted-label and probability .obs columns default to
-      <method>_pred_<reference_obs_target> and
-      <method>_probability_<reference_obs_target> respectively, so subtype
-      predictions are tagged with the reference target they were transferred
-      from. SingleR's additional outputs (delta-next, pruned predictions and the
-      score matrix) are suffixed with <reference_obs_target> in the same way.
-      When no --reference_obs_target is set (e.g. CellTypist with a pretrained
-      model), the suffix is omitted.
+      Names of the .obs and .obsm slots each method writes to the subtyped output.
     arguments:
       - name: "--celltypist_obs_predictions"
         type: string
@@ -456,48 +475,6 @@ argument_groups:
         required: false
         description: .obsm key for the SingleR per-label score matrix. Defaults to singler_scores_<reference_obs_target>.
 
-  - name: Consensus vote options
-    description: |
-      A final consensus_vote step (run inside parallel_annotation on each major
-      cell type) combines the per-method predictions into a single consensus
-      label via a (probability-weighted) majority vote.
-
-      As with the per-method slots, the consensus .obs columns default to
-      consensus_pred_<reference_obs_target> and
-      consensus_score_<reference_obs_target> when not set, and the suffix is
-      omitted when no --reference_obs_target is set.
-    arguments:
-      - name: "--run_consensus"
-        type: boolean
-        default: true
-        description: |
-          Run a final consensus vote combining the per-method predictions. Only
-          takes effect when more than one --annotation_methods is selected.
-      - name: "--consensus_obs_predictions"
-        type: string
-        required: false
-        description: .obs slot for the consensus predicted cell type. Defaults to consensus_pred_<reference_obs_target>.
-      - name: "--consensus_obs_score"
-        type: string
-        required: false
-        description: |
-          .obs slot for the consensus score, defined as the fraction of total
-          weight assigned to the winning cell type. Defaults to
-          consensus_score_<reference_obs_target>.
-      - name: "--consensus_use_probabilities"
-        type: boolean
-        default: true
-        description: |
-          Scale each method's vote by its per-cell prediction probability. When
-          false, every method votes with equal weight regardless of confidence.
-      - name: "--consensus_tie_label"
-        type: string
-        description: |
-          Label to assign when two or more cell types receive equal votes. If not
-          provided, tied cells are assigned a missing value.
-        required: false
-        example: "Unknown"
-
   - name: Output
     arguments:
       - name: "--output"
@@ -527,6 +504,9 @@ dependencies:
     repository: openpipeline
   - name: dataflow/merge
     repository: openpipeline
+  # Used only by test.nf to inject a major cell-type annotation into the query.
+  - name: metadata/add_id
+    repository: openpipeline
 
 resources:
   - type: nextflow_script
@@ -539,7 +519,6 @@ test_resources:
     entrypoint: test_wf
   - path: /resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
   - path: /resources_test/annotation_test_data/TS_Blood_filtered.h5mu
-  - path: /resources_test/annotation_test_data/celltypist_model_Immune_All_Low.pkl
 
 runners:
   - type: nextflow

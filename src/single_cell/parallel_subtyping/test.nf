@@ -1,13 +1,19 @@
 nextflow.enable.dsl=2
 
 include { parallel_subtyping } from params.rootDir + "/target/nextflow/single_cell/parallel_subtyping/main.nf"
+// add_id is an openpipeline dependency; it builds into the version-pinned
+// dependency cache rather than target/nextflow (tag set in _viash.yaml).
+include { add_id } from params.rootDir + "/target/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/metadata/add_id/main.nf"
 include { assert_h5mu_slots } from params.rootDir + "/target/_test/nextflow/test_workflows/assert_h5mu_slots/main.nf"
 params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
 
 workflow test_wf {
-  // Subtype the rna modality of a multimodal (rna + prot) sample by splitting
-  // on the leiden clusters (used here as the major cell type), annotating each
-  // cluster with the pretrained CellTypist model, then merging everything back.
+  // Subtype the rna modality of a multimodal (rna + prot) sample. The query
+  // carries no cell-type annotation, so add_id first stamps every cell with a
+  // "immune" major cell type matching the reference's `compartment` column.
+  // parallel_subtyping then splits both query and reference on that column and
+  // annotates the single "immune" group with a CellTypist model trained on the
+  // matching reference subset, before merging everything back.
   resources_test = file(params.resources_test)
 
   output_ch = Channel.fromList(
@@ -16,16 +22,23 @@ workflow test_wf {
         id: "subtyping_test",
         input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
         modality: "rna",
-        obs_major_cell_type: "harmony_integration_leiden_1.0",
-        celltypist_model: resources_test.resolve("annotation_test_data/celltypist_model_Immune_All_Low.pkl"),
-        input_var_gene_names: "gene_symbol",
-        // gene symbols are not ensembl IDs, so do not strip version suffixes.
-        sanitize_ensembl_ids: false,
+        obs_major_cell_type: "compartment",
+        reference: resources_test.resolve("annotation_test_data/TS_Blood_filtered.h5mu"),
+        reference_var_gene_names: "ensemblid",
+        reference_obs_target: "cell_type",
+        reference_obs_major_cell_type: "compartment",
+        reference_var_input: "highly_variable",
         annotation_methods: "celltypist"
       ]
     ])
     | view { "State at start: $it" }
     | map { state -> [state.id, state] }
+    // Stamp the query cells with a major cell type matching the reference.
+    | add_id.run(
+        fromState: ["input": "input"],
+        args: ["input_id": "immune", "obs_output": "compartment", "make_observation_keys_unique": false],
+        toState: ["input": "output"]
+      )
     | parallel_subtyping
     | view { "After parallel_subtyping: $it" }
     | view { output ->
@@ -42,11 +55,12 @@ workflow test_wf {
 
       "Output: $output"
     }
-    // The subtyped rna modality should carry the celltypist prediction columns.
+    // The subtyped rna modality should carry the celltypist prediction columns,
+    // suffixed with the reference target they were transferred from.
     | assert_h5mu_slots.run(
         key: "assert_rna_slots",
         fromState: { id, state ->
-          ["input": state.output, "modality": "rna", "obs": ["celltypist_pred", "celltypist_probability"]]
+          ["input": state.output, "modality": "rna", "obs": ["celltypist_pred_cell_type", "celltypist_probability_cell_type"]]
         },
         // assert_h5mu_slots emits no output; keep the state for the next assert.
         toState: { id, output, state -> state }
