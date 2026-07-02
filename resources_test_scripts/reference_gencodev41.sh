@@ -40,20 +40,18 @@ param_list:
   - id: "$ID"
     genome_fasta: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/GRCh38.primary_assembly.genome.fa.gz"
     transcriptome_gtf: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.annotation.gtf.gz"
-    target: ["bd_rhapsody", "cellranger_arc"] 
+    target: ["cellranger_arc"] 
     output_fasta: "reference.fa.gz"
     output_gtf: "reference.gtf.gz"
     non_nuclear_contigs: null
     output_cellranger_arc: "reference_cellranger.tar.gz"
-    output_bd_rhapsody: "reference_bd_rhapsody.tar.gz"
-    bdrhap_extra_star_params: "--genomeSAindexNbases 12 --genomeSAsparseD 2"
     motifs_file: "$motifs_modified"
     subset_regex: "chr1"
 HERE
 
 nextflow run https://packages.viash-hub.com/vsh/openpipeline \
   -latest \
-  -r v4.0.4 \
+  -r v4.1.1 \
   -main-script target/nextflow/workflows/ingestion/make_reference/main.nf \
   -profile docker \
   -c ./src/configs/labels_ci.config \
@@ -64,11 +62,11 @@ nextflow run https://packages.viash-hub.com/vsh/openpipeline \
 rm "$motifs_modified"
 rm "$motifs_in"
 rm "$OUT/ERCC92.zip"
-
+rm -f "${OUT}"/*.state.yaml
+rm -f "${OUT}"/reference.*.gz
 
 aws s3 sync \
-  "$OUT" \
-  s3://openpipelines-bio/openpipeline_incubator/resources_test/"$ID" \
-  --exclude "*.yaml" \
+  resources_test/reference_gencodev41_chr1 \
+  s3://openpipelines-bio/openpipeline_composed/resources_test/reference_gencodev41_chr1 \
   --delete \
   --dryrun
