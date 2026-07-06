@@ -144,13 +144,13 @@ jobs:
           .version := "${{ inputs.version || format('{0}_build', github.ref_name) }}"
           .engines[.type == 'docker'].target_tag := '${{ github.event_name == 'push' && (inputs.version || format('{0}_build', github.ref_name)) || inputs.target_tag }}'
         parallel: true
-        query: ^(?!workflows|test_workflows)
-    
+        query: ^(?!single_cell|test_workflows)
+
     - uses: viash-io/viash-actions/ns-build@v6
       with:
         config_mod: .version := "${{ inputs.version || format('{0}_build', github.ref_name) }}"
         parallel: true
-        query: ^workflows
+        query: ^single_cell
 
     - name: "Remove test component and workflows from the target folder"
       run: |
@@ -186,7 +186,7 @@ jobs:
         engine: docker
         src: src
         format: json
-        query_namespace: ^(?!workflows|test_workflows)
+        query_namespace: ^(?!single_cell|test_workflows)
 
     - name: "List workflows"
       id: ns_list_workflows
@@ -194,7 +194,7 @@ jobs:
       with:
         src: src
         format: json
-        query_namespace: ^workflows/(?!test_workflows)
+        query_namespace: ^single_cell
 
     - name: "Parse JSON output from 'viash ns list' as input for matrix."
       id: set_matrix
