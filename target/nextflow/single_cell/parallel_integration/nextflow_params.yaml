@@ -1,0 +1,79 @@
+# Inputs
+id: # please fill in - example: "foo"
+input: # please fill in - example: "input.h5mu"
+modality: "rna"
+layer_log_normalized_counts: "log_normalized"
+# layer_raw_counts: "foo"
+obsm_embedding: "X_pca"
+obs_batch: "sample_id"
+obs_covariates: ["sample_id"]
+# obs_categorical_covariates: ["foo"]
+# obs_numerical_covariates: ["foo"]
+# var_input: "foo"
+
+# Methods
+integration_methods: # please fill in - example: ["harmony", "scvi"]
+
+# Clustering options
+leiden_resolution: [1.0]
+
+# Harmony options
+harmony_theta: [2.0]
+
+# scVI options
+# scvi_early_stopping: true
+scvi_early_stopping_monitor: "elbo_validation"
+scvi_early_stopping_patience: 45
+scvi_early_stopping_min_delta: 0.0
+# scvi_max_epochs: 123
+scvi_reduce_lr_on_plateau: true
+scvi_lr_factor: 0.6
+scvi_lr_patience: 30.0
+
+# Scanorama options
+scanorama_knn: 20
+scanorama_batch_size: 5000
+scanorama_sigma: 15.0
+scanorama_approx: true
+scanorama_alpha: 0.1
+
+# BBKNN options
+bbknn_n_neighbors_within_batch: 3
+bbknn_n_pcs: 50
+# bbknn_n_trim: 123
+
+# Output slot naming
+harmony_obsm_integrated: "X_harmony_integrated"
+harmony_obsm_umap: "X_harmony_umap"
+harmony_obs_cluster: "harmony_integration_leiden"
+harmony_uns_neighbors: "harmony_integration_neighbors"
+harmony_obsp_neighbor_distances: "harmony_integration_neighbor_distances"
+harmony_obsp_neighbor_connectivities: "harmony_integration_neighbor_connectivities"
+scvi_obsm_integrated: "X_scvi_integrated"
+scvi_obsm_umap: "X_scvi_umap"
+scvi_obs_cluster: "scvi_integration_leiden"
+scvi_uns_neighbors: "scvi_integration_neighbors"
+scvi_obsp_neighbor_distances: "scvi_integration_neighbor_distances"
+scvi_obsp_neighbor_connectivities: "scvi_integration_neighbor_connectivities"
+scanorama_obsm_integrated: "X_scanorama_integrated"
+scanorama_obsm_umap: "X_scanorama_umap"
+scanorama_obs_cluster: "scanorama_integration_leiden"
+scanorama_uns_neighbors: "scanorama_integration_neighbors"
+scanorama_obsp_neighbor_distances: "scanorama_integration_neighbor_distances"
+scanorama_obsp_neighbor_connectivities: "scanorama_integration_neighbor_connectivities"
+bbknn_obsm_umap: "X_bbknn_umap"
+bbknn_obs_cluster: "bbknn_integration_leiden"
+bbknn_uns_neighbors: "bbknn_integration_neighbors"
+bbknn_obsp_neighbor_distances: "bbknn_integration_neighbor_distances"
+bbknn_obsp_neighbor_connectivities: "bbknn_integration_neighbor_connectivities"
+
+# Output
+# output: "$id.$key.output.h5mu"
+# output_compression: "gzip"
+# output_scvi_model: "$id.$key.output_scvi_model"
+
+# Nextflow input-output arguments
+publish_dir: # please fill in - example: "output/"
+# param_list: "my_params.yaml"
+
+# Arguments

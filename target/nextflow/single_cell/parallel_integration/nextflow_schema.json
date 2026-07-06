@@ -1,0 +1,491 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "parallel_integration",
+  "description": "Run multiple integration methods from OpenPipeline in parallel on the same\npreprocessed h5mu input, then merge each method's annotations (leiden cluster\nlabels in .obs, integrated embeddings and UMAPs in .obsm, neighbor graphs in\n.obsp and .uns) back into a single output h5mu.\n\nAvailable integration methods: Harmony, scVI, Scanorama, BBKNN.\n",
+  "type": "object",
+  "$defs": {
+    "Dataset input": {
+      "title": "Dataset input",
+      "type": "object",
+      "description": "Dataset input using nf-tower \"dataset\" or \"data explorer\". Allows for the input of multiple         parameter sets to initialise a Nextflow channel.",
+      "properties": {
+        "param_list": {
+          "description": "Dataset input can either be a list of maps, a csv file, a json file, a yaml file, or simply a yaml                 blob. The names of the input fields (e.g. csv columns, json keys) need to be an exact match with the workflow input parameters.",
+          "type": "string",
+          "default": "",
+          "format": "file-path",
+          "mimetype": "text/csv"
+        }
+      }
+    },
+    "inputs": {
+      "title": "Inputs",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "ID of the sample.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"foo\"`. "
+        },
+        "input": {
+          "type": "string",
+          "format": "path",
+          "exists": true,
+          "description": "Input preprocessed h5mu file",
+          "help_text": "Type: `file`, multiple: `False`, required, direction: `input`, example: `\"input.h5mu\"`. "
+        },
+        "modality": {
+          "type": "string",
+          "description": "Which modality to process.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"rna\"`. ",
+          "default": "rna"
+        },
+        "layer_log_normalized_counts": {
+          "type": "string",
+          "description": "Layer with the log-normalized counts",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"log_normalized\"`. ",
+          "default": "log_normalized"
+        },
+        "layer_raw_counts": {
+          "type": "string",
+          "description": "Layer with the raw (integer) counts",
+          "help_text": "Type: `string`, multiple: `False`. "
+        },
+        "obsm_embedding": {
+          "type": "string",
+          "description": ".obsm slot containing the embedding to use as input for methods that\nrequire a pre-computed dimensionality reduction (harmony, scanorama, bbknn).\n",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"X_pca\"`. ",
+          "default": "X_pca"
+        },
+        "obs_batch": {
+          "type": "string",
+          "description": ".obs column discriminating between batches",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"sample_id\"`. ",
+          "default": "sample_id"
+        },
+        "obs_covariates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": ".obs column(s) defining the covariates to regress out",
+          "help_text": "Type: `string`, multiple: `True`, default: `[\"sample_id\"]`. ",
+          "default": [
+            "sample_id"
+          ]
+        },
+        "obs_categorical_covariates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": ".obs column(s) with categorical covariates for scVI to correct for in\naddition to --obs_batch",
+          "help_text": "Type: `string`, multiple: `True`. "
+        },
+        "obs_numerical_covariates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": ".obs column(s) with continuous (numerical) covariates for scVI to correct\nfor in addition to --obs_batch",
+          "help_text": "Type: `string`, multiple: `True`. "
+        },
+        "var_input": {
+          "type": "string",
+          "description": ".var column containing highly variable genes to subset to",
+          "help_text": "Type: `string`, multiple: `False`. "
+        }
+      }
+    },
+    "methods": {
+      "title": "Methods",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "integration_methods": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Integration methods to run in parallel.",
+          "help_text": "Type: `string`, multiple: `True`, required, example: `[\"harmony\";\"scvi\"]`, choices: ``harmony`, `scvi`, `scanorama`, `bbknn``. "
+        }
+      }
+    },
+    "clustering options": {
+      "title": "Clustering options",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "leiden_resolution": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Leiden clustering resolution(s)",
+          "help_text": "Type: `double`, multiple: `True`, default: `[1.0]`. ",
+          "default": [
+            1.0
+          ]
+        }
+      }
+    },
+    "harmony options": {
+      "title": "Harmony options",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "harmony_theta": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "Diversity clustering penalty",
+          "help_text": "Type: `double`, multiple: `True`, default: `[2.0]`. ",
+          "default": [
+            2.0
+          ]
+        }
+      }
+    },
+    "scvi options": {
+      "title": "scVI options",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "scvi_early_stopping": {
+          "type": "boolean",
+          "description": "Whether scVI should perform early stopping on the validation set.",
+          "help_text": "Type: `boolean`, multiple: `False`. "
+        },
+        "scvi_early_stopping_monitor": {
+          "type": "string",
+          "description": "Metric logged during validation set epoch.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"elbo_validation\"`, choices: ``elbo_validation`, `reconstruction_loss_validation`, `kl_local_validation``. ",
+          "enum": [
+            "elbo_validation",
+            "reconstruction_loss_validation",
+            "kl_local_validation"
+          ],
+          "default": "elbo_validation"
+        },
+        "scvi_early_stopping_patience": {
+          "type": "integer",
+          "description": "Number of validation epochs with no improvement after which training stops.",
+          "help_text": "Type: `integer`, multiple: `False`, default: `45`. ",
+          "default": 45
+        },
+        "scvi_early_stopping_min_delta": {
+          "type": "number",
+          "description": "Minimum change in the monitored metric to qualify as improvement.",
+          "help_text": "Type: `double`, multiple: `False`, default: `0.0`. ",
+          "default": 0.0
+        },
+        "scvi_max_epochs": {
+          "type": "integer",
+          "description": "Number of training passes through the dataset.",
+          "help_text": "Type: `integer`, multiple: `False`. "
+        },
+        "scvi_reduce_lr_on_plateau": {
+          "type": "boolean",
+          "description": "Reduce learning rate when validation metric plateaus.",
+          "help_text": "Type: `boolean`, multiple: `False`, default: `true`. ",
+          "default": true
+        },
+        "scvi_lr_factor": {
+          "type": "number",
+          "description": "Factor by which to reduce learning rate.",
+          "help_text": "Type: `double`, multiple: `False`, default: `0.6`. ",
+          "default": 0.6
+        },
+        "scvi_lr_patience": {
+          "type": "number",
+          "description": "Number of epochs with no improvement after which lr is reduced.",
+          "help_text": "Type: `double`, multiple: `False`, default: `30.0`. ",
+          "default": 30.0
+        }
+      }
+    },
+    "scanorama options": {
+      "title": "Scanorama options",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "scanorama_knn": {
+          "type": "integer",
+          "description": "Number of nearest neighbors used for matching.",
+          "help_text": "Type: `integer`, multiple: `False`, default: `20`. ",
+          "default": 20
+        },
+        "scanorama_batch_size": {
+          "type": "integer",
+          "description": "Batch size used in the alignment vector computation.",
+          "help_text": "Type: `integer`, multiple: `False`, default: `5000`. ",
+          "default": 5000
+        },
+        "scanorama_sigma": {
+          "type": "number",
+          "description": "Correction smoothing parameter on the Gaussian kernel.",
+          "help_text": "Type: `double`, multiple: `False`, default: `15.0`. ",
+          "default": 15.0
+        },
+        "scanorama_approx": {
+          "type": "boolean",
+          "description": "Use approximate nearest neighbors (annoy).",
+          "help_text": "Type: `boolean`, multiple: `False`, default: `true`. ",
+          "default": true
+        },
+        "scanorama_alpha": {
+          "type": "number",
+          "description": "Alignment score minimum cutoff.",
+          "help_text": "Type: `double`, multiple: `False`, default: `0.1`. ",
+          "default": 0.1
+        }
+      }
+    },
+    "bbknn options": {
+      "title": "BBKNN options",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "bbknn_n_neighbors_within_batch": {
+          "type": "integer",
+          "description": "Top neighbours to report for each batch.",
+          "help_text": "Type: `integer`, multiple: `False`, default: `3`. ",
+          "default": 3
+        },
+        "bbknn_n_pcs": {
+          "type": "integer",
+          "description": "Number of dimensions to use from the input embedding.",
+          "help_text": "Type: `integer`, multiple: `False`, default: `50`. ",
+          "default": 50
+        },
+        "bbknn_n_trim": {
+          "type": "integer",
+          "description": "Trim each cell's neighbours to these many top connectivities",
+          "help_text": "Type: `integer`, multiple: `False`. "
+        }
+      }
+    },
+    "output slot naming": {
+      "title": "Output slot naming",
+      "type": "object",
+      "description": "Names of the slots each method writes into its intermediate h5mu and\nthat are subsequently moved into the merged output. The per-resolution\nleiden columns are named \"{obs_cluster}_{resolution}\" (e.g.\n\"harmony_integration_leiden_1.0\").\n",
+      "properties": {
+        "harmony_obsm_integrated": {
+          "type": "string",
+          "description": ".obsm slot for the harmony-integrated embedding.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"X_harmony_integrated\"`. ",
+          "default": "X_harmony_integrated"
+        },
+        "harmony_obsm_umap": {
+          "type": "string",
+          "description": ".obsm slot for the harmony UMAP embedding.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"X_harmony_umap\"`. ",
+          "default": "X_harmony_umap"
+        },
+        "harmony_obs_cluster": {
+          "type": "string",
+          "description": ".obs prefix for the harmony leiden cluster columns.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"harmony_integration_leiden\"`. ",
+          "default": "harmony_integration_leiden"
+        },
+        "harmony_uns_neighbors": {
+          "type": "string",
+          "description": ".uns slot for harmony neighbor graph metadata.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"harmony_integration_neighbors\"`. ",
+          "default": "harmony_integration_neighbors"
+        },
+        "harmony_obsp_neighbor_distances": {
+          "type": "string",
+          "description": ".obsp slot for harmony neighbor distances.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"harmony_integration_neighbor_distances\"`. ",
+          "default": "harmony_integration_neighbor_distances"
+        },
+        "harmony_obsp_neighbor_connectivities": {
+          "type": "string",
+          "description": ".obsp slot for harmony neighbor connectivities.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"harmony_integration_neighbor_connectivities\"`. ",
+          "default": "harmony_integration_neighbor_connectivities"
+        },
+        "scvi_obsm_integrated": {
+          "type": "string",
+          "description": ".obsm slot for the scVI-integrated latent embedding.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"X_scvi_integrated\"`. ",
+          "default": "X_scvi_integrated"
+        },
+        "scvi_obsm_umap": {
+          "type": "string",
+          "description": ".obsm slot for the scVI UMAP embedding.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"X_scvi_umap\"`. ",
+          "default": "X_scvi_umap"
+        },
+        "scvi_obs_cluster": {
+          "type": "string",
+          "description": ".obs prefix for the scVI leiden cluster columns.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"scvi_integration_leiden\"`. ",
+          "default": "scvi_integration_leiden"
+        },
+        "scvi_uns_neighbors": {
+          "type": "string",
+          "description": ".uns slot for scVI neighbor graph metadata.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"scvi_integration_neighbors\"`. ",
+          "default": "scvi_integration_neighbors"
+        },
+        "scvi_obsp_neighbor_distances": {
+          "type": "string",
+          "description": ".obsp slot for scVI neighbor distances.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"scvi_integration_neighbor_distances\"`. ",
+          "default": "scvi_integration_neighbor_distances"
+        },
+        "scvi_obsp_neighbor_connectivities": {
+          "type": "string",
+          "description": ".obsp slot for scVI neighbor connectivities.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"scvi_integration_neighbor_connectivities\"`. ",
+          "default": "scvi_integration_neighbor_connectivities"
+        },
+        "scanorama_obsm_integrated": {
+          "type": "string",
+          "description": ".obsm slot for the scanorama-integrated embedding.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"X_scanorama_integrated\"`. ",
+          "default": "X_scanorama_integrated"
+        },
+        "scanorama_obsm_umap": {
+          "type": "string",
+          "description": ".obsm slot for the scanorama UMAP embedding.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"X_scanorama_umap\"`. ",
+          "default": "X_scanorama_umap"
+        },
+        "scanorama_obs_cluster": {
+          "type": "string",
+          "description": ".obs prefix for the scanorama leiden cluster columns.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"scanorama_integration_leiden\"`. ",
+          "default": "scanorama_integration_leiden"
+        },
+        "scanorama_uns_neighbors": {
+          "type": "string",
+          "description": ".uns slot for scanorama neighbor graph metadata.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"scanorama_integration_neighbors\"`. ",
+          "default": "scanorama_integration_neighbors"
+        },
+        "scanorama_obsp_neighbor_distances": {
+          "type": "string",
+          "description": ".obsp slot for scanorama neighbor distances.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"scanorama_integration_neighbor_distances\"`. ",
+          "default": "scanorama_integration_neighbor_distances"
+        },
+        "scanorama_obsp_neighbor_connectivities": {
+          "type": "string",
+          "description": ".obsp slot for scanorama neighbor connectivities.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"scanorama_integration_neighbor_connectivities\"`. ",
+          "default": "scanorama_integration_neighbor_connectivities"
+        },
+        "bbknn_obsm_umap": {
+          "type": "string",
+          "description": ".obsm slot for the BBKNN UMAP embedding.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"X_bbknn_umap\"`. ",
+          "default": "X_bbknn_umap"
+        },
+        "bbknn_obs_cluster": {
+          "type": "string",
+          "description": ".obs prefix for the BBKNN leiden cluster columns.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"bbknn_integration_leiden\"`. ",
+          "default": "bbknn_integration_leiden"
+        },
+        "bbknn_uns_neighbors": {
+          "type": "string",
+          "description": ".uns slot for BBKNN neighbor graph metadata.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"bbknn_integration_neighbors\"`. ",
+          "default": "bbknn_integration_neighbors"
+        },
+        "bbknn_obsp_neighbor_distances": {
+          "type": "string",
+          "description": ".obsp slot for BBKNN neighbor distances.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"bbknn_integration_neighbor_distances\"`. ",
+          "default": "bbknn_integration_neighbor_distances"
+        },
+        "bbknn_obsp_neighbor_connectivities": {
+          "type": "string",
+          "description": ".obsp slot for BBKNN neighbor connectivities.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"bbknn_integration_neighbor_connectivities\"`. ",
+          "default": "bbknn_integration_neighbor_connectivities"
+        }
+      }
+    },
+    "output": {
+      "title": "Output",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "output": {
+          "type": "string",
+          "format": "path",
+          "description": "Output h5mu file — the input preprocessed file with each selected\nmethod's annotations merged into the target modality.\n",
+          "help_text": "Type: `file`, multiple: `False`, required, default: `\"$id.$key.output.h5mu\"`, direction: `output`, example: `\"output.h5mu\"`. ",
+          "default": "$id.$key.output.h5mu"
+        },
+        "output_compression": {
+          "type": "string",
+          "description": "Compression format for the output h5mu file.",
+          "help_text": "Type: `string`, multiple: `False`, example: `\"gzip\"`, choices: ``gzip`, `lzf``. ",
+          "enum": [
+            "gzip",
+            "lzf"
+          ]
+        },
+        "output_scvi_model": {
+          "type": "string",
+          "format": "path",
+          "description": "Output folder with the trained scVI model",
+          "help_text": "Type: `file`, multiple: `False`, default: `\"$id.$key.output_scvi_model\"`, direction: `output`, example: `\"scvi_model\"`. ",
+          "default": "$id.$key.output_scvi_model"
+        }
+      }
+    },
+    "nextflow input-output arguments": {
+      "title": "Nextflow input-output arguments",
+      "type": "object",
+      "description": "Input/output parameters for Nextflow itself. Please note that both publishDir and publish_dir are supported but at least one has to be configured.",
+      "properties": {
+        "publish_dir": {
+          "type": "string",
+          "description": "Path to an output directory.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"output/\"`. "
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/inputs"
+    },
+    {
+      "$ref": "#/$defs/methods"
+    },
+    {
+      "$ref": "#/$defs/clustering options"
+    },
+    {
+      "$ref": "#/$defs/harmony options"
+    },
+    {
+      "$ref": "#/$defs/scvi options"
+    },
+    {
+      "$ref": "#/$defs/scanorama options"
+    },
+    {
+      "$ref": "#/$defs/bbknn options"
+    },
+    {
+      "$ref": "#/$defs/output slot naming"
+    },
+    {
+      "$ref": "#/$defs/output"
+    },
+    {
+      "$ref": "#/$defs/nextflow input-output arguments"
+    }
+  ]
+}

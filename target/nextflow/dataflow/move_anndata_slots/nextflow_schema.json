@@ -1,0 +1,192 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "move_anndata_slots",
+  "description": "Move slots (.obs, .var, .obsm, .varm, .obsp, .varp, .uns) from a modality\nin a source MuData file into a modality in a target MuData file.\nThe specified slots are copied from the source modality into the target\nmodality. By default, copying to a key that already exists in the target\nraises an error; use --allow_overwrite to overwrite it instead.\n",
+  "type": "object",
+  "$defs": {
+    "Dataset input": {
+      "title": "Dataset input",
+      "type": "object",
+      "description": "Dataset input using nf-tower \"dataset\" or \"data explorer\". Allows for the input of multiple         parameter sets to initialise a Nextflow channel.",
+      "properties": {
+        "param_list": {
+          "description": "Dataset input can either be a list of maps, a csv file, a json file, a yaml file, or simply a yaml                 blob. The names of the input fields (e.g. csv columns, json keys) need to be an exact match with the workflow input parameters.",
+          "type": "string",
+          "default": "",
+          "format": "file-path",
+          "mimetype": "text/csv"
+        }
+      }
+    },
+    "source": {
+      "title": "Source",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "input_source": {
+          "type": "string",
+          "format": "path",
+          "exists": true,
+          "description": "Source h5mu file to read slots from.",
+          "help_text": "Type: `file`, multiple: `False`, required, direction: `input`, example: `\"source.h5mu\"`. "
+        },
+        "source_modality": {
+          "type": "string",
+          "description": "Modality in the source h5mu file to read slots from.",
+          "help_text": "Type: `string`, multiple: `False`, default: `\"rna\"`. ",
+          "default": "rna"
+        }
+      }
+    },
+    "target": {
+      "title": "Target",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "input_target": {
+          "type": "string",
+          "format": "path",
+          "exists": true,
+          "description": "Target h5mu file to write slots into.",
+          "help_text": "Type: `file`, multiple: `False`, required, direction: `input`, example: `\"target.h5mu\"`. "
+        },
+        "target_modality": {
+          "type": "string",
+          "description": "Modality in the target h5mu file to write slots into.\nDefaults to the value of --source_modality.\n",
+          "help_text": "Type: `string`, multiple: `False`. "
+        }
+      }
+    },
+    "slots to move": {
+      "title": "Slots to move",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "obs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Column names from .obs to move from the source modality to the\ntarget modality",
+          "help_text": "Type: `string`, multiple: `True`. "
+        },
+        "var": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Column names from .var to move from the source modality to the\ntarget modality",
+          "help_text": "Type: `string`, multiple: `True`. "
+        },
+        "obsm": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Keys from .obsm to move from the source modality to the target\nmodality",
+          "help_text": "Type: `string`, multiple: `True`. "
+        },
+        "varm": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Keys from .varm to move from the source modality to the target\nmodality",
+          "help_text": "Type: `string`, multiple: `True`. "
+        },
+        "obsp": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Keys from .obsp to move from the source modality to the target\nmodality",
+          "help_text": "Type: `string`, multiple: `True`. "
+        },
+        "varp": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Keys from .varp to move from the source modality to the target\nmodality",
+          "help_text": "Type: `string`, multiple: `True`. "
+        },
+        "uns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Keys from .uns to move from the source modality to the target\nmodality",
+          "help_text": "Type: `string`, multiple: `True`. "
+        }
+      }
+    },
+    "options": {
+      "title": "Options",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "allow_overwrite": {
+          "type": "boolean",
+          "description": "Allow overwriting keys that already exist in the target modality.\nBy default, the component raises an error if a key already exists.\nWhen enabled, existing keys are overwritten with a warning.\n",
+          "help_text": "Type: `boolean_true`, multiple: `False`, default: `false`. ",
+          "default": false
+        }
+      }
+    },
+    "output": {
+      "title": "Output",
+      "type": "object",
+      "description": "No description",
+      "properties": {
+        "output": {
+          "type": "string",
+          "format": "path",
+          "description": "Output h5mu file (the target with slots added from the source).",
+          "help_text": "Type: `file`, multiple: `False`, required, default: `\"$id.$key.output.h5mu\"`, direction: `output`, example: `\"output.h5mu\"`. ",
+          "default": "$id.$key.output.h5mu"
+        },
+        "output_compression": {
+          "type": "string",
+          "description": "Compression format to use for the output AnnData and/or Mudata H5 files.\nBy default no compression is applied.\n",
+          "help_text": "Type: `string`, multiple: `False`, example: `\"gzip\"`, choices: ``gzip`, `lzf``. ",
+          "enum": [
+            "gzip",
+            "lzf"
+          ]
+        }
+      }
+    },
+    "nextflow input-output arguments": {
+      "title": "Nextflow input-output arguments",
+      "type": "object",
+      "description": "Input/output parameters for Nextflow itself. Please note that both publishDir and publish_dir are supported but at least one has to be configured.",
+      "properties": {
+        "publish_dir": {
+          "type": "string",
+          "description": "Path to an output directory.",
+          "help_text": "Type: `string`, multiple: `False`, required, example: `\"output/\"`. "
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "$ref": "#/$defs/source"
+    },
+    {
+      "$ref": "#/$defs/target"
+    },
+    {
+      "$ref": "#/$defs/slots to move"
+    },
+    {
+      "$ref": "#/$defs/options"
+    },
+    {
+      "$ref": "#/$defs/output"
+    },
+    {
+      "$ref": "#/$defs/nextflow input-output arguments"
+    }
+  ]
+}

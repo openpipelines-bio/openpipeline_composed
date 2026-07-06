@@ -20,7 +20,6 @@ work
 trace-*.txt
 
 # viash
-/target/
 /resources_test/
 
 # pycache

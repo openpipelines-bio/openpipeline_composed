@@ -1,0 +1,29 @@
+# Source
+input_source: # please fill in - example: "source.h5mu"
+source_modality: "rna"
+
+# Target
+input_target: # please fill in - example: "target.h5mu"
+# target_modality: "foo"
+
+# Slots to move
+# obs: ["foo"]
+# var: ["foo"]
+# obsm: ["foo"]
+# varm: ["foo"]
+# obsp: ["foo"]
+# varp: ["foo"]
+# uns: ["foo"]
+
+# Options
+allow_overwrite: false
+
+# Output
+# output: "$id.$key.output.h5mu"
+# output_compression: "gzip"
+
+# Nextflow input-output arguments
+publish_dir: # please fill in - example: "output/"
+# param_list: "my_params.yaml"
+
+# Arguments
