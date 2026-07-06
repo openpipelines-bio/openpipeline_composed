@@ -21,7 +21,7 @@ jobs:
   build:
     uses: ./.github/workflows/main-build.yml
     with:
-      push_containers: ${{ github.event_name == 'schedule' || inputs.push_containers }}
+      push_containers: ${{ github.event_name == 'schedule' || github.event_name == 'push' || inputs.push_containers }}
       version: 'integration_build'
       target_tag: 'integration_build'
       deploy_branch: 'integration_build'
