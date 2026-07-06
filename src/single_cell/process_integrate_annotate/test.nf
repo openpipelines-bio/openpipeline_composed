@@ -1,7 +1,7 @@
 nextflow.enable.dsl=2
 
 include { process_integrate_annotate } from params.rootDir + "/target/_private/nextflow/single_cell/process_integrate_annotate/main.nf"
-params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
+params.resources_test = "s3://openpipelines-bio/openpipeline_composed/resources_test/"
 
 workflow test_wf {
   resources_test = file(params.resources_test)
