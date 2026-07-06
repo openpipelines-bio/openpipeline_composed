@@ -42,12 +42,11 @@ wget https://cf.10xgenomics.com/samples/cell-exp/3.0.0/pbmc_1k_protein_v3/pbmc_1
 
 # convert 10x h5 to h5mu
 nextflow run https://packages.viash-hub.com/vsh/openpipeline \
-  -latest \
   -r v4.1.1 \
   -main-script target/nextflow/convert/from_10xh5_to_h5mu/main.nf \
   -profile docker \
   -c ./src/configs/labels_ci.config \
-  --publish_dir $OUT \
+  --publish_dir "$OUT" \
   --input "${OUT}/${ID}_filtered_feature_bc_matrix.h5" \
   --input_metrics_summary "${OUT}/${ID}_metrics_summary.csv" \
   --output "${ID}_filtered_feature_bc_matrix.h5mu" \
@@ -56,7 +55,6 @@ nextflow run https://packages.viash-hub.com/vsh/openpipeline \
 # run sample processing
 nextflow \
   run https://packages.viash-hub.com/vsh/openpipeline \
-  -latest \
   -r v4.1.1 \
   -main-script target/nextflow/workflows/multiomics/process_samples/main.nf \
   -c ./src/configs/labels_ci.config \
@@ -64,7 +62,7 @@ nextflow \
   --id pbmc_1k_protein_v3_uss \
   --input "${OUT}/${ID}_filtered_feature_bc_matrix.h5mu" \
   --output "${ID}_mms.h5mu" \
-  --publishDir "$OUT" \
+  --publish_dir "$OUT" \
   -resume
 
 # remove all files from the output folder except the final mms output
@@ -73,6 +71,5 @@ find "${OUT}" -mindepth 1 ! -name "${ID}_mms.h5mu" -delete
 aws s3 sync \
   "$OUT" \
   s3://openpipelines-bio/openpipeline_composed/resources_test/"$ID" \
-  --exclude "*.yaml" \
   --delete \
   --dryrun

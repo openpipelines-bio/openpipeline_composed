@@ -50,13 +50,12 @@ param_list:
 HERE
 
 nextflow run https://packages.viash-hub.com/vsh/openpipeline \
-  -latest \
   -r v4.1.1 \
   -main-script target/nextflow/workflows/ingestion/make_reference/main.nf \
   -profile docker \
   -c ./src/configs/labels_ci.config \
   -params-file /tmp/params.yaml \
-  --publish_dir $OUT \
+  --publish_dir "$OUT" \
   -resume
 
 rm "$motifs_modified"
