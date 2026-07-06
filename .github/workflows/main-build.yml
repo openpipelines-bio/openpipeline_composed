@@ -154,7 +154,9 @@ jobs:
 
     - name: "Remove test component and workflows from the target folder"
       run: |
-        rm -r target/_test
+        # test-scoped components (e.g. test_workflows) are excluded from the build queries,
+        # so target/_test may not exist; -f avoids failing the build when it is absent.
+        rm -rf target/_test
 
     - name: Build nextflow schemas
       uses: viash-io/viash-actions/pro/build-nextflow-schemas@v6
