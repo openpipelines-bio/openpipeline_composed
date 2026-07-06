@@ -249,7 +249,7 @@ jobs:
       with:
         config_mod: |
           .version := "${{ inputs.version || format('{0}_build', github.ref_name) }}"
-          .engines[.type == 'docker'].target_tag := '${{ github.event_name == 'push' && 'main_build' || inputs.target_tag }}'
+          .engines[.type == 'docker'].target_tag := '${{ (github.event_name == 'push' && !inputs.is_workflow_call) && 'main_build' || inputs.target_tag }}'
         engine: docker
         src: ${{ matrix.component.dir }}
         setup: build
