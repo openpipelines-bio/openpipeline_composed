@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component dataflow move_anndata_slots"
-LABEL org.opencontainers.image.created="2026-07-06T16:00:35Z"
+LABEL org.opencontainers.image.created="2026-07-06T17:27:43Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_composed"
-LABEL org.opencontainers.image.revision="91dcceb7a6fb8d420bf741c82a1a70b9a8a4037c"
+LABEL org.opencontainers.image.revision="a7ff3bab15d2daea59ecd80e345ddeae71b1432c"
 LABEL org.opencontainers.image.version="integration_build"
 
 VIASHDOCKER
