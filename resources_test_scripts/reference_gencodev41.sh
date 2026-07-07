@@ -65,7 +65,7 @@ rm -f "${OUT}"/*.state.yaml
 rm -f "${OUT}"/reference.*.gz
 
 aws s3 sync \
-  resources_test/reference_gencodev41_chr1 \
+  "$OUT"\
   s3://openpipelines-bio/openpipeline_composed/resources_test/reference_gencodev41_chr1 \
   --delete \
   --dryrun
