@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 include { parallel_annotation } from params.rootDir + "/target/nextflow/single_cell/parallel_annotation/main.nf"
 include { assert_h5mu_slots } from params.rootDir + "/target/_test/nextflow/test_workflows/assert_h5mu_slots/main.nf"
-params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
+params.resources_test = "s3://openpipelines-bio/openpipeline_composed/resources_test/"
 
 // Default .obs prediction/probability and .obsm embedding slots each method
 // writes into the merged output. celltypist produces predictions only.
@@ -91,9 +91,8 @@ workflow test_wf_2 {
     [
       [
         id: "celltypist_model_test",
-        input: resources_test.resolve("pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu"),
+        input: resources_test.resolve("annotation_test_data/demo_2000_cells.h5mu"),
         celltypist_model: resources_test.resolve("annotation_test_data/celltypist_model_Immune_All_Low.pkl"),
-        input_var_gene_names: "gene_symbol",
         annotation_methods: "celltypist"
       ]
     ])

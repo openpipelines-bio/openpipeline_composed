@@ -9,10 +9,9 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
 ID=pbmc_1k_protein_v3
-OUT=resources_test/$ID/$ID
+OUT=resources_test/$ID
 DIR=$(dirname "$OUT")
 
-# ideally, this would be a versioned pipeline run
 [ -d "$DIR" ] || mkdir -p "$DIR"
 
 # dataset page:
@@ -26,126 +25,51 @@ wget https://cf.10xgenomics.com/samples/cell-exp/3.0.0/pbmc_1k_protein_v3/pbmc_1
 wget https://cf.10xgenomics.com/samples/cell-exp/3.0.0/pbmc_1k_protein_v3/pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5 \
   -O "${OUT}_filtered_feature_bc_matrix.h5"
 
-wget https://cf.10xgenomics.com/samples/cell-exp/3.0.0/pbmc_1k_protein_v3/pbmc_1k_protein_v3_raw_feature_bc_matrix.h5 \
-  -O "${OUT}_raw_feature_bc_matrix.h5"
+# wget https://cf.10xgenomics.com/samples/cell-exp/3.0.0/pbmc_1k_protein_v3/pbmc_1k_protein_v3_raw_feature_bc_matrix.h5 \
+#   -O "${OUT}_raw_feature_bc_matrix.h5"
 
-# download counts matrix tar gz file
-wget https://cf.10xgenomics.com/samples/cell-exp/3.0.0/pbmc_1k_protein_v3/pbmc_1k_protein_v3_filtered_feature_bc_matrix.tar.gz \
-  -O "${OUT}_filtered_feature_bc_matrix.tar.gz"
+# # download counts matrix tar gz file
+# wget https://cf.10xgenomics.com/samples/cell-exp/3.0.0/pbmc_1k_protein_v3/pbmc_1k_protein_v3_filtered_feature_bc_matrix.tar.gz \
+#   -O "${OUT}_filtered_feature_bc_matrix.tar.gz"
 
-# extract matrix tar gz
-mkdir -p "${OUT}_filtered_feature_bc_matrix"
-tar -xvf "${OUT}_filtered_feature_bc_matrix.tar.gz" \
-  -C "${OUT}_filtered_feature_bc_matrix" \
-  --strip-components 1
-rm "${OUT}_filtered_feature_bc_matrix.tar.gz"
+# # extract matrix tar gz
+# mkdir -p "${OUT}_filtered_feature_bc_matrix"
+# tar -xvf "${OUT}_filtered_feature_bc_matrix.tar.gz" \
+#   -C "${OUT}_filtered_feature_bc_matrix" \
+#   --strip-components 1
+# rm "${OUT}_filtered_feature_bc_matrix.tar.gz"
 
-cat > /tmp/params.yaml << HERE
-  --input "${OUT}_filtered_feature_bc_matrix.h5" \
-  --input_metrics_summary "${OUT}_metrics_summary.csv" \
-  --output "${OUT}_filtered_feature_bc_matrix.h5mu"
-
-param_list:
-  - id: "$ID"
-    genome_fasta: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/GRCh38.primary_assembly.genome.fa.gz"
-    transcriptome_gtf: "https://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human/release_41/gencode.v41.annotation.gtf.gz"
-    target: ["bd_rhapsody", "cellranger_arc"] 
-    output_fasta: "reference.fa.gz"
-    output_gtf: "reference.gtf.gz"
-    non_nuclear_contigs: null
-    output_cellranger_arc: "reference_cellranger.tar.gz"
-    output_bd_rhapsody: "reference_bd_rhapsody.tar.gz"
-    bdrhap_extra_star_params: "--genomeSAindexNbases 12 --genomeSAsparseD 2"
-    motifs_file: "$motifs_modified"
-    subset_regex: "chr1"
-HERE
 
 # convert 10x h5 to h5mu
 nextflow run https://packages.viash-hub.com/vsh/openpipeline \
-  -latest \
-  -r v4.0.4 \
-  -main-script target/docker/convert/from_10xh5_to_h5mu/from_10xh5_to_h5mu \
+  -r v4.1.1 \
+  -main-script target/nextflow/convert/from_10xh5_to_h5mu/main.nf \
   -profile docker \
   -c ./src/configs/labels_ci.config \
-  -params-file /tmp/params.yaml \
-  --publish_dir $OUT \
+  --publish_dir "$OUT" \
+  --input "${OUT}/${ID}_filtered_feature_bc_matrix.h5" \
+  --input_metrics_summary "${OUT}/${ID}_metrics_summary.csv" \
+  --output "${ID}_filtered_feature_bc_matrix.h5mu" \
   -resume
 
-# run single sample
+# run sample processing
 nextflow \
-  run . \
-  -main-script target/nextflow/workflows/rna/rna_singlesample/main.nf \
-  -c src/workflows/utils/labels_ci.config \
+  run https://packages.viash-hub.com/vsh/openpipeline \
+  -r v4.1.1 \
+  -main-script target/nextflow/workflows/multiomics/process_samples/main.nf \
+  -c ./src/configs/labels_ci.config \
   -profile docker \
   --id pbmc_1k_protein_v3_uss \
-  --input "${OUT}_filtered_feature_bc_matrix.h5mu" \
-  --output "`basename $OUT`_uss.h5mu" \
-  --publishDir `dirname $OUT` \
+  --input "${OUT}/${ID}_filtered_feature_bc_matrix.h5mu" \
+  --output "${ID}_mms.h5mu" \
+  --publish_dir "$OUT" \
   -resume
 
-# add the sample ID to the mudata object
-nextflow \
-  run . \
-  -main-script target/nextflow/metadata/add_id/main.nf \
-  -c src/workflows/utils/labels_ci.config \
-  -profile docker \
-  --id pbmc_1k_protein_v3_uss \
-  --input "${OUT}_uss.h5mu" \
-  --input_id "pbmc_1k_protein_v3_uss" \
-  --output "`basename $OUT`_uss_with_id.h5mu" \
-  --output_compression "gzip" \
-  --publishDir `dirname $OUT` \
-  -resume
-
-# run multisample
-nextflow \
-  run . \
-  -main-script target/nextflow/workflows/rna/rna_multisample/main.nf \
-  -c src/workflows/utils/labels_ci.config \
-  -profile docker \
-  --id pbmc_1k_protein_v3_ums \
-  --input "${OUT}_uss_with_id.h5mu" \
-  --output "`basename $OUT`_ums.h5mu" \
-  --publishDir `dirname $OUT` \
-  -resume
-
-rm "${OUT}_uss_with_id.h5mu"
-
-# run dimred
-nextflow \
-  run . \
-  -main-script target/nextflow/workflows/multiomics/dimensionality_reduction/main.nf \
-  -c src/workflows/utils/labels_ci.config \
-  -profile docker \
-  --id pbmc_1k_protein_v3_mms \
-  --input "${OUT}_ums.h5mu" \
-  --output "`basename $OUT`_mms.h5mu" \
-  --publishDir `dirname $OUT` \
-  --obs_covariates sample_id \
-  -resume
-
-# run integration
-nextflow \
-  run . \
-  -main-script target/nextflow/workflows/integration/harmony_leiden/main.nf \
-  -c src/workflows/utils/labels_ci.config \
-  -profile docker \
-  --id pbmc_1k_protein_v3_mms_integration \
-  --input "${OUT}_mms.h5mu" \
-  --output "`basename $OUT`_mms.h5mu" \
-  --publishDir `dirname $OUT` \
-  --obs_covariates sample_id \
-  -resume
-
-python <<HEREDOC
-import mudata as mu
-mudata = mu.read_h5mu("${DIR}/pbmc_1k_protein_v3_filtered_feature_bc_matrix.h5mu")
-mudata.mod["rna"].write_h5ad("${DIR}/pbmc_1k_protein_v3_filtered_feature_bc_matrix_rna.h5ad")
-HEREDOC
+# remove all files from the output folder except the final mms output
+find "${OUT}" -mindepth 1 ! -name "${ID}_mms.h5mu" -delete
 
 aws s3 sync \
   "$OUT" \
-  s3://openpipelines-bio/openpipeline_incubator/resources_test/"$ID" \
-  --exclude "*.yaml" \
+  s3://openpipelines-bio/openpipeline_composed/resources_test/"$ID" \
   --delete \
   --dryrun
