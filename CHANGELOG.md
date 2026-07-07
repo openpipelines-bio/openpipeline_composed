@@ -6,7 +6,7 @@
 
 ## MINOR CHANGES
 
-* Migration of test resources to the package-specific `s3://openpipelines-bio/openpipeline_composed/resources_test` bucket (#24):
+* Migration of test resources to the package-specific `s3://openpipelines-bio/openpipeline_composed/resources_test` bucket (PR #24):
 
   - Add `.info.test_resources` to `_viash.yaml` to specify where test resources need to be synced from.
   - Test resources were regenerated via the scripts in `resources_test_scripts/`.
