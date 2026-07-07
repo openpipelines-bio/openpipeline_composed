@@ -1,6 +1,15 @@
 # openpipeline_composed x.x.x
 
+## NEW FUNCTIONALITY
+
 * `workflows/single_cell/parallel_annotation`: Add consensus voting based on per-method weighted probabilities via `--run_consensus` flag (default is true) (PR #22).
+
+## MINOR CHANGES
+
+* Migration of test resources to the package-specific `s3://openpipelines-bio/openpipeline_composed/resources_test` bucket (#24):
+
+  - Add `.info.test_resources` to `_viash.yaml` to specify where test resources need to be synced from.
+  - Test resources were regenerated via the scripts in `resources_test_scripts/`.
 
 # openpipeline_composed 0.2.1
 
