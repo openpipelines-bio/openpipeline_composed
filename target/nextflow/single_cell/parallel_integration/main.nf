@@ -3987,7 +3987,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/single_cell/parallel_integration",
     "viash_version" : "0.9.7",
-    "git_commit" : "0e712e1e71c0cb31d627673aeda8152e9ecad98d",
+    "git_commit" : "7f84a7367d1f6f30ed4f8f64b2a0bed23e8995cd",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -3997,7 +3997,7 @@ meta = [
       "test_resources" : [
         {
           "type" : "s3",
-          "path" : "s3://openpipelines-bio/openpipeline_incubator/resources_test",
+          "path" : "s3://openpipelines-bio/openpipeline_composed/resources_test",
           "dest" : "resources_test"
         }
       ]

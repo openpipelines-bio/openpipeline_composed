@@ -3332,7 +3332,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_test/nextflow/test_workflows/assert_h5mu_slots",
     "viash_version" : "0.9.7",
-    "git_commit" : "0e712e1e71c0cb31d627673aeda8152e9ecad98d",
+    "git_commit" : "7f84a7367d1f6f30ed4f8f64b2a0bed23e8995cd",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -3342,7 +3342,7 @@ meta = [
       "test_resources" : [
         {
           "type" : "s3",
-          "path" : "s3://openpipelines-bio/openpipeline_incubator/resources_test",
+          "path" : "s3://openpipelines-bio/openpipeline_composed/resources_test",
           "dest" : "resources_test"
         }
       ]
@@ -3453,7 +3453,9 @@ present = {
 
 missing = {}
 for slot, present_keys in present.items():
-    expected = par.get(slot) or []
+    # A multiple-value argument passed an empty list arrives as [""] from Viash;
+    # drop empty strings so an empty selection means "no expected keys".
+    expected = [key for key in (par.get(slot) or []) if key]
     absent = [key for key in expected if key not in present_keys]
     if absent:
         missing[slot] = (absent, sorted(present_keys))

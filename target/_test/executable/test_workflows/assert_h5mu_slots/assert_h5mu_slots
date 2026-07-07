@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component test_workflows assert_h5mu_slots"
-LABEL org.opencontainers.image.created="2026-07-01T12:50:19Z"
+LABEL org.opencontainers.image.created="2026-07-07T12:45:25Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_composed"
-LABEL org.opencontainers.image.revision="0e712e1e71c0cb31d627673aeda8152e9ecad98d"
+LABEL org.opencontainers.image.revision="7f84a7367d1f6f30ed4f8f64b2a0bed23e8995cd"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -1172,7 +1172,9 @@ present = {
 
 missing = {}
 for slot, present_keys in present.items():
-    expected = par.get(slot) or []
+    # A multiple-value argument passed an empty list arrives as [""] from Viash;
+    # drop empty strings so an empty selection means "no expected keys".
+    expected = [key for key in (par.get(slot) or []) if key]
     absent = [key for key in expected if key not in present_keys]
     if absent:
         missing[slot] = (absent, sorted(present_keys))

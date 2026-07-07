@@ -36,7 +36,9 @@ present = {
 
 missing = {}
 for slot, present_keys in present.items():
-    expected = par.get(slot) or []
+    # A multiple-value argument passed an empty list arrives as [""] from Viash;
+    # drop empty strings so an empty selection means "no expected keys".
+    expected = [key for key in (par.get(slot) or []) if key]
     absent = [key for key in expected if key not in present_keys]
     if absent:
         missing[slot] = (absent, sorted(present_keys))
