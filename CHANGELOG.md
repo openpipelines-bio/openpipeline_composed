@@ -8,6 +8,15 @@
 
 * `workflows/single_cell/process_integrate_annotate`: Perform integration and annotation with multiple methods in parallel rather than sequentially using the `workflows/single_cell/parallel_annotation` and `workflows/single_cell/parallel_integration` workflows.
 
+## MINOR CHANGES
+
+* Migration of test resources to the package-specific `s3://openpipelines-bio/openpipeline_composed/resources_test` bucket (PR #24):
+
+  - Add `.info.test_resources` to `_viash.yaml` to specify where test resources need to be synced from.
+  - Test resources were regenerated via the scripts in `resources_test_scripts/`.
+
+* Bump `openpipeline` dependency version to `v4.2.0` (PR #25).
+
 # openpipeline_composed 0.2.1
 
 ## MAJOR CHANGES

@@ -14,7 +14,7 @@ repositories:
   - name: openpipeline
     repo: openpipeline
     type: vsh
-    tag: v4.1.1
+    tag: v4.2.0
   - name: openpipeline_qc
     repo: openpipeline_qc
     type: vsh
@@ -27,7 +27,7 @@ repositories:
 info:
   test_resources:
     - type: s3
-      path: s3://openpipelines-bio/openpipeline_incubator/resources_test
+      path: s3://openpipelines-bio/openpipeline_composed/resources_test
       dest: resources_test
 
 config_mods: |
