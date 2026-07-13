@@ -13,6 +13,8 @@
   - Add `.info.test_resources` to `_viash.yaml` to specify where test resources need to be synced from.
   - Test resources were regenerated via the scripts in `resources_test_scripts/`.
 
+* Bump `openpipeline` dependency version to `v4.2.0` (PR #25).
+
 # openpipeline_composed 0.2.1
 
 ## MINOR CHANGES
