@@ -3851,7 +3851,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       }
     },
     {
@@ -3860,7 +3860,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       }
     },
     {
@@ -3869,7 +3869,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       }
     },
     {
@@ -3878,7 +3878,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       }
     },
     {
@@ -3887,7 +3887,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       }
     }
   ],
@@ -3896,7 +3896,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.1.1"
+      "tag" : "v4.2.0"
     },
     {
       "type" : "vsh",
@@ -3999,7 +3999,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/process_integrate_annotate",
     "viash_version" : "0.9.7",
-    "git_commit" : "7f84a7367d1f6f30ed4f8f64b2a0bed23e8995cd",
+    "git_commit" : "1983223c70100ebdf1fb37570cd5f444d4a7d6e0",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -4019,7 +4019,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       },
       {
         "type" : "vsh",
@@ -4051,15 +4051,15 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { process_samples as process_samples_workflow_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/multiomics/process_samples/main.nf"
+include { process_samples as process_samples_workflow_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/multiomics/process_samples/main.nf"
 process_samples_workflow = process_samples_workflow_viashalias.run(key: "process_samples_workflow")
-include { celltypist as celltypist_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/annotate/celltypist/main.nf"
+include { celltypist as celltypist_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/annotate/celltypist/main.nf"
 celltypist_annotation = celltypist_annotation_viashalias.run(key: "celltypist_annotation")
-include { scanvi_scarches as scanvi_scarches_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/annotation/scanvi_scarches/main.nf"
+include { scanvi_scarches as scanvi_scarches_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/annotation/scanvi_scarches/main.nf"
 scanvi_scarches_annotation = scanvi_scarches_annotation_viashalias.run(key: "scanvi_scarches_annotation")
-include { harmony_leiden as harmony_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/integration/harmony_leiden/main.nf"
+include { harmony_leiden as harmony_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/integration/harmony_leiden/main.nf"
 harmony_integration = harmony_integration_viashalias.run(key: "harmony_integration")
-include { scvi_leiden as scvi_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/integration/scvi_leiden/main.nf"
+include { scvi_leiden as scvi_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/integration/scvi_leiden/main.nf"
 scvi_integration = scvi_integration_viashalias.run(key: "scvi_integration")
 
 // inner workflow

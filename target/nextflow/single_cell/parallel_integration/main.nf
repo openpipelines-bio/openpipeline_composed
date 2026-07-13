@@ -3841,7 +3841,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       }
     },
     {
@@ -3850,7 +3850,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       }
     },
     {
@@ -3859,7 +3859,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       }
     },
     {
@@ -3868,7 +3868,7 @@ meta = [
       "repository" : {
         "type" : "vsh",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       }
     },
     {
@@ -3884,7 +3884,7 @@ meta = [
       "type" : "vsh",
       "name" : "openpipeline",
       "repo" : "openpipeline",
-      "tag" : "v4.1.1"
+      "tag" : "v4.2.0"
     },
     {
       "type" : "vsh",
@@ -3987,7 +3987,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/single_cell/parallel_integration",
     "viash_version" : "0.9.7",
-    "git_commit" : "7f84a7367d1f6f30ed4f8f64b2a0bed23e8995cd",
+    "git_commit" : "1983223c70100ebdf1fb37570cd5f444d4a7d6e0",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -4007,7 +4007,7 @@ meta = [
         "type" : "vsh",
         "name" : "openpipeline",
         "repo" : "openpipeline",
-        "tag" : "v4.1.1"
+        "tag" : "v4.2.0"
       },
       {
         "type" : "vsh",
@@ -4039,13 +4039,13 @@ meta = [
 
 // resolve dependencies dependencies (if any)
 meta["root_dir"] = getRootDir()
-include { harmony_leiden as harmony_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/integration/harmony_leiden/main.nf"
+include { harmony_leiden as harmony_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/integration/harmony_leiden/main.nf"
 harmony_integration = harmony_integration_viashalias.run(key: "harmony_integration")
-include { scvi_leiden as scvi_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/integration/scvi_leiden/main.nf"
+include { scvi_leiden as scvi_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/integration/scvi_leiden/main.nf"
 scvi_integration = scvi_integration_viashalias.run(key: "scvi_integration")
-include { scanorama_leiden as scanorama_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/integration/scanorama_leiden/main.nf"
+include { scanorama_leiden as scanorama_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/integration/scanorama_leiden/main.nf"
 scanorama_integration = scanorama_integration_viashalias.run(key: "scanorama_integration")
-include { bbknn_leiden as bbknn_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.1.1/nextflow/workflows/integration/bbknn_leiden/main.nf"
+include { bbknn_leiden as bbknn_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/integration/bbknn_leiden/main.nf"
 bbknn_integration = bbknn_integration_viashalias.run(key: "bbknn_integration")
 include { move_anndata_slots as move_slots_viashalias } from "${meta.resources_dir}/../../../nextflow/dataflow/move_anndata_slots/main.nf"
 move_slots = move_slots_viashalias.run(key: "move_slots")
