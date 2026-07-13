@@ -1,8 +1,17 @@
 # openpipeline_composed x.x.x
 
+## NEW FUNCTIONALITY
+
 * `workflows/single_cell/parallel_subtyping`: Add a workflow that subtypes each major cell type independently via reference-based label projection, splitting the reference by matching major cell type (`--reference_obs_major_cell_type`) so each type is subtyped against its own reference cells. Query cell types absent from the reference raise an error by default, or are passed through unannotated when `--allow_missing_reference_cell_type` is set. The subtype labels are combined into a single output h5mu (PR #23).
 
 * `workflows/single_cell/parallel_annotation`: Add consensus voting based on per-method weighted probabilities via `--run_consensus` flag (default is true) (PR #22).
+
+## MINOR CHANGES
+
+* Migration of test resources to the package-specific `s3://openpipelines-bio/openpipeline_composed/resources_test` bucket (PR #24):
+
+  - Add `.info.test_resources` to `_viash.yaml` to specify where test resources need to be synced from.
+  - Test resources were regenerated via the scripts in `resources_test_scripts/`.
 
 # openpipeline_composed 0.2.1
 

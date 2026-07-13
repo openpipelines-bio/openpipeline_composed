@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 include { parallel_integration } from params.rootDir + "/target/nextflow/single_cell/parallel_integration/main.nf"
 include { assert_h5mu_slots } from params.rootDir + "/target/_test/nextflow/test_workflows/assert_h5mu_slots/main.nf"
-params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
+params.resources_test = "s3://openpipelines-bio/openpipeline_composed/resources_test/"
 
 // Build the set of slots each selected method is expected to write into the
 // merged output, using the workflow's default slot names. bbknn does not
