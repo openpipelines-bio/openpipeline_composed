@@ -35,3 +35,12 @@ nextflow \
   -entry test_wf_3 \
   -c src/configs/labels_ci.config \
   -c src/configs/integration_tests.config
+
+nextflow \
+  run . \
+  -main-script src/single_cell/process_integrate_annotate/test.nf \
+  -profile docker,no_publish \
+  -resume \
+  -entry test_wf_4 \
+  -c src/configs/labels_ci.config \
+  -c src/configs/integration_tests.config
