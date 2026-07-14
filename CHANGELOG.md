@@ -1,4 +1,4 @@
-# openpipeline_composed x.x.x
+# openpipeline_composed 0.3.0
 
 ## NEW FUNCTIONALITY
 
