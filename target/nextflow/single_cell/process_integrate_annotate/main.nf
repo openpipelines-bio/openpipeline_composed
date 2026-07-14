@@ -3132,7 +3132,25 @@ meta = [
         {
           "type" : "string",
           "name" : "--input_layer",
-          "description" : "The layer in the input data containing the raw counts, if .X is not to be used.",
+          "description" : "The layer in the input data containing the raw RNA counts, if .X is not to be used.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--prot_layer",
+          "description" : "Input layer for the antibody capture (CITE-seq) modality, if .X is not to be used.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--gdo_layer",
+          "description" : "Input layer for the guide-derived oligonucleotide (GDO) modality, if .X is not to be used.",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3158,6 +3176,36 @@ meta = [
           "min" : 1,
           "direction" : "input",
           "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--sanitize_ensembl_ids",
+          "description" : "Whether to sanitize ensembl gene ids by removing version numbers. Read by\nthe celltypist, scanvi_scarches, scvi_knn and singler annotation methods.\n",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--input_obs_categorical_covariates",
+          "description" : ".obs column(s) in the input query with categorical covariates to correct for\nin addition to the batch label. Used by the scvi integration method and by the\nscanvi_scarches annotation method. Treated as nuisance factors, so do not use\nthem for biological signal you want to keep. For scanvi_scarches their order\nmust match --reference_obs_categorical_covariates.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--input_obs_numerical_covariates",
+          "description" : ".obs column(s) in the input query with continuous (numerical) covariates to\ncorrect for in addition to the batch label. Used by the scvi integration method\nand by the scanvi_scarches annotation method. Treated as nuisance factors, so do\nnot use them for biological signal you want to keep. For scanvi_scarches their\norder must match --reference_obs_numerical_covariates.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
           "multiple_sep" : ";"
         }
       ]
@@ -3225,7 +3273,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--reference_obs_label",
-          "description" : "The `.obs` key of the target labels to tranfer.",
+          "description" : "The `.obs` key of the target labels to transfer.",
           "example" : [
             "cell_type"
           ],
@@ -3239,7 +3287,7 @@ meta = [
           "name" : "--reference_obs_label_unlabeled_category",
           "description" : "Value in the --reference_obs_label field that indicates unlabeled observations",
           "default" : [
-            "Unkown"
+            "Unknown"
           ],
           "required" : false,
           "direction" : "input",
@@ -3256,6 +3304,24 @@ meta = [
           "required" : false,
           "direction" : "input",
           "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--reference_obs_categorical_covariates",
+          "description" : ".obs column(s) in the reference with categorical covariates for the\nscanvi_scarches annotation method to correct for in addition to the batch label.\nTreated as nuisance factors; their order must match\n--input_obs_categorical_covariates.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--reference_obs_numerical_covariates",
+          "description" : ".obs column(s) in the reference with continuous (numerical) covariates for the\nscanvi_scarches annotation method to correct for in addition to the batch label.\nTreated as nuisance factors; their order must match\n--input_obs_numerical_covariates.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
           "multiple_sep" : ";"
         }
       ]
@@ -3274,7 +3340,9 @@ meta = [
           "required" : false,
           "choices" : [
             "harmony",
-            "scvi"
+            "scvi",
+            "scanorama",
+            "bbknn"
           ],
           "direction" : "input",
           "multiple" : true,
@@ -3290,7 +3358,10 @@ meta = [
           "required" : false,
           "choices" : [
             "celltypist",
-            "scanvi_scarches"
+            "harmony_knn",
+            "scanvi_scarches",
+            "scvi_knn",
+            "singler"
           ],
           "direction" : "input",
           "multiple" : true,
@@ -3385,19 +3456,193 @@ meta = [
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--rna_min_fraction_ribo",
+          "description" : "Minimum fraction of UMIs that are ribosomal.",
+          "example" : [
+            0.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--rna_max_fraction_ribo",
+          "description" : "Maximum fraction of UMIs that are ribosomal.",
+          "example" : [
+            0.2
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean_true",
+          "name" : "--skip_scrublet_doublet_detection",
+          "description" : "Skip the scrublet doublet detection step.",
+          "direction" : "input"
         }
       ]
     },
     {
-      "name" : "Pre-processing options: Highly variable features detection",
-      "description" : "Pre-processing options for detecting highly variable features",
+      "name" : "Pre-processing options: Protein (CITE-seq) filtering",
+      "description" : "Pre-processing options for filtering the antibody capture modality.",
       "arguments" : [
         {
           "type" : "integer",
-          "name" : "--n_hvg",
-          "description" : "Number of highly-variable features to keep. \nOnly relevant if HVG need to be calculated across query and reference datasets (e.g. for --annotation_methods scvi_knn and harmony_knn). \nFor reference mapping-based methods, the HVG's specified in --reference_var_input will be used.\n",
+          "name" : "--prot_min_counts",
+          "description" : "Minimum number of counts captured per cell.",
+          "example" : [
+            3
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--prot_max_counts",
+          "description" : "Maximum number of counts captured per cell.",
+          "example" : [
+            5000000
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--prot_min_proteins_per_cell",
+          "description" : "Minimum of non-zero values per cell.",
+          "example" : [
+            200
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--prot_max_proteins_per_cell",
+          "description" : "Maximum of non-zero values per cell.",
+          "example" : [
+            100000000
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--prot_min_cells_per_protein",
+          "description" : "Minimum of non-zero values per protein.",
+          "example" : [
+            3
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Pre-processing options: GDO filtering",
+      "description" : "Pre-processing options for filtering the guide-derived oligonucleotide modality.",
+      "arguments" : [
+        {
+          "type" : "integer",
+          "name" : "--gdo_min_counts",
+          "description" : "Minimum number of counts captured per cell.",
+          "example" : [
+            3
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--gdo_max_counts",
+          "description" : "Maximum number of counts captured per cell.",
+          "example" : [
+            5000000
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--gdo_min_guides_per_cell",
+          "description" : "Minimum of non-zero values per cell.",
+          "example" : [
+            200
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--gdo_max_guides_per_cell",
+          "description" : "Maximum of non-zero values per cell.",
+          "example" : [
+            100000000
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--gdo_min_cells_per_guide",
+          "description" : "Minimum of non-zero values per guide.",
+          "example" : [
+            3
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Pre-processing options: Cross-modality filtering",
+      "description" : "Pre-processing options that operate across modalities.",
+      "arguments" : [
+        {
+          "type" : "boolean_true",
+          "name" : "--intersect_obs",
+          "description" : "After per-modality filtering and multisample processing, remove observations\nthat are not present in all processed modalities so that each modality shares\nthe same set of cells.\n",
+          "direction" : "input"
+        }
+      ]
+    },
+    {
+      "name" : "Pre-processing options: Sample ID handling",
+      "description" : "Options for adding the sample id to the observations of the MuData object.",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--add_id_make_observation_keys_unique",
+          "description" : "Join the sample id to the .obs index (.obs_names) to make observation\nkeys unique across samples.\n",
           "default" : [
-            2000
+            true
           ],
           "required" : false,
           "direction" : "input",
@@ -3431,7 +3676,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--obs_name_mitochondrial_fraction",
-          "description" : "When specified, write the fraction of counts originating from mitochondrial genes \n(based on --mitochondrial_gene_regex) to an .obs column with the specified name.\nRequires --var_name_mitochondrial_genes.\n",
+          "description" : "When specified, write the fraction of counts originating from mitochondrial genes\n(based on --mitochondrial_gene_regex) to an .obs column with the specified name.\nRequires --var_name_mitochondrial_genes.\n",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3440,7 +3685,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--obs_name_ribosomal_fraction",
-          "description" : "When specified, write the fraction of counts originating from ribosomal genes \n(based on --ribosomal_gene_regex) to an .obs column with the specified name.\nRequires --var_name_ribosomal_genes.\n",
+          "description" : "When specified, write the fraction of counts originating from ribosomal genes\n(based on --ribosomal_gene_regex) to an .obs column with the specified name.\nRequires --var_name_ribosomal_genes.\n",
           "required" : false,
           "direction" : "input",
           "multiple" : false,
@@ -3479,7 +3724,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--var_qc_metrics",
-          "description" : "Keys to select a boolean (containing only True or False) column from .var.\nFor each cell, calculate the proportion of total values for genes which are labeled 'True', \ncompared to the total sum of the values for all genes. Defaults to the combined values specified for\n--var_name_mitochondrial_genes and --highly_variable_features_var_output.\n",
+          "description" : "Keys to select a boolean (containing only True or False) column from .var.\nFor each cell, calculate the proportion of total values for genes which are labeled 'True',\ncompared to the total sum of the values for all genes. Defaults to the combined values specified for\n--var_name_mitochondrial_genes and --highly_variable_features_var_output.\n",
           "example" : [
             "ercc,highly_variable"
           ],
@@ -3487,6 +3732,144 @@ meta = [
           "direction" : "input",
           "multiple" : true,
           "multiple_sep" : ","
+        },
+        {
+          "type" : "integer",
+          "name" : "--top_n_vars",
+          "description" : "Number of top vars to be used to calculate cumulative proportions.\nIf not specified, proportions are not calculated.\n",
+          "default" : [
+            50,
+            100,
+            200,
+            500
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ","
+        }
+      ]
+    },
+    {
+      "name" : "Pre-processing options: Highly variable features detection",
+      "description" : "Pre-processing options for detecting highly variable features.",
+      "arguments" : [
+        {
+          "type" : "string",
+          "name" : "--highly_variable_features_obs_batch_key",
+          "description" : "If specified, highly-variable genes are selected within each batch separately\nand merged. This avoids the selection of batch-specific genes and acts as a\nlightweight batch correction method.\n",
+          "default" : [
+            "sample_id"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Pre-processing options: CLR (protein normalization)",
+      "description" : "Pre-processing options for the centered log-ratio transformation applied to the protein modality.",
+      "arguments" : [
+        {
+          "type" : "integer",
+          "name" : "--clr_axis",
+          "description" : "Axis to perform the CLR transformation on.",
+          "default" : [
+            0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Pre-processing options: RNA scaling",
+      "description" : "Options for enabling scaling of the log-normalized RNA data to unit variance and\nzero mean. The scaled data is written to a separate layer and an additional\ndimensionality-reduced representation is created and stored alongside the\nnon-scaled data.\n",
+      "arguments" : [
+        {
+          "type" : "boolean_true",
+          "name" : "--rna_enable_scaling",
+          "description" : "Enable scaling for the RNA modality.",
+          "direction" : "input"
+        },
+        {
+          "type" : "string",
+          "name" : "--rna_scaling_output_layer",
+          "description" : "Output layer where the scaled log-normalized data will be stored.",
+          "default" : [
+            "scaled"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--rna_scaling_max_value",
+          "description" : "Clip (truncate) data to this value after scaling. If not specified, do not clip.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean_false",
+          "name" : "--rna_scaling_zero_center",
+          "description" : "If set, omit zero-centering variables, which allows to handle sparse input efficiently.",
+          "direction" : "input"
+        },
+        {
+          "type" : "string",
+          "name" : "--rna_scaling_pca_obsm_output",
+          "description" : "Name of the .obsm key where the PCA representation of the scaled data is stored.",
+          "default" : [
+            "scaled_pca"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--rna_scaling_pca_loadings_varm_output",
+          "description" : "Name of the .varm key where the PCA loadings of the scaled data are stored.",
+          "default" : [
+            "scaled_pca_loadings"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--rna_scaling_pca_variance_uns_output",
+          "description" : "Name of the .uns key where the variance and variance ratio of the scaled data\nare stored as a map (keys: variance and variance_ratio).\n",
+          "default" : [
+            "scaled_pca_variance"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--rna_scaling_umap_obsm_output",
+          "description" : "Name of the .obsm key where the UMAP representation of the scaled data is stored.",
+          "default" : [
+            "scaled_umap"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     },
@@ -3497,7 +3880,7 @@ meta = [
         {
           "type" : "double",
           "name" : "--harmony_theta",
-          "description" : "Diversity clustering penalty parameter. Specify for each variable in group.by.vars. \ntheta=0 does not encourage any diversity. Larger values of theta\nresult in more diverse clusters.\\"\n",
+          "description" : "Diversity clustering penalty parameter. Specify for each variable in group.by.vars.\ntheta=0 does not encourage any diversity. Larger values of theta\nresult in more diverse clusters.\\"\n",
           "example" : [
             0.0,
             1.0,
@@ -3530,8 +3913,113 @@ meta = [
       ]
     },
     {
+      "name" : "Scanorama integration options",
+      "description" : "Specifications for Scanorama integration.",
+      "arguments" : [
+        {
+          "type" : "integer",
+          "name" : "--scanorama_knn",
+          "description" : "Number of nearest neighbors used for matching.",
+          "default" : [
+            20
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--scanorama_batch_size",
+          "description" : "Batch size used in the alignment vector computation.",
+          "default" : [
+            5000
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--scanorama_sigma",
+          "description" : "Correction smoothing parameter on the Gaussian kernel.",
+          "default" : [
+            15.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--scanorama_approx",
+          "description" : "Use approximate nearest neighbors (annoy).",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--scanorama_alpha",
+          "description" : "Alignment score minimum cutoff.",
+          "default" : [
+            0.1
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "BBKNN integration options",
+      "description" : "Specifications for BBKNN integration.",
+      "arguments" : [
+        {
+          "type" : "integer",
+          "name" : "--bbknn_n_neighbors_within_batch",
+          "description" : "Top neighbours to report for each batch.",
+          "default" : [
+            3
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--bbknn_n_pcs",
+          "description" : "Number of dimensions to use from the input embedding.",
+          "default" : [
+            50
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--bbknn_n_trim",
+          "description" : "Trim each cell's neighbours to these many top connectivities. Set to 0\nto skip; leave unset to use the BBKNN default (10 * n_neighbors_within_batch\n* n_batches).\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
       "name" : "scVI, scANVI and scArches training options",
-      "description" : "Training arguments for scVI, scANVI and scArches. Relevant for --annotation_methods 'scvi_knn' and 'scanvi_scarches'.",
+      "description" : "Training arguments for scVI, scANVI and scArches. Relevant for --integration_methods 'scvi' and --annotation_methods 'scvi_knn' and 'scanvi_scarches'.",
       "arguments" : [
         {
           "type" : "boolean",
@@ -3715,7 +4203,7 @@ meta = [
         {
           "type" : "double",
           "name" : "--celltypist_min_prop",
-          "description" : "\\"For the dominant cell type within a subcluster, the minimum proportion of cells required to \nsupport naming of the subcluster by this cell type. Ignored if majority_voting is set to False. \nSubcluster that fails to pass this proportion threshold will be assigned 'Heterogeneous'.\\"\n",
+          "description" : "\\"For the dominant cell type within a subcluster, the minimum proportion of cells required to\nsupport naming of the subcluster by this cell type. Ignored if majority_voting is set to False.\nSubcluster that fails to pass this proportion threshold will be assigned 'Heterogeneous'.\\"\n",
           "default" : [
             0.0
           ],
@@ -3727,8 +4215,157 @@ meta = [
       ]
     },
     {
+      "name" : "harmony_knn annotation options",
+      "description" : "Specifications for Harmony integration followed by KNN label transfer.",
+      "arguments" : [
+        {
+          "type" : "integer",
+          "name" : "--harmony_knn_n_hvg",
+          "description" : "Number of highly-variable genes to keep for harmony_knn.",
+          "default" : [
+            2000
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--harmony_knn_pca_num_components",
+          "description" : "Number of principal components to compute for harmony_knn.",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--harmony_knn_theta",
+          "description" : "Diversity clustering penalty for harmony.",
+          "default" : [
+            2.0
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : true,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "scvi_knn annotation options",
+      "description" : "Specifications for scVI integration followed by KNN label transfer.",
+      "arguments" : [
+        {
+          "type" : "integer",
+          "name" : "--scvi_knn_n_hvg",
+          "description" : "Number of highly-variable genes to keep for scvi_knn.",
+          "default" : [
+            2000
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "SingleR annotation options",
+      "description" : "Specifications for SingleR annotation.",
+      "arguments" : [
+        {
+          "type" : "string",
+          "name" : "--singler_input_obs_clusters",
+          "description" : ".obs column with cluster identities. If provided, SingleR annotates the\naggregated cluster profiles; otherwise it annotates per observation.\n",
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--singler_de_method",
+          "description" : "Method to detect differentially expressed genes between pairs of labels.",
+          "default" : [
+            "classic"
+          ],
+          "required" : false,
+          "choices" : [
+            "classic",
+            "t",
+            "wilcox"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "integer",
+          "name" : "--singler_de_n_genes",
+          "description" : "Number of differentially expressed genes per label pair to use as markers.\nDefaults to a SingleR heuristic based on the number of labels.\n",
+          "required" : false,
+          "min" : 1,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--singler_quantile",
+          "description" : "Quantile of the correlation distribution used to score each label.",
+          "default" : [
+            0.8
+          ],
+          "required" : false,
+          "min" : 0.0,
+          "max" : 1.0,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--singler_fine_tune",
+          "description" : "Whether to fine-tune label assignment after the initial classification.",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "double",
+          "name" : "--singler_fine_tuning_threshold",
+          "description" : "Maximum difference from the maximum correlation to use in fine-tuning.",
+          "default" : [
+            0.05
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--singler_prune",
+          "description" : "Whether to prune low-quality labels (replaced with NA in the pruned\npredictions output).\n",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
       "name" : "Clustering options",
-      "description" : "Arguments for Leiden clustering. Only relevant for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.",
+      "description" : "Arguments for Leiden clustering. Only relevant for --integration_methods and the integration-based annotation methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.",
       "arguments" : [
         {
           "type" : "double",
@@ -3751,7 +4388,7 @@ meta = [
         {
           "type" : "string",
           "name" : "--knn_weights",
-          "description" : "Weight function used in prediction. Possible values are:\n`uniform` (all points in each neighborhood are weighted equally) or \n`distance` (weight points by the inverse of their distance)\n",
+          "description" : "Weight function used in prediction. Possible values are:\n`uniform` (all points in each neighborhood are weighted equally) or\n`distance` (weight points by the inverse of their distance)\n",
           "default" : [
             "uniform"
           ],
@@ -3767,12 +4404,78 @@ meta = [
         {
           "type" : "integer",
           "name" : "--knn_n_neighbors",
-          "description" : "The number of neighbors to use in k-neighbor graph structure used for fast approximate nearest neighbor search with PyNNDescent. \nLarger values will result in more accurate search results at the cost of computation time.\n",
+          "description" : "The number of neighbors to use in k-neighbor graph structure used for fast approximate nearest neighbor search with PyNNDescent.\nLarger values will result in more accurate search results at the cost of computation time.\n",
           "default" : [
             15
           ],
           "required" : false,
           "min" : 5,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        }
+      ]
+    },
+    {
+      "name" : "Consensus vote options",
+      "description" : "A final consensus_vote step combines the per-method predictions into a\nsingle consensus label via a (probability-weighted) majority vote.\n",
+      "arguments" : [
+        {
+          "type" : "boolean",
+          "name" : "--run_consensus",
+          "description" : "Run a final consensus vote combining the per-method predictions. Only\ntakes effect when more than one --annotation_methods is selected; with a\nsingle method there is nothing to combine and the step is skipped.\n",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--consensus_obs_predictions",
+          "description" : ".obs slot in which to store the consensus predicted cell type.",
+          "default" : [
+            "consensus_pred"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--consensus_obs_score",
+          "description" : ".obs slot in which to store the consensus score, defined as the fraction\nof total weight assigned to the winning cell type.\n",
+          "default" : [
+            "consensus_score"
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "boolean",
+          "name" : "--consensus_use_probabilities",
+          "description" : "Scale each method's vote by its per-cell prediction probability. When\nfalse, every method votes with equal weight regardless of confidence.\n",
+          "default" : [
+            true
+          ],
+          "required" : false,
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--consensus_tie_label",
+          "description" : "Label to assign when two or more cell types receive equal votes. If not\nprovided, tied cells are assigned a missing value.\n",
+          "example" : [
+            "Unknown"
+          ],
+          "required" : false,
           "direction" : "input",
           "multiple" : false,
           "multiple_sep" : ";"
@@ -3796,6 +4499,50 @@ meta = [
           "direction" : "output",
           "multiple" : false,
           "multiple_sep" : ";"
+        },
+        {
+          "type" : "string",
+          "name" : "--output_compression",
+          "description" : "Compression format for the output h5mu file.",
+          "example" : [
+            "gzip"
+          ],
+          "required" : false,
+          "choices" : [
+            "gzip",
+            "lzf"
+          ],
+          "direction" : "input",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--output_scvi_model",
+          "description" : "Output folder with the trained scVI model. Only produced when scvi is\namong the selected --integration_methods.\n",
+          "example" : [
+            "scvi_model"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "output",
+          "multiple" : false,
+          "multiple_sep" : ";"
+        },
+        {
+          "type" : "file",
+          "name" : "--output_scanvi_model",
+          "description" : "Output folder with the trained scANVI/scArches model. Only produced when\nscanvi_scarches is among the selected --annotation_methods.\n",
+          "example" : [
+            "scanvi_model"
+          ],
+          "must_exist" : true,
+          "create_parent" : true,
+          "required" : false,
+          "direction" : "output",
+          "multiple" : false,
+          "multiple_sep" : ";"
         }
       ]
     }
@@ -3813,7 +4560,7 @@ meta = [
       "dest" : "nextflow_labels.config"
     }
   ],
-  "description" : "A pipeline to process, integrate and annotate single cell (multi-)omics data.\nAvailable integration methods:\n- Harmony\n- scVI\nAvailable annotation methods:\n- CellTypist\n- scANVI (with scArches)\n",
+  "description" : "A pipeline to process, integrate and annotate single cell (multi-)omics data.\nAvailable integration methods:\n- Harmony\n- scVI\n- Scanorama\n- BBKNN\nAvailable annotation methods:\n- CellTypist\n- Harmony integration followed by KNN label transfer (harmony_knn)\n- scANVI (with scArches)\n- scVI integration followed by KNN label transfer (scvi_knn)\n- SingleR\nWhen more than one annotation method is selected, a final consensus vote\ncombines the per-method predictions into a single consensus label.\n",
   "test_resources" : [
     {
       "type" : "nextflow_script",
@@ -3836,8 +4583,8 @@ meta = [
   ],
   "status" : "enabled",
   "scope" : {
-    "image" : "private",
-    "target" : "private"
+    "image" : "public",
+    "target" : "public"
   },
   "requirements" : {
     "commands" : [
@@ -3855,39 +4602,17 @@ meta = [
       }
     },
     {
-      "name" : "annotate/celltypist",
-      "alias" : "celltypist_annotation",
+      "name" : "single_cell/parallel_integration",
+      "alias" : "parallel_integration",
       "repository" : {
-        "type" : "vsh",
-        "repo" : "openpipeline",
-        "tag" : "v4.2.0"
+        "type" : "local"
       }
     },
     {
-      "name" : "workflows/annotation/scanvi_scarches",
-      "alias" : "scanvi_scarches_annotation",
+      "name" : "single_cell/parallel_annotation",
+      "alias" : "parallel_annotation",
       "repository" : {
-        "type" : "vsh",
-        "repo" : "openpipeline",
-        "tag" : "v4.2.0"
-      }
-    },
-    {
-      "name" : "workflows/integration/harmony_leiden",
-      "alias" : "harmony_integration",
-      "repository" : {
-        "type" : "vsh",
-        "repo" : "openpipeline",
-        "tag" : "v4.2.0"
-      }
-    },
-    {
-      "name" : "workflows/integration/scvi_leiden",
-      "alias" : "scvi_integration",
-      "repository" : {
-        "type" : "vsh",
-        "repo" : "openpipeline",
-        "tag" : "v4.2.0"
+        "type" : "local"
       }
     }
   ],
@@ -3997,9 +4722,9 @@ meta = [
     "config" : "/home/runner/work/openpipeline_composed/openpipeline_composed/src/single_cell/process_integrate_annotate/config.vsh.yaml",
     "runner" : "nextflow",
     "engine" : "native",
-    "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/_private/nextflow/single_cell/process_integrate_annotate",
+    "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/single_cell/process_integrate_annotate",
     "viash_version" : "0.9.7",
-    "git_commit" : "1983223c70100ebdf1fb37570cd5f444d4a7d6e0",
+    "git_commit" : "537ac4580af2a6e40ae3d47604195312c515b6c1",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
@@ -4053,14 +4778,10 @@ meta = [
 meta["root_dir"] = getRootDir()
 include { process_samples as process_samples_workflow_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/multiomics/process_samples/main.nf"
 process_samples_workflow = process_samples_workflow_viashalias.run(key: "process_samples_workflow")
-include { celltypist as celltypist_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/annotate/celltypist/main.nf"
-celltypist_annotation = celltypist_annotation_viashalias.run(key: "celltypist_annotation")
-include { scanvi_scarches as scanvi_scarches_annotation_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/annotation/scanvi_scarches/main.nf"
-scanvi_scarches_annotation = scanvi_scarches_annotation_viashalias.run(key: "scanvi_scarches_annotation")
-include { harmony_leiden as harmony_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/integration/harmony_leiden/main.nf"
-harmony_integration = harmony_integration_viashalias.run(key: "harmony_integration")
-include { scvi_leiden as scvi_integration_viashalias } from "${meta.root_dir}/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/integration/scvi_leiden/main.nf"
-scvi_integration = scvi_integration_viashalias.run(key: "scvi_integration")
+include { parallel_integration as parallel_integration_viashalias } from "${meta.resources_dir}/../../../nextflow/single_cell/parallel_integration/main.nf"
+parallel_integration = parallel_integration_viashalias.run(key: "parallel_integration")
+include { parallel_annotation as parallel_annotation_viashalias } from "${meta.resources_dir}/../../../nextflow/single_cell/parallel_annotation/main.nf"
+parallel_annotation = parallel_annotation_viashalias.run(key: "parallel_annotation")
 
 // inner workflow
 // user-provided Nextflow code
@@ -4071,35 +4792,27 @@ workflow run_wf {
   main:
     output_ch = input_ch
     | map { id, state ->
-      def new_state = state + [ "query_processed": state.output, "_meta": ["join_id": id] ]
+      def new_state = state + [ "_meta": ["join_id": id] ]
       [id, new_state]
     }
-    // Make sure parameters are filled out correctly
+    // Make sure at least one method is requested. Method-specific requirements
+    // (e.g. celltypist needing a model or reference, reference-based methods
+    // needing a labeled reference) are validated inside the parallel sub-workflows.
     | map { id, state ->
-      def new_state = [:]
-      // Check that at least one of annotation_methods or integration_methods is not empty
-      if (!state.annotation_methods  && !state.integration_methods) {
+      if (!state.annotation_methods && !state.integration_methods) {
         throw new RuntimeException("At least one of --annotation_methods or --integration_methods must be provided")
       }
-      // Check CellTypist arguments
-      if (state.annotation_methods && state.annotation_methods.contains("celltypist") && 
-        (!state.celltypist_model && !state.reference)) {
-        throw new RuntimeException("Celltypist was selected as an annotation method. Either --celltypist_model or --reference must be provided.")
-      }
-      if (state.annotation_methods && state.annotation_methods.contains("celltypist") && state.celltypist_model && state.reference )  {
-        System.err.println(
-          "Warning: --celltypist_model is set and a --reference was provided. \
-          The pre-trained Celltypist model will be used for annotation, the reference will be ignored."
-        )
-      }
-
-      [id, state + new_state]
+      [id, state]
     }
     | process_samples_workflow.run(
       fromState: [
-        "input": "input", 
+        "input": "input",
         "id": "id",
+        // Modality input layers
         "rna_layer": "input_layer",
+        "prot_layer": "prot_layer",
+        "gdo_layer": "gdo_layer",
+        // RNA filtering
         "rna_min_counts": "rna_min_counts",
         "rna_max_counts": "rna_max_counts",
         "rna_min_genes_per_cell": "rna_min_genes_per_cell",
@@ -4109,167 +4822,175 @@ workflow run_wf {
         "rna_max_fraction_mito": "rna_max_fraction_mito",
         "rna_min_fraction_ribo": "rna_min_fraction_ribo",
         "rna_max_fraction_ribo": "rna_max_fraction_ribo",
+        "skip_scrublet_doublet_detection": "skip_scrublet_doublet_detection",
+        // Protein (CITE-seq) filtering
+        "prot_min_counts": "prot_min_counts",
+        "prot_max_counts": "prot_max_counts",
+        "prot_min_proteins_per_cell": "prot_min_proteins_per_cell",
+        "prot_max_proteins_per_cell": "prot_max_proteins_per_cell",
+        "prot_min_cells_per_protein": "prot_min_cells_per_protein",
+        // GDO filtering
+        "gdo_min_counts": "gdo_min_counts",
+        "gdo_max_counts": "gdo_max_counts",
+        "gdo_min_guides_per_cell": "gdo_min_guides_per_cell",
+        "gdo_max_guides_per_cell": "gdo_max_guides_per_cell",
+        "gdo_min_cells_per_guide": "gdo_min_cells_per_guide",
+        // Cross-modality filtering
+        "intersect_obs": "intersect_obs",
+        // Sample ID handling
+        "add_id_make_observation_keys_unique": "add_id_make_observation_keys_unique",
+        // Mitochondrial & ribosomal gene detection
+        "obs_name_mitochondrial_fraction": "obs_name_mitochondrial_fraction",
+        "obs_name_ribosomal_fraction": "obs_name_ribosomal_fraction",
         "var_name_mitochondrial_genes": "var_name_mitochondrial_genes",
         "var_name_ribosomal_genes": "var_name_ribosomal_genes",
         "var_gene_names": "input_var_gene_names",
         "mitochondrial_gene_regex": "mitochondrial_gene_regex",
         "ribosomal_gene_regex": "ribosomal_gene_regex",
-        "var_qc_metrics": "var_qc_metrics"
+        // QC metrics
+        "var_qc_metrics": "var_qc_metrics",
+        "top_n_vars": "top_n_vars",
+        // Highly variable features detection
+        "highly_variable_features_obs_batch_key": "highly_variable_features_obs_batch_key",
+        // CLR (protein normalization)
+        "clr_axis": "clr_axis",
+        // RNA scaling
+        "rna_enable_scaling": "rna_enable_scaling",
+        "rna_scaling_output_layer": "rna_scaling_output_layer",
+        "rna_scaling_max_value": "rna_scaling_max_value",
+        "rna_scaling_zero_center": "rna_scaling_zero_center",
+        "rna_scaling_pca_obsm_output": "rna_scaling_pca_obsm_output",
+        "rna_scaling_pca_loadings_varm_output": "rna_scaling_pca_loadings_varm_output",
+        "rna_scaling_pca_variance_uns_output": "rna_scaling_pca_variance_uns_output",
+        "rna_scaling_umap_obsm_output": "rna_scaling_umap_obsm_output"
       ],
       args: [
         "pca_overwrite": "true",
         "add_id_obs_output": "sample_id",
         "highly_variable_features_var_output": "filter_with_hvg_query"
       ],
-      toState: ["query_processed": "output"], 
+      toState: ["query_processed": "output"],
     )
-    // Integration methods
-    | harmony_integration.run(
-      runIf: { id, state -> 
-        state.integration_methods && state.integration_methods.contains("harmony") 
-      },
-      fromState: [ 
-        "id": "id",
-        "input": "query_processed",
-        "modality": "modality",
-        "theta": "harmony_theta",
-        "leiden_resolution": "leiden_resolution",
-        "obs_covariates": "harmony_obs_covariates"
-      ],
-      args: [
-        "layer": "log_normalized",
-        "embedding": "X_pca",
-        "obsm_integrated": "X_harmony_integrated",
-        "uns_neighbors": "harmony_integration_neighbors",
-        "obsp_neighbor_distances": "harmony_integration_neighbor_distances",
-        "obsp_neighbor_connectivities": "harmony_integration_neighbor_connectivities",
-        "obs_cluster": "harmony_integration_leiden",
-        "obsm_umap": "X_harmony_umap"
-      ],
-      toState: [ "query_processed": "output" ]
-    )
-
-    | scvi_integration.run(
-      runIf: { id, state -> 
-        state.integration_methods && state.integration_methods.contains("scvi")
-      },
-      fromState: [ 
-        "id": "id",
-        "input": "query_processed",
-        "layer": "input_layer",
-        "modality": "modality",
-        "leiden_resolution": "leiden_resolution",
-        "early_stopping": "early_stopping",
-        "early_stopping_monitor": "early_stopping_monitor",
-        "early_stopping_patience": "early_stopping_patience",
-        "early_stopping_min_delta": "early_stopping_min_delta",
-        "max_epochs": "max_epochs",
-        "reduce_lr_on_plateau": "reduce_lr_on_plateau",
-        "lr_factor": "lr_factor",
-        "lr_patience": "lr_patience"
-      ],
-      args: [
-        "obsm_output": "X_scvi_integrated",
+    // Integration: run the selected methods in parallel and merge their
+    // embeddings, cluster labels and neighbor graphs into a single h5mu.
+    | parallel_integration.run(
+      runIf: { id, state -> state.integration_methods },
+      fromState: { id, state -> [
+        "id": state.id,
+        "input": state.query_processed,
+        "modality": state.modality,
+        // Layers, embedding, batch and HVG slots are produced by process_samples
+        // with these fixed names.
+        "layer_log_normalized_counts": "log_normalized",
+        "layer_raw_counts": state.input_layer,
+        "obsm_embedding": "X_pca",
         "obs_batch": "sample_id",
         "var_input": "filter_with_hvg_query",
-        "uns_neighbors": "scvi_integration_neighbors",
-        "obsp_neighbor_distances": "scvi_integration_neighbor_distances",
-        "obsp_neighbor_connectivities": "scvi_integration_neighbor_connectivities",
-        "obs_cluster": "scvi_integration_leiden",
-        "obsm_umap": "X_scvi_umap"
-      ],
-      toState: [ "query_processed": "output", "scvi_model": "output_model" ]
+        "integration_methods": state.integration_methods,
+        "obs_covariates": state.harmony_obs_covariates,
+        "harmony_theta": state.harmony_theta,
+        "obs_categorical_covariates": state.input_obs_categorical_covariates,
+        "obs_numerical_covariates": state.input_obs_numerical_covariates,
+        "scanorama_knn": state.scanorama_knn,
+        "scanorama_batch_size": state.scanorama_batch_size,
+        "scanorama_sigma": state.scanorama_sigma,
+        "scanorama_approx": state.scanorama_approx,
+        "scanorama_alpha": state.scanorama_alpha,
+        "bbknn_n_neighbors_within_batch": state.bbknn_n_neighbors_within_batch,
+        "bbknn_n_pcs": state.bbknn_n_pcs,
+        "bbknn_n_trim": state.bbknn_n_trim,
+        "leiden_resolution": state.leiden_resolution,
+        "scvi_early_stopping": state.early_stopping,
+        "scvi_early_stopping_monitor": state.early_stopping_monitor,
+        "scvi_early_stopping_patience": state.early_stopping_patience,
+        "scvi_early_stopping_min_delta": state.early_stopping_min_delta,
+        "scvi_max_epochs": state.max_epochs,
+        "scvi_reduce_lr_on_plateau": state.reduce_lr_on_plateau,
+        "scvi_lr_factor": state.lr_factor,
+        "scvi_lr_patience": state.lr_patience,
+        "output_compression": state.output_compression
+      ]},
+      toState: [ "query_processed": "output", "output_scvi_model": "output_scvi_model" ]
     )
-
-    // Annotation methods
-    | celltypist_annotation.run(
-      runIf: { id, state -> state.annotation_methods && state.annotation_methods.contains("celltypist") && state.celltypist_model },
-      fromState: [ 
-        "input": "query_processed",
-        "modality": "modality",
-        "input_var_gene_names": "input_var_gene_names",
-        "input_reference_gene_overlap": "input_reference_gene_overlap",
-        "model": "celltypist_model",
-        "majority_voting": "celltypist_majority_voting"
-      ],
-      args: [
-        // log normalized counts are expected for celltypist
-        "input_layer": "log_normalized",
-        "output_obs_predictions": "celltypist_pred",
-        "output_obs_probability": "celltypist_proba"
-      ],
-      toState: [ "query_processed": "output" ]
-    )
-
-    | celltypist_annotation.run(
-      runIf: { id, state -> state.annotation_methods && state.annotation_methods.contains("celltypist") && !state.celltypist_model },
-      fromState: [
-        "input": "query_processed",
-        "modality": "modality",
-        "input_var_gene_names": "input_var_gene_names",
-        "input_reference_gene_overlap": "input_reference_gene_overlap",
-        "reference": "reference",
-        "reference_layer": "reference_layer_lognormalized_counts",
-        "reference_obs_target": "reference_obs_label",
-        "reference_var_gene_names": "reference_var_gene_names",
-        "reference_obs_batch": "reference_obs_batch",
-        "reference_var_input": "reference_var_input",
-        "feature_selection": "celltypist_feature_selection",
-        "C": "celltypist_C",
-        "max_iter": "celltypist_max_iter",
-        "use_SGD": "celltypist_use_SGD",
-        "min_prop": "celltypist_min_prop",
-        "majority_voting": "celltypist_majority_voting"
-      ],
-      args: [
-        // log normalized counts are expected for celltypist
-        "input_layer": "log_normalized",
-        "output_obs_predictions": "celltypist_pred",
-        "output_obs_probability": "celltypist_proba"
-      ],
-      toState: [ "query_processed": "output" ]
-    )
-
-    | scanvi_scarches_annotation.run(
-      runIf: { id, state -> state.annotation_methods && state.annotation_methods.contains("scanvi_scarches")},
-      fromState: [
-        "id": "id",
-        "input": "query_processed",
-        "modality": "modality",
-        "layer": "input_layer",
-        "input_var_gene_names": "input_var_gene_names",
-        "reference": "reference",
-        "reference_obs_target": "reference_obs_label",
-        "reference_obs_batch_label": "reference_obs_batch",
-        "reference_var_hvg": "reference_var_input",
-        "reference_var_gene_names": "reference_var_gene_names",
-        "unlabeled_category": "reference_obs_label_unlabeled_category",
-        "early_stopping": "early_stopping",
-        "early_stopping_monitor": "early_stopping_monitor",
-        "early_stopping_patience": "early_stopping_patience",
-        "early_stopping_min_delta": "early_stopping_min_delta",
-        "max_epochs": "max_epochs",
-        "reduce_lr_on_plateau": "reduce_lr_on_plateau",
-        "lr_factor": "lr_factor",
-        "lr_patience": "lr_patience",
-        "leiden_resolution": "leiden_resolution",
-        "knn_weights": "knn_weights",
-        "knn_n_neighbors": "knn_n_neighbors"
-      ],
-      args: [
+    // Annotation: run the selected methods in parallel and merge their
+    // predictions, probabilities and embeddings into a single h5mu.
+    | parallel_annotation.run(
+      runIf: { id, state -> state.annotation_methods },
+      fromState: { id, state -> [
+        "id": state.id,
+        "input": state.query_processed,
+        "modality": state.modality,
+        "input_layer": state.input_layer,
+        "input_layer_lognormalized": "log_normalized",
         "input_obs_batch_label": "sample_id",
-        "output_obs_predictions": "scanvi_knn_pred",
-        "output_obs_probability": "scanvi_knn_proba"
-      ],
-      toState: [ "query_processed": "output" ]
+        "input_var_gene_names": state.input_var_gene_names,
+        "input_reference_gene_overlap": state.input_reference_gene_overlap,
+        "sanitize_ensembl_ids": state.sanitize_ensembl_ids,
+        "input_obs_categorical_covariates": state.input_obs_categorical_covariates,
+        "input_obs_numerical_covariates": state.input_obs_numerical_covariates,
+        "annotation_methods": state.annotation_methods,
+        "reference": state.reference,
+        "reference_layer": state.reference_layer_raw_counts,
+        "reference_layer_lognormalized": state.reference_layer_lognormalized_counts,
+        "reference_obs_target": state.reference_obs_label,
+        "reference_obs_batch_label": state.reference_obs_batch,
+        "reference_var_gene_names": state.reference_var_gene_names,
+        "reference_var_input": state.reference_var_input,
+        "reference_obs_categorical_covariates": state.reference_obs_categorical_covariates,
+        "reference_obs_numerical_covariates": state.reference_obs_numerical_covariates,
+        "reference_obs_label_unlabeled_category": state.reference_obs_label_unlabeled_category,
+        "leiden_resolution": state.leiden_resolution,
+        "knn_weights": state.knn_weights,
+        "knn_n_neighbors": state.knn_n_neighbors,
+        "scvi_early_stopping": state.early_stopping,
+        "scvi_early_stopping_monitor": state.early_stopping_monitor,
+        "scvi_early_stopping_patience": state.early_stopping_patience,
+        "scvi_early_stopping_min_delta": state.early_stopping_min_delta,
+        "scvi_max_epochs": state.max_epochs,
+        "scvi_reduce_lr_on_plateau": state.reduce_lr_on_plateau,
+        "scvi_lr_factor": state.lr_factor,
+        "scvi_lr_patience": state.lr_patience,
+        "celltypist_model": state.celltypist_model,
+        "celltypist_majority_voting": state.celltypist_majority_voting,
+        "celltypist_feature_selection": state.celltypist_feature_selection,
+        "celltypist_C": state.celltypist_C,
+        "celltypist_max_iter": state.celltypist_max_iter,
+        "celltypist_use_SGD": state.celltypist_use_SGD,
+        "celltypist_min_prop": state.celltypist_min_prop,
+        "harmony_knn_n_hvg": state.harmony_knn_n_hvg,
+        "harmony_knn_pca_num_components": state.harmony_knn_pca_num_components,
+        "harmony_knn_theta": state.harmony_knn_theta,
+        "scvi_knn_n_hvg": state.scvi_knn_n_hvg,
+        "singler_input_obs_clusters": state.singler_input_obs_clusters,
+        "singler_de_method": state.singler_de_method,
+        "singler_de_n_genes": state.singler_de_n_genes,
+        "singler_quantile": state.singler_quantile,
+        "singler_fine_tune": state.singler_fine_tune,
+        "singler_fine_tuning_threshold": state.singler_fine_tuning_threshold,
+        "singler_prune": state.singler_prune,
+        "run_consensus": state.run_consensus,
+        "consensus_obs_predictions": state.consensus_obs_predictions,
+        "consensus_obs_score": state.consensus_obs_score,
+        "consensus_use_probabilities": state.consensus_use_probabilities,
+        "consensus_tie_label": state.consensus_tie_label,
+        "output_compression": state.output_compression
+      ]},
+      toState: [ "query_processed": "output", "output_scanvi_model": "output_scanvi_model" ]
     )
 
-    | map {id, state ->
-      def new_state = state + ["output": state.query_processed]
-      [id, new_state]
+    | map { id, state ->
+      def out = ["output": state.query_processed]
+      // The trained models are only present when their producing method ran.
+      if (state.output_scvi_model) {
+        out["output_scvi_model"] = state.output_scvi_model
+      }
+      if (state.output_scanvi_model) {
+        out["output_scanvi_model"] = state.output_scanvi_model
+      }
+      [id, state + out]
     }
 
-    | setState(["output", "_meta"])
+    | setState(["output", "output_scvi_model", "output_scanvi_model", "_meta"])
 
   emit:
     output_ch

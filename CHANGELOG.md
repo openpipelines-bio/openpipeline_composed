@@ -4,6 +4,10 @@
 
 * `workflows/single_cell/parallel_annotation`: Add consensus voting based on per-method weighted probabilities via `--run_consensus` flag (default is true) (PR #22).
 
+* `workflows/single_cell/process_integrate_annotate`: Expose the consensus voting step from `parallel_annotation` via `--run_consensus` (default is true) (PR #21).
+
+* `workflows/single_cell/process_integrate_annotate`: Perform integration and annotation with multiple methods in parallel rather than sequentially using the `workflows/single_cell/parallel_annotation` and `workflows/single_cell/parallel_integration` workflows (PR #21).
+
 ## MINOR CHANGES
 
 * Migration of test resources to the package-specific `s3://openpipelines-bio/openpipeline_composed/resources_test` bucket (PR #24):
@@ -14,6 +18,10 @@
 * Bump `openpipeline` dependency version to `v4.2.0` (PR #25).
 
 # openpipeline_composed 0.2.1
+
+## MAJOR CHANGES
+
+* `workflows/single_cell/process_integrate_annotate`: Replace the inlined integration and annotation steps with the `single_cell/parallel_integration` and `single_cell/parallel_annotation` sub-workflows, so the selected methods run in parallel. This exposes the full set of methods: integration now also supports `scanorama` and `bbknn`, and annotation now also supports `harmony_knn`, `scvi_knn` and `singler`. The trained scVI and scANVI/scArches models are now emitted as optional outputs (`--output_scvi_model`, `--output_scanvi_model`).
 
 ## MINOR CHANGES
 

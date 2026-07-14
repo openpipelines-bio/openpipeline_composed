@@ -1,0 +1,1475 @@
+name: "process_integrate_annotate"
+namespace: "single_cell"
+version: "build_main"
+authors:
+- name: "Dorien Roosen"
+  roles:
+  - "author"
+  - "maintainer"
+  info:
+    role: "Core Team Member"
+    links:
+      email: "dorien@data-intuitive.com"
+      github: "dorien-er"
+      linkedin: "dorien-roosen"
+    organizations:
+    - name: "Data Intuitive"
+      href: "https://www.data-intuitive.com"
+      role: "Data Scientist"
+- name: "Weiwei Schultz"
+  roles:
+  - "contributor"
+  info:
+    role: "Contributor"
+    organizations:
+    - name: "Janssen R&D US"
+      role: "Associate Director Data Sciences"
+argument_groups:
+- name: "Input (query) data arguments"
+  description: "The input query dataset(s) to be annotated"
+  arguments:
+  - type: "string"
+    name: "--id"
+    description: "ID of the sample."
+    info: null
+    example:
+    - "foo"
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--input"
+    description: "Input query dataset(s) to be annotated"
+    info: null
+    example:
+    - "input.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--modality"
+    description: "Modality to be processed. Should match the modality in the --reference\
+      \ dataset, if provided."
+    info: null
+    default:
+    - "rna"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_layer"
+    description: "The layer in the input data containing the raw RNA counts, if .X\
+      \ is not to be used."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--prot_layer"
+    description: "Input layer for the antibody capture (CITE-seq) modality, if .X\
+      \ is not to be used."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--gdo_layer"
+    description: "Input layer for the guide-derived oligonucleotide (GDO) modality,\
+      \ if .X is not to be used."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_var_gene_names"
+    description: "The name of the adata var column containing gene names; when no\
+      \ gene_name_layer is provided, the var index will be used.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--input_reference_gene_overlap"
+    description: "The minimum number of genes present in both the reference and query\
+      \ datasets.\n"
+    info: null
+    default:
+    - 100
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--sanitize_ensembl_ids"
+    description: "Whether to sanitize ensembl gene ids by removing version numbers.\
+      \ Read by\nthe celltypist, scanvi_scarches, scvi_knn and singler annotation\
+      \ methods.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obs_categorical_covariates"
+    description: ".obs column(s) in the input query with categorical covariates to\
+      \ correct for\nin addition to the batch label. Used by the scvi integration\
+      \ method and by the\nscanvi_scarches annotation method. Treated as nuisance\
+      \ factors, so do not use\nthem for biological signal you want to keep. For scanvi_scarches\
+      \ their order\nmust match --reference_obs_categorical_covariates.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--input_obs_numerical_covariates"
+    description: ".obs column(s) in the input query with continuous (numerical) covariates\
+      \ to\ncorrect for in addition to the batch label. Used by the scvi integration\
+      \ method\nand by the scanvi_scarches annotation method. Treated as nuisance\
+      \ factors, so do\nnot use them for biological signal you want to keep. For scanvi_scarches\
+      \ their\norder must match --reference_obs_numerical_covariates.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Reference data arguments"
+  description: "Dataset to be used as a reference for label transfer and to train\
+    \ annotation algorithms on."
+  arguments:
+  - type: "file"
+    name: "--reference"
+    description: "The reference dataset in .h5mu format to be used as a reference\
+      \ mapper and to train annotation algorithms on.\n"
+    info: null
+    example:
+    - "reference.h5mu"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_layer_raw_counts"
+    description: "The layer in the reference dataset containing the raw counts, if\
+      \ .X is not to be used."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_layer_lognormalized_counts"
+    description: "The layer in the reference dataset containing the log-normalized\
+      \ counts, if .X is not to be used."
+    info: null
+    default:
+    - "log_normalized"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_var_gene_names"
+    description: "The name of the adata .var column containing gene names if the .var\
+      \ index is not to be used.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_batch"
+    description: "The .obs column of the reference dataset containing the batch information.\n"
+    info: null
+    default:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_label"
+    description: "The `.obs` key of the target labels to transfer."
+    info: null
+    example:
+    - "cell_type"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_label_unlabeled_category"
+    description: "Value in the --reference_obs_label field that indicates unlabeled\
+      \ observations"
+    info: null
+    default:
+    - "Unknown"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_var_input"
+    description: ".var column containing highly variable genes. By default, do not\
+      \ subset genes.\n"
+    info: null
+    default:
+    - "filter_with_hvg"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_categorical_covariates"
+    description: ".obs column(s) in the reference with categorical covariates for\
+      \ the\nscanvi_scarches annotation method to correct for in addition to the batch\
+      \ label.\nTreated as nuisance factors; their order must match\n--input_obs_categorical_covariates.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--reference_obs_numerical_covariates"
+    description: ".obs column(s) in the reference with continuous (numerical) covariates\
+      \ for the\nscanvi_scarches annotation method to correct for in addition to the\
+      \ batch label.\nTreated as nuisance factors; their order must match\n--input_obs_numerical_covariates.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Methods"
+  description: "The available annotation and integration methods to integrate and/or\
+    \ annotate the query dataset(s) with."
+  arguments:
+  - type: "string"
+    name: "--integration_methods"
+    description: "Integration methods to be executed."
+    info: null
+    example:
+    - "harmony;scvi"
+    required: false
+    choices:
+    - "harmony"
+    - "scvi"
+    - "scanorama"
+    - "bbknn"
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--annotation_methods"
+    description: "Annotation methods to be executed."
+    info: null
+    example:
+    - "celltypist;scanvi_scarches"
+    required: false
+    choices:
+    - "celltypist"
+    - "harmony_knn"
+    - "scanvi_scarches"
+    - "scvi_knn"
+    - "singler"
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Pre-processing options: RNA filtering"
+  description: "Pre-processing options for filtering RNA data"
+  arguments:
+  - type: "integer"
+    name: "--rna_min_counts"
+    description: "Minimum number of counts captured per cell."
+    info: null
+    example:
+    - 200
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_max_counts"
+    description: "Maximum number of counts captured per cell."
+    info: null
+    example:
+    - 5000000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_min_genes_per_cell"
+    description: "Minimum of non-zero values per cell."
+    info: null
+    example:
+    - 200
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_max_genes_per_cell"
+    description: "Maximum of non-zero values per cell."
+    info: null
+    example:
+    - 1500000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--rna_min_cells_per_gene"
+    description: "Minimum of non-zero values per gene."
+    info: null
+    example:
+    - 3
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rna_min_fraction_mito"
+    description: "Minimum fraction of UMIs that are mitochondrial."
+    info: null
+    example:
+    - 0.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rna_max_fraction_mito"
+    description: "Maximum fraction of UMIs that are mitochondrial."
+    info: null
+    example:
+    - 0.2
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rna_min_fraction_ribo"
+    description: "Minimum fraction of UMIs that are ribosomal."
+    info: null
+    example:
+    - 0.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rna_max_fraction_ribo"
+    description: "Maximum fraction of UMIs that are ribosomal."
+    info: null
+    example:
+    - 0.2
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--skip_scrublet_doublet_detection"
+    description: "Skip the scrublet doublet detection step."
+    info: null
+    direction: "input"
+- name: "Pre-processing options: Protein (CITE-seq) filtering"
+  description: "Pre-processing options for filtering the antibody capture modality."
+  arguments:
+  - type: "integer"
+    name: "--prot_min_counts"
+    description: "Minimum number of counts captured per cell."
+    info: null
+    example:
+    - 3
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--prot_max_counts"
+    description: "Maximum number of counts captured per cell."
+    info: null
+    example:
+    - 5000000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--prot_min_proteins_per_cell"
+    description: "Minimum of non-zero values per cell."
+    info: null
+    example:
+    - 200
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--prot_max_proteins_per_cell"
+    description: "Maximum of non-zero values per cell."
+    info: null
+    example:
+    - 100000000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--prot_min_cells_per_protein"
+    description: "Minimum of non-zero values per protein."
+    info: null
+    example:
+    - 3
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Pre-processing options: GDO filtering"
+  description: "Pre-processing options for filtering the guide-derived oligonucleotide\
+    \ modality."
+  arguments:
+  - type: "integer"
+    name: "--gdo_min_counts"
+    description: "Minimum number of counts captured per cell."
+    info: null
+    example:
+    - 3
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--gdo_max_counts"
+    description: "Maximum number of counts captured per cell."
+    info: null
+    example:
+    - 5000000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--gdo_min_guides_per_cell"
+    description: "Minimum of non-zero values per cell."
+    info: null
+    example:
+    - 200
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--gdo_max_guides_per_cell"
+    description: "Maximum of non-zero values per cell."
+    info: null
+    example:
+    - 100000000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--gdo_min_cells_per_guide"
+    description: "Minimum of non-zero values per guide."
+    info: null
+    example:
+    - 3
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Pre-processing options: Cross-modality filtering"
+  description: "Pre-processing options that operate across modalities."
+  arguments:
+  - type: "boolean_true"
+    name: "--intersect_obs"
+    description: "After per-modality filtering and multisample processing, remove\
+      \ observations\nthat are not present in all processed modalities so that each\
+      \ modality shares\nthe same set of cells.\n"
+    info: null
+    direction: "input"
+- name: "Pre-processing options: Sample ID handling"
+  description: "Options for adding the sample id to the observations of the MuData\
+    \ object."
+  arguments:
+  - type: "boolean"
+    name: "--add_id_make_observation_keys_unique"
+    description: "Join the sample id to the .obs index (.obs_names) to make observation\n\
+      keys unique across samples.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Pre-processing options: Mitochondrial & Ribosomal Gene Detection"
+  description: "Pre-processing options for detecting mitochondrial genes"
+  arguments:
+  - type: "string"
+    name: "--var_name_mitochondrial_genes"
+    description: "In which .var slot to store a boolean array corresponding the mitochondrial\
+      \ genes.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--var_name_ribosomal_genes"
+    description: "In which .var slot to store a boolean array corresponding the ribosomal\
+      \ genes.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_name_mitochondrial_fraction"
+    description: "When specified, write the fraction of counts originating from mitochondrial\
+      \ genes\n(based on --mitochondrial_gene_regex) to an .obs column with the specified\
+      \ name.\nRequires --var_name_mitochondrial_genes.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obs_name_ribosomal_fraction"
+    description: "When specified, write the fraction of counts originating from ribosomal\
+      \ genes\n(based on --ribosomal_gene_regex) to an .obs column with the specified\
+      \ name.\nRequires --var_name_ribosomal_genes.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--mitochondrial_gene_regex"
+    description: "Regex string that identifies mitochondrial genes from --var_gene_names.\n\
+      By default will detect human and mouse mitochondrial genes from a gene symbol.\n"
+    info: null
+    default:
+    - "^[mM][tT]-"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--ribosomal_gene_regex"
+    description: "Regex string that identifies ribosomal genes from --var_gene_names.\n\
+      By default will detect human and mouse ribosomal genes from a gene symbol.\n"
+    info: null
+    default:
+    - "^[Mm]?[Rr][Pp][LlSs]"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Pre-processing options: QC metrics calculation options"
+  description: "Pre-processing options for calculating QC metrics"
+  arguments:
+  - type: "string"
+    name: "--var_qc_metrics"
+    description: "Keys to select a boolean (containing only True or False) column\
+      \ from .var.\nFor each cell, calculate the proportion of total values for genes\
+      \ which are labeled 'True',\ncompared to the total sum of the values for all\
+      \ genes. Defaults to the combined values specified for\n--var_name_mitochondrial_genes\
+      \ and --highly_variable_features_var_output.\n"
+    info: null
+    example:
+    - "ercc,highly_variable"
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ","
+  - type: "integer"
+    name: "--top_n_vars"
+    description: "Number of top vars to be used to calculate cumulative proportions.\n\
+      If not specified, proportions are not calculated.\n"
+    info: null
+    default:
+    - 50
+    - 100
+    - 200
+    - 500
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ","
+- name: "Pre-processing options: Highly variable features detection"
+  description: "Pre-processing options for detecting highly variable features."
+  arguments:
+  - type: "string"
+    name: "--highly_variable_features_obs_batch_key"
+    description: "If specified, highly-variable genes are selected within each batch\
+      \ separately\nand merged. This avoids the selection of batch-specific genes\
+      \ and acts as a\nlightweight batch correction method.\n"
+    info: null
+    default:
+    - "sample_id"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Pre-processing options: CLR (protein normalization)"
+  description: "Pre-processing options for the centered log-ratio transformation applied\
+    \ to the protein modality."
+  arguments:
+  - type: "integer"
+    name: "--clr_axis"
+    description: "Axis to perform the CLR transformation on."
+    info: null
+    default:
+    - 0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Pre-processing options: RNA scaling"
+  description: "Options for enabling scaling of the log-normalized RNA data to unit\
+    \ variance and\nzero mean. The scaled data is written to a separate layer and\
+    \ an additional\ndimensionality-reduced representation is created and stored alongside\
+    \ the\nnon-scaled data.\n"
+  arguments:
+  - type: "boolean_true"
+    name: "--rna_enable_scaling"
+    description: "Enable scaling for the RNA modality."
+    info: null
+    direction: "input"
+  - type: "string"
+    name: "--rna_scaling_output_layer"
+    description: "Output layer where the scaled log-normalized data will be stored."
+    info: null
+    default:
+    - "scaled"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--rna_scaling_max_value"
+    description: "Clip (truncate) data to this value after scaling. If not specified,\
+      \ do not clip."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_false"
+    name: "--rna_scaling_zero_center"
+    description: "If set, omit zero-centering variables, which allows to handle sparse\
+      \ input efficiently."
+    info: null
+    direction: "input"
+  - type: "string"
+    name: "--rna_scaling_pca_obsm_output"
+    description: "Name of the .obsm key where the PCA representation of the scaled\
+      \ data is stored."
+    info: null
+    default:
+    - "scaled_pca"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--rna_scaling_pca_loadings_varm_output"
+    description: "Name of the .varm key where the PCA loadings of the scaled data\
+      \ are stored."
+    info: null
+    default:
+    - "scaled_pca_loadings"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--rna_scaling_pca_variance_uns_output"
+    description: "Name of the .uns key where the variance and variance ratio of the\
+      \ scaled data\nare stored as a map (keys: variance and variance_ratio).\n"
+    info: null
+    default:
+    - "scaled_pca_variance"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--rna_scaling_umap_obsm_output"
+    description: "Name of the .obsm key where the UMAP representation of the scaled\
+      \ data is stored."
+    info: null
+    default:
+    - "scaled_umap"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Harmony integration options"
+  description: "Specifications for harmony integration."
+  arguments:
+  - type: "double"
+    name: "--harmony_theta"
+    description: "Diversity clustering penalty parameter. Specify for each variable\
+      \ in group.by.vars.\ntheta=0 does not encourage any diversity. Larger values\
+      \ of theta\nresult in more diverse clusters.\"\n"
+    info: null
+    example:
+    - 0.0
+    - 1.0
+    - 2.0
+    default:
+    - 2.0
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--harmony_obs_covariates"
+    description: "The .obs field(s) that define the covariate(s) to regress out."
+    info: null
+    example:
+    - "batch"
+    - "sample"
+    default:
+    - "sample_id"
+    required: true
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Scanorama integration options"
+  description: "Specifications for Scanorama integration."
+  arguments:
+  - type: "integer"
+    name: "--scanorama_knn"
+    description: "Number of nearest neighbors used for matching."
+    info: null
+    default:
+    - 20
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--scanorama_batch_size"
+    description: "Batch size used in the alignment vector computation."
+    info: null
+    default:
+    - 5000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--scanorama_sigma"
+    description: "Correction smoothing parameter on the Gaussian kernel."
+    info: null
+    default:
+    - 15.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--scanorama_approx"
+    description: "Use approximate nearest neighbors (annoy)."
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--scanorama_alpha"
+    description: "Alignment score minimum cutoff."
+    info: null
+    default:
+    - 0.1
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "BBKNN integration options"
+  description: "Specifications for BBKNN integration."
+  arguments:
+  - type: "integer"
+    name: "--bbknn_n_neighbors_within_batch"
+    description: "Top neighbours to report for each batch."
+    info: null
+    default:
+    - 3
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--bbknn_n_pcs"
+    description: "Number of dimensions to use from the input embedding."
+    info: null
+    default:
+    - 50
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--bbknn_n_trim"
+    description: "Trim each cell's neighbours to these many top connectivities. Set\
+      \ to 0\nto skip; leave unset to use the BBKNN default (10 * n_neighbors_within_batch\n\
+      * n_batches).\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "scVI, scANVI and scArches training options"
+  description: "Training arguments for scVI, scANVI and scArches. Relevant for --integration_methods\
+    \ 'scvi' and --annotation_methods 'scvi_knn' and 'scanvi_scarches'."
+  arguments:
+  - type: "boolean"
+    name: "--early_stopping"
+    description: "Whether to perform early stopping with respect to the validation\
+      \ set."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--early_stopping_monitor"
+    description: "Metric logged during validation set epoch."
+    info: null
+    default:
+    - "elbo_validation"
+    required: false
+    choices:
+    - "elbo_validation"
+    - "reconstruction_loss_validation"
+    - "kl_local_validation"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--early_stopping_patience"
+    description: "Number of validation epochs with no improvement after which training\
+      \ will be stopped."
+    info: null
+    default:
+    - 45
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--early_stopping_min_delta"
+    description: "Minimum change in the monitored quantity to qualify as an improvement,\
+      \ i.e. an absolute change of less than min_delta, will count as no improvement."
+    info: null
+    default:
+    - 0.0
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--max_epochs"
+    description: "Number of passes through the dataset, defaults to (20000 / number\
+      \ of cells) * 400 or 400; whichever is smallest."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--reduce_lr_on_plateau"
+    description: "Whether to monitor validation loss and reduce learning rate when\
+      \ validation set `lr_scheduler_metric` plateaus."
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--lr_factor"
+    description: "Factor to reduce learning rate."
+    info: null
+    default:
+    - 0.6
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--lr_patience"
+    description: "Number of epochs with no improvement after which learning rate will\
+      \ be reduced."
+    info: null
+    default:
+    - 30.0
+    required: false
+    min: 0.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "CellTypist reference model"
+  description: "The CellTypist reference model to use for annotation. If not provided,\
+    \ the reference dataset will be used for model training."
+  arguments:
+  - type: "file"
+    name: "--celltypist_model"
+    description: "Pretrained model in pkl format. If not provided, the model will\
+      \ be trained on the reference data and --reference should be provided."
+    info: null
+    example:
+    - "pretrained_model.pkl"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "CellTypist annotation options"
+  description: "Specifications for CellTypist annotation."
+  arguments:
+  - type: "boolean"
+    name: "--celltypist_feature_selection"
+    description: "Whether to perform feature selection."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--celltypist_majority_voting"
+    description: "Whether to refine the predicted labels by running the majority voting\
+      \ classifier after over-clustering."
+    info: null
+    default:
+    - false
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--celltypist_C"
+    description: "Inverse of regularization strength in logistic regression."
+    info: null
+    default:
+    - 1.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--celltypist_max_iter"
+    description: "Maximum number of iterations before reaching the minimum of the\
+      \ cost function."
+    info: null
+    default:
+    - 1000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean_true"
+    name: "--celltypist_use_SGD"
+    description: "Whether to use the stochastic gradient descent algorithm."
+    info: null
+    direction: "input"
+  - type: "double"
+    name: "--celltypist_min_prop"
+    description: "\"For the dominant cell type within a subcluster, the minimum proportion\
+      \ of cells required to\nsupport naming of the subcluster by this cell type.\
+      \ Ignored if majority_voting is set to False.\nSubcluster that fails to pass\
+      \ this proportion threshold will be assigned 'Heterogeneous'.\"\n"
+    info: null
+    default:
+    - 0.0
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "harmony_knn annotation options"
+  description: "Specifications for Harmony integration followed by KNN label transfer."
+  arguments:
+  - type: "integer"
+    name: "--harmony_knn_n_hvg"
+    description: "Number of highly-variable genes to keep for harmony_knn."
+    info: null
+    default:
+    - 2000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--harmony_knn_pca_num_components"
+    description: "Number of principal components to compute for harmony_knn."
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--harmony_knn_theta"
+    description: "Diversity clustering penalty for harmony."
+    info: null
+    default:
+    - 2.0
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "scvi_knn annotation options"
+  description: "Specifications for scVI integration followed by KNN label transfer."
+  arguments:
+  - type: "integer"
+    name: "--scvi_knn_n_hvg"
+    description: "Number of highly-variable genes to keep for scvi_knn."
+    info: null
+    default:
+    - 2000
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "SingleR annotation options"
+  description: "Specifications for SingleR annotation."
+  arguments:
+  - type: "string"
+    name: "--singler_input_obs_clusters"
+    description: ".obs column with cluster identities. If provided, SingleR annotates\
+      \ the\naggregated cluster profiles; otherwise it annotates per observation.\n"
+    info: null
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--singler_de_method"
+    description: "Method to detect differentially expressed genes between pairs of\
+      \ labels."
+    info: null
+    default:
+    - "classic"
+    required: false
+    choices:
+    - "classic"
+    - "t"
+    - "wilcox"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--singler_de_n_genes"
+    description: "Number of differentially expressed genes per label pair to use as\
+      \ markers.\nDefaults to a SingleR heuristic based on the number of labels.\n"
+    info: null
+    required: false
+    min: 1
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--singler_quantile"
+    description: "Quantile of the correlation distribution used to score each label."
+    info: null
+    default:
+    - 0.8
+    required: false
+    min: 0.0
+    max: 1.0
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--singler_fine_tune"
+    description: "Whether to fine-tune label assignment after the initial classification."
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "double"
+    name: "--singler_fine_tuning_threshold"
+    description: "Maximum difference from the maximum correlation to use in fine-tuning."
+    info: null
+    default:
+    - 0.05
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--singler_prune"
+    description: "Whether to prune low-quality labels (replaced with NA in the pruned\n\
+      predictions output).\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Clustering options"
+  description: "Arguments for Leiden clustering. Only relevant for --integration_methods\
+    \ and the integration-based annotation methods `scvi_knn`, `scanvi_scarches` and\
+    \ `harmony_knn`."
+  arguments:
+  - type: "double"
+    name: "--leiden_resolution"
+    description: "Control the coarseness of the clustering. Higher values lead to\
+      \ more clusters."
+    info: null
+    default:
+    - 1.0
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+- name: "Neighbor classifier arguments"
+  description: "Arguments related to calculating the n nearest neighbors. Only relevant\
+    \ for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`."
+  arguments:
+  - type: "string"
+    name: "--knn_weights"
+    description: "Weight function used in prediction. Possible values are:\n`uniform`\
+      \ (all points in each neighborhood are weighted equally) or\n`distance` (weight\
+      \ points by the inverse of their distance)\n"
+    info: null
+    default:
+    - "uniform"
+    required: false
+    choices:
+    - "uniform"
+    - "distance"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "integer"
+    name: "--knn_n_neighbors"
+    description: "The number of neighbors to use in k-neighbor graph structure used\
+      \ for fast approximate nearest neighbor search with PyNNDescent.\nLarger values\
+      \ will result in more accurate search results at the cost of computation time.\n"
+    info: null
+    default:
+    - 15
+    required: false
+    min: 5
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Consensus vote options"
+  description: "A final consensus_vote step combines the per-method predictions into\
+    \ a\nsingle consensus label via a (probability-weighted) majority vote.\n"
+  arguments:
+  - type: "boolean"
+    name: "--run_consensus"
+    description: "Run a final consensus vote combining the per-method predictions.\
+      \ Only\ntakes effect when more than one --annotation_methods is selected; with\
+      \ a\nsingle method there is nothing to combine and the step is skipped.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--consensus_obs_predictions"
+    description: ".obs slot in which to store the consensus predicted cell type."
+    info: null
+    default:
+    - "consensus_pred"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--consensus_obs_score"
+    description: ".obs slot in which to store the consensus score, defined as the\
+      \ fraction\nof total weight assigned to the winning cell type.\n"
+    info: null
+    default:
+    - "consensus_score"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "boolean"
+    name: "--consensus_use_probabilities"
+    description: "Scale each method's vote by its per-cell prediction probability.\
+      \ When\nfalse, every method votes with equal weight regardless of confidence.\n"
+    info: null
+    default:
+    - true
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--consensus_tie_label"
+    description: "Label to assign when two or more cell types receive equal votes.\
+      \ If not\nprovided, tied cells are assigned a missing value.\n"
+    info: null
+    example:
+    - "Unknown"
+    required: false
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+- name: "Outputs"
+  description: "The output file to write the annotated dataset to."
+  arguments:
+  - type: "file"
+    name: "--output"
+    description: "The output file.\n"
+    info: null
+    example:
+    - "output.h5mu"
+    must_exist: true
+    create_parent: true
+    required: true
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "string"
+    name: "--output_compression"
+    description: "Compression format for the output h5mu file."
+    info: null
+    example:
+    - "gzip"
+    required: false
+    choices:
+    - "gzip"
+    - "lzf"
+    direction: "input"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_scvi_model"
+    description: "Output folder with the trained scVI model. Only produced when scvi\
+      \ is\namong the selected --integration_methods.\n"
+    info: null
+    example:
+    - "scvi_model"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+  - type: "file"
+    name: "--output_scanvi_model"
+    description: "Output folder with the trained scANVI/scArches model. Only produced\
+      \ when\nscanvi_scarches is among the selected --annotation_methods.\n"
+    info: null
+    example:
+    - "scanvi_model"
+    must_exist: true
+    create_parent: true
+    required: false
+    direction: "output"
+    multiple: false
+    multiple_sep: ";"
+resources:
+- type: "nextflow_script"
+  path: "main.nf"
+  is_executable: true
+  entrypoint: "run_wf"
+- type: "file"
+  path: "nextflow_labels.config"
+  dest: "nextflow_labels.config"
+description: "A pipeline to process, integrate and annotate single cell (multi-)omics\
+  \ data.\nAvailable integration methods:\n- Harmony\n- scVI\n- Scanorama\n- BBKNN\n\
+  Available annotation methods:\n- CellTypist\n- Harmony integration followed by KNN\
+  \ label transfer (harmony_knn)\n- scANVI (with scArches)\n- scVI integration followed\
+  \ by KNN label transfer (scvi_knn)\n- SingleR\nWhen more than one annotation method\
+  \ is selected, a final consensus vote\ncombines the per-method predictions into\
+  \ a single consensus label.\n"
+test_resources:
+- type: "nextflow_script"
+  path: "test.nf"
+  is_executable: true
+  entrypoint: "test_wf"
+- type: "file"
+  path: "pbmc_1k_protein_v3_mms.h5mu"
+- type: "file"
+  path: "TS_Blood_filtered.h5mu"
+- type: "file"
+  path: "celltypist_model_Immune_All_Low.pkl"
+info: null
+status: "enabled"
+scope:
+  image: "public"
+  target: "public"
+requirements:
+  commands:
+  - "ps"
+dependencies:
+- name: "workflows/multiomics/process_samples"
+  alias: "process_samples_workflow"
+  repository:
+    type: "vsh"
+    repo: "openpipeline"
+    tag: "v4.2.0"
+- name: "single_cell/parallel_integration"
+  alias: "parallel_integration"
+  repository:
+    type: "local"
+- name: "single_cell/parallel_annotation"
+  alias: "parallel_annotation"
+  repository:
+    type: "local"
+repositories:
+- type: "vsh"
+  name: "openpipeline"
+  repo: "openpipeline"
+  tag: "v4.2.0"
+- type: "vsh"
+  name: "openpipeline_qc"
+  repo: "openpipeline_qc"
+  tag: "v0.3.0"
+- type: "vsh"
+  name: "biobox"
+  repo: "biobox"
+  tag: "v0.4.2"
+links:
+  repository: "https://github.com/openpipelines-bio/openpipeline_composed"
+  docker_registry: "ghcr.io"
+runners:
+- type: "nextflow"
+  id: "nextflow"
+  directives:
+    tag: "$id"
+  auto:
+    simplifyInput: true
+    simplifyOutput: false
+    transcript: false
+    publish: false
+  config:
+    labels:
+      mem1gb: "memory = 1000000000.B"
+      mem2gb: "memory = 2000000000.B"
+      mem5gb: "memory = 5000000000.B"
+      mem10gb: "memory = 10000000000.B"
+      mem20gb: "memory = 20000000000.B"
+      mem50gb: "memory = 50000000000.B"
+      mem100gb: "memory = 100000000000.B"
+      mem200gb: "memory = 200000000000.B"
+      mem500gb: "memory = 500000000000.B"
+      mem1tb: "memory = 1000000000000.B"
+      mem2tb: "memory = 2000000000000.B"
+      mem5tb: "memory = 5000000000000.B"
+      mem10tb: "memory = 10000000000000.B"
+      mem20tb: "memory = 20000000000000.B"
+      mem50tb: "memory = 50000000000000.B"
+      mem100tb: "memory = 100000000000000.B"
+      mem200tb: "memory = 200000000000000.B"
+      mem500tb: "memory = 500000000000000.B"
+      mem1gib: "memory = 1073741824.B"
+      mem2gib: "memory = 2147483648.B"
+      mem4gib: "memory = 4294967296.B"
+      mem8gib: "memory = 8589934592.B"
+      mem16gib: "memory = 17179869184.B"
+      mem32gib: "memory = 34359738368.B"
+      mem64gib: "memory = 68719476736.B"
+      mem128gib: "memory = 137438953472.B"
+      mem256gib: "memory = 274877906944.B"
+      mem512gib: "memory = 549755813888.B"
+      mem1tib: "memory = 1099511627776.B"
+      mem2tib: "memory = 2199023255552.B"
+      mem4tib: "memory = 4398046511104.B"
+      mem8tib: "memory = 8796093022208.B"
+      mem16tib: "memory = 17592186044416.B"
+      mem32tib: "memory = 35184372088832.B"
+      mem64tib: "memory = 70368744177664.B"
+      mem128tib: "memory = 140737488355328.B"
+      mem256tib: "memory = 281474976710656.B"
+      mem512tib: "memory = 562949953421312.B"
+      cpu1: "cpus = 1"
+      cpu2: "cpus = 2"
+      cpu5: "cpus = 5"
+      cpu10: "cpus = 10"
+      cpu20: "cpus = 20"
+      cpu50: "cpus = 50"
+      cpu100: "cpus = 100"
+      cpu200: "cpus = 200"
+      cpu500: "cpus = 500"
+      cpu1000: "cpus = 1000"
+    script:
+    - "includeConfig(\"nextflow_labels.config\")"
+  debug: false
+  container: "docker"
+build_info:
+  config: "src/single_cell/process_integrate_annotate/config.vsh.yaml"
+  runner: "nextflow"
+  engine: "native"
+  output: "target/nextflow/single_cell/process_integrate_annotate"
+  executable: "target/nextflow/single_cell/process_integrate_annotate/main.nf"
+  viash_version: "0.9.7"
+  git_commit: "537ac4580af2a6e40ae3d47604195312c515b6c1"
+  git_remote: "https://github.com/openpipelines-bio/openpipeline_composed"
+  dependencies:
+  - "target/dependencies/vsh/vsh/openpipeline/v4.2.0/nextflow/workflows/multiomics/process_samples"
+  - "target/nextflow/single_cell/parallel_integration"
+  - "target/nextflow/single_cell/parallel_annotation"
+package_config:
+  name: "openpipeline_composed"
+  version: "build_main"
+  info:
+    test_resources:
+    - type: "s3"
+      path: "s3://openpipelines-bio/openpipeline_composed/resources_test"
+      dest: "resources_test"
+  repositories:
+  - type: "vsh"
+    name: "openpipeline"
+    repo: "openpipeline"
+    tag: "v4.2.0"
+  - type: "vsh"
+    name: "openpipeline_qc"
+    repo: "openpipeline_qc"
+    tag: "v0.3.0"
+  - type: "vsh"
+    name: "biobox"
+    repo: "biobox"
+    tag: "v0.4.2"
+  viash_version: "0.9.7"
+  source: "src"
+  target: "target"
+  config_mods:
+  - ".requirements.commands := ['ps']\n.runners[.type == 'nextflow'].directives.tag\
+    \ := '$id'\n.resources += {path: '/src/configs/labels.config', dest: 'nextflow_labels.config'}\n\
+    .runners[.type == 'nextflow'].config.script := 'includeConfig(\"nextflow_labels.config\"\
+    )'\n"
+  organization: "openpipelines-bio"
+  links:
+    repository: "https://github.com/openpipelines-bio/openpipeline_composed"
+    docker_registry: "ghcr.io"

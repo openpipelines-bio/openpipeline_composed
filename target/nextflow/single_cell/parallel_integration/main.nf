@@ -3987,7 +3987,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/single_cell/parallel_integration",
     "viash_version" : "0.9.7",
-    "git_commit" : "1983223c70100ebdf1fb37570cd5f444d4a7d6e0",
+    "git_commit" : "537ac4580af2a6e40ae3d47604195312c515b6c1",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
