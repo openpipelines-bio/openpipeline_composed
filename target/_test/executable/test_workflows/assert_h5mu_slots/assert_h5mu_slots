@@ -458,9 +458,9 @@ RUN pip install --upgrade pip && \
 
 LABEL org.opencontainers.image.authors="Jakub Majercik"
 LABEL org.opencontainers.image.description="Companion container for running component test_workflows assert_h5mu_slots"
-LABEL org.opencontainers.image.created="2026-07-14T08:47:22Z"
+LABEL org.opencontainers.image.created="2026-07-14T11:28:56Z"
 LABEL org.opencontainers.image.source="https://github.com/openpipelines-bio/openpipeline_composed"
-LABEL org.opencontainers.image.revision="537ac4580af2a6e40ae3d47604195312c515b6c1"
+LABEL org.opencontainers.image.revision="8e5fd9f0197a11ca3759e7d84beb05edfdc443b3"
 LABEL org.opencontainers.image.version="build_main"
 
 VIASHDOCKER
@@ -581,8 +581,10 @@ function ViashHelp {
   echo "assert_h5mu_slots build_main"
   echo ""
   echo "Test helper. Reads a modality from an output h5mu and asserts that the expected"
-  echo ".obs columns, .obsm keys, .obsp keys and .uns keys are all present. Raises an"
-  echo "error listing any missing slots."
+  echo ".obs columns, .obsm keys, .obsp keys and .uns keys are all present, and that any"
+  echo "slots listed as absent are not present. Raises an error listing any missing"
+  echo "slots"
+  echo "(expected but absent) or unexpected slots (listed as absent but present)."
   echo ""
   echo "Inputs:"
   echo "    --input"
@@ -611,6 +613,23 @@ function ViashHelp {
   echo "    --uns"
   echo "        type: string, multiple values allowed"
   echo "        Expected .uns keys."
+  echo ""
+  echo "Unexpected slots:"
+  echo "    --obs_absent"
+  echo "        type: string, multiple values allowed"
+  echo "        .obs column names that must not be present."
+  echo ""
+  echo "    --obsm_absent"
+  echo "        type: string, multiple values allowed"
+  echo "        .obsm keys that must not be present."
+  echo ""
+  echo "    --obsp_absent"
+  echo "        type: string, multiple values allowed"
+  echo "        .obsp keys that must not be present."
+  echo ""
+  echo "    --uns_absent"
+  echo "        type: string, multiple values allowed"
+  echo "        .uns keys that must not be present."
   echo ""
   echo "Viash built in Computational Requirements:"
   echo "    ---cpus=INT"
@@ -749,6 +768,74 @@ while [[ $# -gt 0 ]]; do
               VIASH_PAR_UNS=$(ViashRemoveFlags "$1")
             else
               VIASH_PAR_UNS="$VIASH_PAR_UNS;"$(ViashRemoveFlags "$1")
+            fi
+            shift 1
+            ;;
+        --obs_absent)
+            if [ -z "$VIASH_PAR_OBS_ABSENT" ]; then
+              VIASH_PAR_OBS_ABSENT="$2"
+            else
+              VIASH_PAR_OBS_ABSENT="$VIASH_PAR_OBS_ABSENT;""$2"
+            fi
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --obs_absent. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --obs_absent=*)
+            if [ -z "$VIASH_PAR_OBS_ABSENT" ]; then
+              VIASH_PAR_OBS_ABSENT=$(ViashRemoveFlags "$1")
+            else
+              VIASH_PAR_OBS_ABSENT="$VIASH_PAR_OBS_ABSENT;"$(ViashRemoveFlags "$1")
+            fi
+            shift 1
+            ;;
+        --obsm_absent)
+            if [ -z "$VIASH_PAR_OBSM_ABSENT" ]; then
+              VIASH_PAR_OBSM_ABSENT="$2"
+            else
+              VIASH_PAR_OBSM_ABSENT="$VIASH_PAR_OBSM_ABSENT;""$2"
+            fi
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --obsm_absent. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --obsm_absent=*)
+            if [ -z "$VIASH_PAR_OBSM_ABSENT" ]; then
+              VIASH_PAR_OBSM_ABSENT=$(ViashRemoveFlags "$1")
+            else
+              VIASH_PAR_OBSM_ABSENT="$VIASH_PAR_OBSM_ABSENT;"$(ViashRemoveFlags "$1")
+            fi
+            shift 1
+            ;;
+        --obsp_absent)
+            if [ -z "$VIASH_PAR_OBSP_ABSENT" ]; then
+              VIASH_PAR_OBSP_ABSENT="$2"
+            else
+              VIASH_PAR_OBSP_ABSENT="$VIASH_PAR_OBSP_ABSENT;""$2"
+            fi
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --obsp_absent. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --obsp_absent=*)
+            if [ -z "$VIASH_PAR_OBSP_ABSENT" ]; then
+              VIASH_PAR_OBSP_ABSENT=$(ViashRemoveFlags "$1")
+            else
+              VIASH_PAR_OBSP_ABSENT="$VIASH_PAR_OBSP_ABSENT;"$(ViashRemoveFlags "$1")
+            fi
+            shift 1
+            ;;
+        --uns_absent)
+            if [ -z "$VIASH_PAR_UNS_ABSENT" ]; then
+              VIASH_PAR_UNS_ABSENT="$2"
+            else
+              VIASH_PAR_UNS_ABSENT="$VIASH_PAR_UNS_ABSENT;""$2"
+            fi
+            [ $# -lt 2 ] && ViashError Not enough arguments passed to --uns_absent. Use "--help" to get more information on the parameters. && exit 1
+            shift 2
+            ;;
+        --uns_absent=*)
+            if [ -z "$VIASH_PAR_UNS_ABSENT" ]; then
+              VIASH_PAR_UNS_ABSENT=$(ViashRemoveFlags "$1")
+            else
+              VIASH_PAR_UNS_ABSENT="$VIASH_PAR_UNS_ABSENT;"$(ViashRemoveFlags "$1")
             fi
             shift 1
             ;;
@@ -1121,7 +1208,11 @@ par = {
   'obs': $( if [ ! -z ${VIASH_PAR_OBS+x} ]; then echo "r'${VIASH_PAR_OBS//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
   'obsm': $( if [ ! -z ${VIASH_PAR_OBSM+x} ]; then echo "r'${VIASH_PAR_OBSM//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
   'obsp': $( if [ ! -z ${VIASH_PAR_OBSP+x} ]; then echo "r'${VIASH_PAR_OBSP//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
-  'uns': $( if [ ! -z ${VIASH_PAR_UNS+x} ]; then echo "r'${VIASH_PAR_UNS//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi )
+  'uns': $( if [ ! -z ${VIASH_PAR_UNS+x} ]; then echo "r'${VIASH_PAR_UNS//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
+  'obs_absent': $( if [ ! -z ${VIASH_PAR_OBS_ABSENT+x} ]; then echo "r'${VIASH_PAR_OBS_ABSENT//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
+  'obsm_absent': $( if [ ! -z ${VIASH_PAR_OBSM_ABSENT+x} ]; then echo "r'${VIASH_PAR_OBSM_ABSENT//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
+  'obsp_absent': $( if [ ! -z ${VIASH_PAR_OBSP_ABSENT+x} ]; then echo "r'${VIASH_PAR_OBSP_ABSENT//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi ),
+  'uns_absent': $( if [ ! -z ${VIASH_PAR_UNS_ABSENT+x} ]; then echo "r'${VIASH_PAR_UNS_ABSENT//\'/\'\"\'\"r\'}'.split(';')"; else echo None; fi )
 }
 meta = {
   'name': $( if [ ! -z ${VIASH_META_NAME+x} ]; then echo "r'${VIASH_META_NAME//\'/\'\"\'\"r\'}'"; else echo None; fi ),
@@ -1179,14 +1270,25 @@ for slot, present_keys in present.items():
     if absent:
         missing[slot] = (absent, sorted(present_keys))
 
-if missing:
-    lines = [f"Output h5mu is missing expected slots in modality '{par['modality']}':"]
+# Slots listed as absent must not be present in the modality.
+unexpected = {}
+for slot, present_keys in present.items():
+    forbidden = [key for key in (par.get(f"{slot}_absent") or []) if key]
+    found = [key for key in forbidden if key in present_keys]
+    if found:
+        unexpected[slot] = found
+
+if missing or unexpected:
+    lines = [f"Output h5mu has unexpected slot state in modality '{par['modality']}':"]
     for slot, (absent, present_keys) in missing.items():
         lines.append(f"  .{slot}: missing {absent}; present {present_keys}")
+    for slot, found in unexpected.items():
+        lines.append(f"  .{slot}: should be absent but present {found}")
     raise AssertionError("\\n".join(lines))
 
 logger.info(
-    "All expected slots are present in modality '%s'.", par["modality"]
+    "All expected slots are present and all absent slots are missing in modality '%s'.",
+    par["modality"],
 )
 VIASHMAIN
 python -B "\$tempscript" &

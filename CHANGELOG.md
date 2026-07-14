@@ -8,6 +8,8 @@
 
 * `workflows/single_cell/process_integrate_annotate`: Perform integration and annotation with multiple methods in parallel rather than sequentially using the `workflows/single_cell/parallel_annotation` and `workflows/single_cell/parallel_integration` workflows (PR #21).
 
+* `workflows/single_cell/parallel_subtyping`: Add a workflow that subtypes each major cell type independently via reference-based label projection, splitting the reference by matching major cell type (`--reference_obs_major_cell_type`) so each type is subtyped against its own reference cells. Query cell types absent from the reference raise an error by default, or are passed through unannotated when `--allow_missing_reference_cell_type` is set. The subtype labels are combined into a single output h5mu (PR #23).
+
 ## MINOR CHANGES
 
 * Migration of test resources to the package-specific `s3://openpipelines-bio/openpipeline_composed/resources_test` bucket (PR #24):

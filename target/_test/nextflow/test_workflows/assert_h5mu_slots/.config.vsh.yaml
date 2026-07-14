@@ -74,6 +74,40 @@ argument_groups:
     direction: "input"
     multiple: true
     multiple_sep: ";"
+- name: "Unexpected slots"
+  arguments:
+  - type: "string"
+    name: "--obs_absent"
+    description: ".obs column names that must not be present."
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obsm_absent"
+    description: ".obsm keys that must not be present."
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--obsp_absent"
+    description: ".obsp keys that must not be present."
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
+  - type: "string"
+    name: "--uns_absent"
+    description: ".uns keys that must not be present."
+    info: null
+    required: false
+    direction: "input"
+    multiple: true
+    multiple_sep: ";"
 resources:
 - type: "python_script"
   path: "script.py"
@@ -84,8 +118,10 @@ resources:
   path: "nextflow_labels.config"
   dest: "nextflow_labels.config"
 description: "Test helper. Reads a modality from an output h5mu and asserts that the\
-  \ expected\n.obs columns, .obsm keys, .obsp keys and .uns keys are all present.\
-  \ Raises an\nerror listing any missing slots.\n"
+  \ expected\n.obs columns, .obsm keys, .obsp keys and .uns keys are all present,\
+  \ and that any\nslots listed as absent are not present. Raises an error listing\
+  \ any missing slots\n(expected but absent) or unexpected slots (listed as absent\
+  \ but present).\n"
 info: null
 status: "enabled"
 scope:
@@ -223,7 +259,7 @@ build_info:
   output: "target/_test/nextflow/test_workflows/assert_h5mu_slots"
   executable: "target/_test/nextflow/test_workflows/assert_h5mu_slots/main.nf"
   viash_version: "0.9.7"
-  git_commit: "537ac4580af2a6e40ae3d47604195312c515b6c1"
+  git_commit: "8e5fd9f0197a11ca3759e7d84beb05edfdc443b3"
   git_remote: "https://github.com/openpipelines-bio/openpipeline_composed"
 package_config:
   name: "openpipeline_composed"
