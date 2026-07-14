@@ -2,7 +2,7 @@ nextflow.enable.dsl=2
 
 include { process_integrate_annotate } from params.rootDir + "/target/nextflow/single_cell/process_integrate_annotate/main.nf"
 include { assert_h5mu_slots } from params.rootDir + "/target/_test/nextflow/test_workflows/assert_h5mu_slots/main.nf"
-params.resources_test = "s3://openpipelines-bio/openpipeline_incubator/resources_test/"
+params.resources_test = "s3://openpipelines-bio/openpipeline_composed/resources_test/"
 
 // Expected integration slots written into the merged output, using the workflow's default slot names. 
 def integrationSlots(methods) {

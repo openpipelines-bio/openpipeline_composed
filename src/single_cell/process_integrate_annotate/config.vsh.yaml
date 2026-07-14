@@ -75,17 +75,21 @@ argument_groups:
         multiple: true
         required: false
         description: |
-          .obs column(s) in the input query with categorical covariates for
-          scanvi_scarches to correct for in addition to the batch label. Treated as
-          nuisance factors; their order must match --reference_obs_categorical_covariates.
+          .obs column(s) in the input query with categorical covariates to correct for
+          in addition to the batch label. Used by the scvi integration method and by the
+          scanvi_scarches annotation method. Treated as nuisance factors, so do not use
+          them for biological signal you want to keep. For scanvi_scarches their order
+          must match --reference_obs_categorical_covariates.
       - name: "--input_obs_numerical_covariates"
         type: string
         multiple: true
         required: false
         description: |
-          .obs column(s) in the input query with continuous (numerical) covariates for
-          scanvi_scarches to correct for in addition to the batch label. Treated as
-          nuisance factors; their order must match --reference_obs_numerical_covariates.
+          .obs column(s) in the input query with continuous (numerical) covariates to
+          correct for in addition to the batch label. Used by the scvi integration method
+          and by the scanvi_scarches annotation method. Treated as nuisance factors, so do
+          not use them for biological signal you want to keep. For scanvi_scarches their
+          order must match --reference_obs_numerical_covariates.
 
   - name: Reference data arguments
     description: Dataset to be used as a reference for label transfer and to train annotation algorithms on.
@@ -135,17 +139,19 @@ argument_groups:
         multiple: true
         required: false
         description: |
-          .obs column(s) in the reference with categorical covariates for
-          scanvi_scarches to correct for in addition to the batch label. Treated as
-          nuisance factors; their order must match --input_obs_categorical_covariates.
+          .obs column(s) in the reference with categorical covariates for the
+          scanvi_scarches annotation method to correct for in addition to the batch label.
+          Treated as nuisance factors; their order must match
+          --input_obs_categorical_covariates.
       - name: "--reference_obs_numerical_covariates"
         type: string
         multiple: true
         required: false
         description: |
-          .obs column(s) in the reference with continuous (numerical) covariates for
-          scanvi_scarches to correct for in addition to the batch label. Treated as
-          nuisance factors; their order must match --input_obs_numerical_covariates.
+          .obs column(s) in the reference with continuous (numerical) covariates for the
+          scanvi_scarches annotation method to correct for in addition to the batch label.
+          Treated as nuisance factors; their order must match
+          --input_obs_numerical_covariates.
 
 
   - name: Methods
@@ -428,26 +434,6 @@ argument_groups:
         required: true
         multiple: true
         default: "sample_id"
-
-  - name: scVI integration options
-    description: Specifications for scVI integration.
-    arguments:
-      - name: "--obs_categorical_covariates"
-        type: string
-        multiple: true
-        required: false
-        description: |
-          .obs column(s) with categorical covariates for scVI to correct for in
-          addition to the batch label. Treated as nuisance factors, so do not use them
-          for biological signal you want to keep.
-      - name: "--obs_numerical_covariates"
-        type: string
-        multiple: true
-        required: false
-        description: |
-          .obs column(s) with continuous (numerical) covariates for scVI to correct
-          for in addition to the batch label. Treated as nuisance factors, so do not use
-          them for biological signal you want to keep.
 
   - name: Scanorama integration options
     description: Specifications for Scanorama integration.
