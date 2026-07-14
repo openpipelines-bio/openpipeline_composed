@@ -9,6 +9,10 @@ par = {
     "obsm": [],
     "obsp": [],
     "uns": [],
+    "obs_absent": [],
+    "obsm_absent": [],
+    "obsp_absent": [],
+    "uns_absent": [],
 }
 meta = {"resources_dir": "src/utils/"}
 ## VIASH END
@@ -43,12 +47,23 @@ for slot, present_keys in present.items():
     if absent:
         missing[slot] = (absent, sorted(present_keys))
 
-if missing:
-    lines = [f"Output h5mu is missing expected slots in modality '{par['modality']}':"]
+# Slots listed as absent must not be present in the modality.
+unexpected = {}
+for slot, present_keys in present.items():
+    forbidden = [key for key in (par.get(f"{slot}_absent") or []) if key]
+    found = [key for key in forbidden if key in present_keys]
+    if found:
+        unexpected[slot] = found
+
+if missing or unexpected:
+    lines = [f"Output h5mu has unexpected slot state in modality '{par['modality']}':"]
     for slot, (absent, present_keys) in missing.items():
         lines.append(f"  .{slot}: missing {absent}; present {present_keys}")
+    for slot, found in unexpected.items():
+        lines.append(f"  .{slot}: should be absent but present {found}")
     raise AssertionError("\n".join(lines))
 
 logger.info(
-    "All expected slots are present in modality '%s'.", par["modality"]
+    "All expected slots are present and all absent slots are missing in modality '%s'.",
+    par["modality"],
 )

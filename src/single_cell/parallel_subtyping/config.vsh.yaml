@@ -1,0 +1,527 @@
+name: parallel_subtyping
+namespace: single_cell
+scope: public
+description: |
+  Cell subtyping of h5mu file annotated with major types.
+
+  The input is expected to already carry a major cell-type annotation in
+  .obs (--obs_major_cell_type) on the modality to be subtyped (--modality).
+  Each major cell type is then subtyped independently, so that the annotation
+  is tailored to the cells within that group rather than the dataset as a
+  whole. The reference is likewise split by its matching major cell-type
+  annotation (--reference_obs_major_cell_type) so that each major cell type is
+  subtyped only against the reference cells of that same type. The resulting
+  subtype labels are combined back into a single output h5mu, preserving all
+  original modalities and cells.
+
+  The annotation methods and per-method options are those of the
+  parallel_annotation workflow and are applied identically to every major
+  cell type.
+
+  Available annotation methods:
+  - CellTypist
+  - ScanVI with scArches
+  - SingleR
+  - SCVI integration followed by KNN label transfer
+  - Harmony integration followed by KNN label transfer
+
+authors:
+  - __merge__: /src/authors/dorien_roosen.yaml
+    roles: [author, maintainer]
+
+argument_groups:
+  - name: Inputs
+    arguments:
+      - name: "--id"
+        type: string
+        description: ID of the sample.
+        required: true
+        example: foo
+      - name: "--input"
+        type: file
+        description: |
+          Input query h5mu file with a major cell-type annotation. Must be
+          preprocessed in the same way as the reference.
+        required: true
+        example: input.h5mu
+      - name: "--modality"
+        type: string
+        description: |
+          Which modality to subtype. Must match the modality in --reference.
+          Other modalities present in the input are passed through unaltered
+          and merged back into the output.
+        default: "rna"
+        required: false
+      - name: "--obs_major_cell_type"
+        type: string
+        description: |
+          The .obs column of --modality holding the major cell-type labels to
+          split on. The target modality is split by this column and each major
+          cell type is subtyped independently.
+        required: true
+        example: cell_type
+      - name: "--input_layer"
+        type: string
+        description: |
+          The layer of the input query containing raw counts. Required by
+          celltypist (which log-normalizes internally), scanvi_scarches and
+          scvi_knn (which model raw counts directly). If not provided, .X
+          will be used.
+        required: false
+      - name: "--input_layer_lognormalized"
+        type: string
+        description: |
+          The layer of the input query containing log-normalized counts.
+          Required by harmony_knn and scvi_knn.
+        default: log_normalized
+        required: false
+      - name: "--input_obs_batch_label"
+        type: string
+        description: |
+          .obs column in the input query containing batch labels. Required by
+          harmony_knn, scanvi_scarches and scvi_knn.
+        default: sample_id
+        required: false
+      - name: "--input_var_gene_names"
+        type: string
+        description: |
+          .var column containing gene names. By default the .var index is used.
+        required: false
+      - name: "--input_reference_gene_overlap"
+        type: integer
+        default: 100
+        min: 1
+        description: Minimum number of genes required to overlap between query and reference.
+      - name: "--sanitize_ensembl_ids"
+        type: boolean
+        default: true
+        description: |
+          Whether to sanitize ensembl gene ids by removing version numbers. Read by
+          celltypist, scanvi_scarches, scvi_knn and singler.
+      - name: "--input_obs_categorical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) in the input query with categorical covariates for
+          scanvi_scarches to correct for in addition to the batch label. Treated as
+          nuisance factors; their order must match --reference_obs_categorical_covariates.
+          None by default.
+        required: false
+      - name: "--input_obs_numerical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) in the input query with continuous (numerical) covariates for
+          scanvi_scarches to correct for in addition to the batch label. Treated as
+          nuisance factors; their order must match --reference_obs_numerical_covariates.
+          None by default.
+        required: false
+
+  - name: Methods
+    arguments:
+      - name: "--annotation_methods"
+        type: string
+        description: Annotation methods to run in parallel on each major cell type.
+        choices: [celltypist, harmony_knn, scanvi_scarches, scvi_knn, singler]
+        multiple: true
+        required: true
+        example: [celltypist, harmony_knn]
+
+  - name: Reference
+    arguments:
+      - name: "--reference"
+        type: file
+        description: |
+          Reference h5mu file with labeled observations. Used by all annotation
+          methods (celltypist, harmony_knn, scanvi_scarches and scvi_knn).
+        required: true
+        example: reference.h5mu
+      - name: "--reference_layer"
+        type: string
+        description: Layer of the reference containing raw counts. If not provided, .X will be used.
+        required: false
+      - name: "--reference_layer_lognormalized"
+        type: string
+        description: Layer of the reference containing log-normalized counts.
+        required: false
+        default: log_normalized
+      - name: "--reference_obs_target"
+        type: string
+        description: .obs column in the reference containing the target (sub)cell-type labels.
+        required: false
+        example: cell_type
+      - name: "--reference_obs_major_cell_type"
+        type: string
+        description: |
+          The .obs column in --reference holding the major cell-type labels,
+          matching the label set in --obs_major_cell_type. The reference is split
+          by this column and each query major cell type is subtyped against the
+          matching subset of the reference.
+        required: true
+        example: major_cell_type
+      - name: "--allow_missing_reference_cell_type"
+        type: boolean_true
+        description: |
+          Controls what happens when a query major cell type has no matching
+          subset in the reference. When false (default), the workflow errors.
+          When true, such cell types are passed through unannotated and merged
+          back into the output alongside the subtyped cell types.
+      - name: "--reference_obs_batch_label"
+        type: string
+        description: .obs column in the reference containing batch labels.
+        required: false
+        default: sample_id
+      - name: "--reference_var_gene_names"
+        type: string
+        description: .var column in the reference containing gene names. Defaults to the .var index.
+        required: false
+      - name: "--reference_var_input"
+        type: string
+        description: |
+          .var column in the reference flagging highly-variable genes (boolean).
+          Used by celltypist and scanvi_scarches to subset features if provided.
+        required: false
+        default: filter_with_hvg
+      - name: "--reference_obs_categorical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) in the reference with categorical covariates for
+          scanvi_scarches to correct for in addition to the batch label. Treated as
+          nuisance factors; their order must match --input_obs_categorical_covariates.
+          None by default.
+        required: false
+      - name: "--reference_obs_numerical_covariates"
+        type: string
+        multiple: true
+        description: |
+          .obs column(s) in the reference with continuous (numerical) covariates for
+          scanvi_scarches to correct for in addition to the batch label. Treated as
+          nuisance factors; their order must match --input_obs_numerical_covariates.
+          None by default.
+        required: false
+      - name: "--reference_obs_label_unlabeled_category"
+        type: string
+        default: "Unknown"
+        description: Value in --reference_obs_target that indicates unlabeled observations.
+
+  - name: Clustering options
+    description: Leiden clustering options shared by harmony_knn, scanvi_scarches, scvi_knn.
+    arguments:
+      - name: "--leiden_resolution"
+        type: double
+        description: Leiden clustering resolution(s). Higher values lead to more clusters.
+        default: [1]
+        multiple: true
+
+  - name: Neighbor classifier options
+    description: KNN options shared by harmony_knn, scanvi_scarches, scvi_knn.
+    arguments:
+      - name: "--knn_weights"
+        type: string
+        choices: [uniform, distance]
+        default: "uniform"
+        description: Weight function for KNN classifier.
+      - name: "--knn_n_neighbors"
+        type: integer
+        min: 5
+        default: 15
+        description: Number of neighbors for the KNN classifier.
+
+  - name: scVI / scANVI / scArches training options
+    description: |
+      Training arguments shared by scanvi_scarches and scvi_knn.
+    arguments:
+      - name: "--scvi_early_stopping"
+        type: boolean
+        description: Whether to perform early stopping with respect to the validation set.
+        required: false
+      - name: "--scvi_early_stopping_monitor"
+        type: string
+        choices: [elbo_validation, reconstruction_loss_validation, kl_local_validation]
+        default: "elbo_validation"
+        description: Metric logged during validation set epoch.
+      - name: "--scvi_early_stopping_patience"
+        type: integer
+        min: 1
+        default: 45
+        description: Number of validation epochs with no improvement after which training stops.
+      - name: "--scvi_early_stopping_min_delta"
+        type: double
+        min: 0
+        default: 0.0
+        description: Minimum change in the monitored metric to qualify as an improvement.
+      - name: "--scvi_max_epochs"
+        type: integer
+        description: Number of training passes through the dataset.
+        required: false
+      - name: "--scvi_reduce_lr_on_plateau"
+        type: boolean
+        default: true
+        description: Reduce learning rate when validation metric plateaus.
+      - name: "--scvi_lr_factor"
+        type: double
+        min: 0
+        default: 0.6
+        description: Factor by which to reduce learning rate.
+      - name: "--scvi_lr_patience"
+        type: double
+        min: 0
+        default: 30
+        description: Number of epochs with no improvement after which lr is reduced.
+
+  - name: CellTypist options
+    arguments:
+      - name: "--celltypist_majority_voting"
+        type: boolean
+        default: false
+        description: Refine predicted labels by majority voting after over-clustering.
+      - name: "--celltypist_feature_selection"
+        type: boolean
+        default: false
+        description: Whether to perform feature selection during training.
+      - name: "--celltypist_C"
+        type: double
+        default: 1.0
+        description: Inverse of regularization strength in logistic regression.
+      - name: "--celltypist_max_iter"
+        type: integer
+        default: 1000
+        description: Maximum iterations before reaching the cost-function minimum.
+      - name: "--celltypist_use_SGD"
+        type: boolean
+        default: false
+        description: Whether to use stochastic gradient descent.
+      - name: "--celltypist_min_prop"
+        type: double
+        default: 0
+        description: |
+          Minimum proportion of cells in a sub-cluster supporting a label for
+          majority voting; only relevant if --celltypist_majority_voting is set.
+
+  - name: harmony_knn options
+    arguments:
+      - name: "--harmony_knn_n_hvg"
+        type: integer
+        default: 2000
+        description: Number of highly-variable genes to keep for harmony_knn.
+      - name: "--harmony_knn_pca_num_components"
+        type: integer
+        description: Number of principal components to compute for harmony_knn.
+        required: false
+      - name: "--harmony_knn_theta"
+        type: double
+        description: Diversity clustering penalty for harmony.
+        default: [2]
+        multiple: true
+
+  - name: scvi_knn options
+    arguments:
+      - name: "--scvi_knn_n_hvg"
+        type: integer
+        default: 2000
+        description: Number of highly-variable genes to keep for scvi_knn.
+
+  - name: SingleR options
+    arguments:
+      - name: "--singler_input_obs_clusters"
+        type: string
+        required: false
+        description: |
+          .obs column with cluster identities. If provided, SingleR annotates the
+          aggregated cluster profiles; otherwise it annotates per observation.
+      - name: "--singler_de_method"
+        type: string
+        choices: [classic, t, wilcox]
+        default: "classic"
+        description: Method to detect differentially expressed genes between pairs of labels.
+      - name: "--singler_de_n_genes"
+        type: integer
+        min: 1
+        required: false
+        description: |
+          Number of differentially expressed genes per label pair to use as markers.
+          Defaults to a SingleR heuristic based on the number of labels.
+      - name: "--singler_quantile"
+        type: double
+        min: 0
+        max: 1
+        default: 0.8
+        description: Quantile of the correlation distribution used to score each label.
+      - name: "--singler_fine_tune"
+        type: boolean
+        default: true
+        description: Whether to fine-tune label assignment after the initial classification.
+      - name: "--singler_fine_tuning_threshold"
+        type: double
+        default: 0.05
+        description: Maximum difference from the maximum correlation to use in fine-tuning.
+      - name: "--singler_prune"
+        type: boolean
+        default: true
+        description: |
+          Whether to prune low-quality labels (replaced with NA in the pruned
+          predictions output).
+
+  - name: Consensus vote options
+    description: |
+      A final consensus_vote step (run inside parallel_annotation on each major
+      cell type) combines the per-method predictions into a single consensus
+      label via a (probability-weighted) majority vote.
+
+      As with the per-method slots, the consensus .obs columns default to
+      consensus_pred_<reference_obs_target> and
+      consensus_score_<reference_obs_target> when not set, and the suffix is
+      omitted when no --reference_obs_target is set.
+    arguments:
+      - name: "--run_consensus"
+        type: boolean
+        default: true
+        description: |
+          Run a final consensus vote combining the per-method predictions. Only
+          takes effect when more than one --annotation_methods is selected.
+      - name: "--consensus_obs_predictions"
+        type: string
+        required: false
+        description: .obs slot for the consensus predicted cell type. Defaults to consensus_pred_<reference_obs_target>.
+      - name: "--consensus_obs_score"
+        type: string
+        required: false
+        description: |
+          .obs slot for the consensus score, defined as the fraction of total
+          weight assigned to the winning cell type. Defaults to
+          consensus_score_<reference_obs_target>.
+      - name: "--consensus_use_probabilities"
+        type: boolean
+        default: true
+        description: |
+          Scale each method's vote by its per-cell prediction probability. When
+          false, every method votes with equal weight regardless of confidence.
+      - name: "--consensus_tie_label"
+        type: string
+        description: |
+          Label to assign when two or more cell types receive equal votes. If not
+          provided, tied cells are assigned a missing value.
+        required: false
+        example: "Unknown"
+
+  - name: Output slot naming
+    description: |
+      Names of the .obs and .obsm slots each method writes to the subtyped output.
+    arguments:
+      - name: "--celltypist_obs_predictions"
+        type: string
+        required: false
+        description: .obs column for CellTypist predicted labels. Defaults to celltypist_pred_<reference_obs_target>.
+      - name: "--celltypist_obs_probability"
+        type: string
+        required: false
+        description: .obs column for CellTypist probabilities. Defaults to celltypist_probability_<reference_obs_target>.
+
+      - name: "--harmony_knn_obs_predictions"
+        type: string
+        required: false
+        description: .obs column for harmony_knn predicted labels. Defaults to harmony_knn_pred_<reference_obs_target>.
+      - name: "--harmony_knn_obs_probability"
+        type: string
+        required: false
+        description: .obs column for harmony_knn probabilities. Defaults to harmony_knn_probability_<reference_obs_target>.
+      - name: "--harmony_knn_obsm_integrated"
+        type: string
+        default: "X_integrated_harmony"
+
+      - name: "--scanvi_scarches_obs_predictions"
+        type: string
+        required: false
+        description: .obs column for scanvi_scarches predicted labels. Defaults to scanvi_pred_<reference_obs_target>.
+      - name: "--scanvi_scarches_obs_probability"
+        type: string
+        required: false
+        description: .obs column for scanvi_scarches probabilities. Defaults to scanvi_probability_<reference_obs_target>.
+      - name: "--scanvi_scarches_obsm_integrated"
+        type: string
+        default: "X_integrated_scanvi"
+
+      - name: "--scvi_knn_obs_predictions"
+        type: string
+        required: false
+        description: .obs column for scvi_knn predicted labels. Defaults to scvi_knn_pred_<reference_obs_target>.
+      - name: "--scvi_knn_obs_probability"
+        type: string
+        required: false
+        description: .obs column for scvi_knn probabilities. Defaults to scvi_knn_probability_<reference_obs_target>.
+      - name: "--scvi_knn_obsm_integrated"
+        type: string
+        default: "X_integrated_scvi"
+
+      - name: "--singler_obs_predictions"
+        type: string
+        required: false
+        description: .obs column for SingleR predicted labels. Defaults to singler_pred_<reference_obs_target>.
+      - name: "--singler_obs_probability"
+        type: string
+        required: false
+        description: .obs column for SingleR probabilities. Defaults to singler_probability_<reference_obs_target>.
+      - name: "--singler_obs_delta_next"
+        type: string
+        required: false
+        description: .obs column for the SingleR delta-next score. Defaults to singler_delta_next_<reference_obs_target>.
+      - name: "--singler_obs_pruned_predictions"
+        type: string
+        required: false
+        description: .obs column for SingleR pruned predicted labels. Defaults to singler_pruned_labels_<reference_obs_target>.
+      - name: "--singler_obsm_scores"
+        type: string
+        required: false
+        description: .obsm key for the SingleR per-label score matrix. Defaults to singler_scores_<reference_obs_target>.
+
+  - name: Output
+    arguments:
+      - name: "--output"
+        alternatives: [-o]
+        type: file
+        description: |
+          Output h5mu file — the input query with each selected method's
+          subtype predictions and embeddings merged into the target modality,
+          and the other modalities merged back in unaltered.
+        direction: output
+        required: true
+        example: output.h5mu
+      - name: "--output_compression"
+        type: string
+        choices: [gzip, lzf]
+        required: false
+        example: gzip
+        description: Compression format for the output h5mu file.
+
+dependencies:
+  - name: single_cell/parallel_annotation
+  - name: dataflow/split_modalities
+    repository: openpipeline
+  - name: dataflow/split_h5mu
+    repository: openpipeline
+  - name: dataflow/concatenate_h5mu
+    repository: openpipeline
+  - name: dataflow/merge
+    repository: openpipeline
+  # Used only by test.nf to inject a major cell-type annotation into the query.
+  - name: metadata/add_id
+    repository: openpipeline
+
+resources:
+  - type: nextflow_script
+    path: main.nf
+    entrypoint: run_wf
+
+test_resources:
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf
+  - type: nextflow_script
+    path: test.nf
+    entrypoint: test_wf_2
+  - path: /resources_test/pbmc_1k_protein_v3/pbmc_1k_protein_v3_mms.h5mu
+  - path: /resources_test/annotation_test_data/TS_Blood_filtered.h5mu
+
+runners:
+  - type: nextflow

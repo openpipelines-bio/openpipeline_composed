@@ -3,8 +3,9 @@ namespace: "test_workflows"
 scope: "test"
 description: |
   Test helper. Reads a modality from an output h5mu and asserts that the expected
-  .obs columns, .obsm keys, .obsp keys and .uns keys are all present. Raises an
-  error listing any missing slots.
+  .obs columns, .obsm keys, .obsp keys and .uns keys are all present, and that any
+  slots listed as absent are not present. Raises an error listing any missing slots
+  (expected but absent) or unexpected slots (listed as absent but present).
 
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
@@ -44,6 +45,28 @@ argument_groups:
         type: string
         multiple: true
         description: Expected .uns keys.
+        required: false
+  - name: Unexpected slots
+    arguments:
+      - name: "--obs_absent"
+        type: string
+        multiple: true
+        description: .obs column names that must not be present.
+        required: false
+      - name: "--obsm_absent"
+        type: string
+        multiple: true
+        description: .obsm keys that must not be present.
+        required: false
+      - name: "--obsp_absent"
+        type: string
+        multiple: true
+        description: .obsp keys that must not be present.
+        required: false
+      - name: "--uns_absent"
+        type: string
+        multiple: true
+        description: .uns keys that must not be present.
         required: false
 
 resources:
