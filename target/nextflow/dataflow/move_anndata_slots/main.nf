@@ -3447,7 +3447,7 @@ meta = [
     "engine" : "docker",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/dataflow/move_anndata_slots",
     "viash_version" : "0.9.7",
-    "git_commit" : "8e5fd9f0197a11ca3759e7d84beb05edfdc443b3",
+    "git_commit" : "6d83a7bc8a790f664e995fccfc90f456111b49e8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {

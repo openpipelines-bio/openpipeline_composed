@@ -4724,7 +4724,7 @@ meta = [
     "engine" : "native",
     "output" : "/home/runner/work/openpipeline_composed/openpipeline_composed/target/nextflow/single_cell/process_integrate_annotate",
     "viash_version" : "0.9.7",
-    "git_commit" : "8e5fd9f0197a11ca3759e7d84beb05edfdc443b3",
+    "git_commit" : "6d83a7bc8a790f664e995fccfc90f456111b49e8",
     "git_remote" : "https://github.com/openpipelines-bio/openpipeline_composed"
   },
   "package_config" : {
