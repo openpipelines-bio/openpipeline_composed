@@ -17,3 +17,13 @@ nextflow \
   -c src/configs/labels_ci.config \
   -c src/configs/integration_tests.config \
   --publish_dir test
+
+nextflow \
+  run . \
+  -main-script src/single_cell/parallel_subtyping/test.nf \
+  -entry test_wf_2 \
+  -resume \
+  -profile docker \
+  -c src/configs/labels_ci.config \
+  -c src/configs/integration_tests.config \
+  --publish_dir test
