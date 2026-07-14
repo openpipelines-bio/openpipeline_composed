@@ -1,14 +1,21 @@
 name: "process_integrate_annotate"
-scope: private
+scope: public
 namespace: "single_cell"
 description: |
   A pipeline to process, integrate and annotate single cell (multi-)omics data.
   Available integration methods:
   - Harmony
   - scVI
+  - Scanorama
+  - BBKNN
   Available annotation methods:
   - CellTypist
+  - Harmony integration followed by KNN label transfer (harmony_knn)
   - scANVI (with scArches)
+  - scVI integration followed by KNN label transfer (scvi_knn)
+  - SingleR
+  When more than one annotation method is selected, a final consensus vote
+  combines the per-method predictions into a single consensus label.
 
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
@@ -36,7 +43,15 @@ argument_groups:
         description: Modality to be processed. Should match the modality in the --reference dataset, if provided.
       - name: "--input_layer"
         type: string
-        description: "The layer in the input data containing the raw counts, if .X is not to be used."
+        description: "The layer in the input data containing the raw RNA counts, if .X is not to be used."
+        required: false
+      - name: "--prot_layer"
+        type: string
+        description: "Input layer for the antibody capture (CITE-seq) modality, if .X is not to be used."
+        required: false
+      - name: "--gdo_layer"
+        type: string
+        description: "Input layer for the guide-derived oligonucleotide (GDO) modality, if .X is not to be used."
         required: false
       - name: "--input_var_gene_names"
         type: string
@@ -47,8 +62,34 @@ argument_groups:
         type: integer
         default: 100
         min: 1
-        description: | 
+        description: |
           The minimum number of genes present in both the reference and query datasets.
+      - name: "--sanitize_ensembl_ids"
+        type: boolean
+        default: true
+        description: |
+          Whether to sanitize ensembl gene ids by removing version numbers. Read by
+          the celltypist, scanvi_scarches, scvi_knn and singler annotation methods.
+      - name: "--input_obs_categorical_covariates"
+        type: string
+        multiple: true
+        required: false
+        description: |
+          .obs column(s) in the input query with categorical covariates to correct for
+          in addition to the batch label. Used by the scvi integration method and by the
+          scanvi_scarches annotation method. Treated as nuisance factors, so do not use
+          them for biological signal you want to keep. For scanvi_scarches their order
+          must match --reference_obs_categorical_covariates.
+      - name: "--input_obs_numerical_covariates"
+        type: string
+        multiple: true
+        required: false
+        description: |
+          .obs column(s) in the input query with continuous (numerical) covariates to
+          correct for in addition to the batch label. Used by the scvi integration method
+          and by the scanvi_scarches annotation method. Treated as nuisance factors, so do
+          not use them for biological signal you want to keep. For scanvi_scarches their
+          order must match --reference_obs_numerical_covariates.
 
   - name: Reference data arguments
     description: Dataset to be used as a reference for label transfer and to train annotation algorithms on.
@@ -82,10 +123,10 @@ argument_groups:
         type: string
         example: cell_type
         required: false
-        description: The `.obs` key of the target labels to tranfer.
+        description: The `.obs` key of the target labels to transfer.
       - name: "--reference_obs_label_unlabeled_category"
         type: string
-        default: "Unkown"
+        default: "Unknown"
         description: "Value in the --reference_obs_label field that indicates unlabeled observations"
       - name: "--reference_var_input"
         type: string
@@ -93,6 +134,24 @@ argument_groups:
         default: filter_with_hvg
         description: |
           .var column containing highly variable genes. By default, do not subset genes.
+      - name: "--reference_obs_categorical_covariates"
+        type: string
+        multiple: true
+        required: false
+        description: |
+          .obs column(s) in the reference with categorical covariates for the
+          scanvi_scarches annotation method to correct for in addition to the batch label.
+          Treated as nuisance factors; their order must match
+          --input_obs_categorical_covariates.
+      - name: "--reference_obs_numerical_covariates"
+        type: string
+        multiple: true
+        required: false
+        description: |
+          .obs column(s) in the reference with continuous (numerical) covariates for the
+          scanvi_scarches annotation method to correct for in addition to the batch label.
+          Treated as nuisance factors; their order must match
+          --input_obs_numerical_covariates.
 
 
   - name: Methods
@@ -102,17 +161,17 @@ argument_groups:
         type: string
         multiple: true
         required: false
-        choices: [harmony, scvi]
+        choices: [harmony, scvi, scanorama, bbknn]
         example: harmony;scvi
         description: Integration methods to be executed.
       - name: "--annotation_methods"
         type: string
         multiple: true
         required: false
-        choices: [celltypist, scanvi_scarches]
+        choices: [celltypist, harmony_knn, scanvi_scarches, scvi_knn, singler]
         example: celltypist;scanvi_scarches
         description: Annotation methods to be executed.
-        
+
   - name: "Pre-processing options: RNA filtering"
     description: Pre-processing options for filtering RNA data
     arguments:
@@ -144,18 +203,86 @@ argument_groups:
         type: double
         example: 0.2
         description: Maximum fraction of UMIs that are mitochondrial.
+      - name: "--rna_min_fraction_ribo"
+        example: 0
+        type: double
+        description: Minimum fraction of UMIs that are ribosomal.
+      - name: "--rna_max_fraction_ribo"
+        type: double
+        example: 0.2
+        description: Maximum fraction of UMIs that are ribosomal.
+      - name: "--skip_scrublet_doublet_detection"
+        type: boolean_true
+        description: Skip the scrublet doublet detection step.
 
-  - name: "Pre-processing options: Highly variable features detection"
-    description: Pre-processing options for detecting highly variable features
+  - name: "Pre-processing options: Protein (CITE-seq) filtering"
+    description: Pre-processing options for filtering the antibody capture modality.
     arguments:
-      - name: "--n_hvg"
+      - name: "--prot_min_counts"
         type: integer
+        example: 3
+        description: Minimum number of counts captured per cell.
+      - name: "--prot_max_counts"
+        type: integer
+        example: 5000000
+        description: Maximum number of counts captured per cell.
+      - name: "--prot_min_proteins_per_cell"
+        type: integer
+        example: 200
+        description: Minimum of non-zero values per cell.
+      - name: "--prot_max_proteins_per_cell"
+        type: integer
+        example: 100000000
+        description: Maximum of non-zero values per cell.
+      - name: "--prot_min_cells_per_protein"
+        type: integer
+        example: 3
+        description: Minimum of non-zero values per protein.
+
+  - name: "Pre-processing options: GDO filtering"
+    description: Pre-processing options for filtering the guide-derived oligonucleotide modality.
+    arguments:
+      - name: "--gdo_min_counts"
+        type: integer
+        example: 3
+        description: Minimum number of counts captured per cell.
+      - name: "--gdo_max_counts"
+        type: integer
+        example: 5000000
+        description: Maximum number of counts captured per cell.
+      - name: "--gdo_min_guides_per_cell"
+        type: integer
+        example: 200
+        description: Minimum of non-zero values per cell.
+      - name: "--gdo_max_guides_per_cell"
+        type: integer
+        example: 100000000
+        description: Maximum of non-zero values per cell.
+      - name: "--gdo_min_cells_per_guide"
+        type: integer
+        example: 3
+        description: Minimum of non-zero values per guide.
+
+  - name: "Pre-processing options: Cross-modality filtering"
+    description: Pre-processing options that operate across modalities.
+    arguments:
+      - name: "--intersect_obs"
+        type: boolean_true
         description: |
-          Number of highly-variable features to keep. 
-          Only relevant if HVG need to be calculated across query and reference datasets (e.g. for --annotation_methods scvi_knn and harmony_knn). 
-          For reference mapping-based methods, the HVG's specified in --reference_var_input will be used.
-        default: 2000
-  
+          After per-modality filtering and multisample processing, remove observations
+          that are not present in all processed modalities so that each modality shares
+          the same set of cells.
+
+  - name: "Pre-processing options: Sample ID handling"
+    description: Options for adding the sample id to the observations of the MuData object.
+    arguments:
+      - name: "--add_id_make_observation_keys_unique"
+        type: boolean
+        default: true
+        description: |
+          Join the sample id to the .obs index (.obs_names) to make observation
+          keys unique across samples.
+
   - name: "Pre-processing options: Mitochondrial & Ribosomal Gene Detection"
     description: Pre-processing options for detecting mitochondrial genes
     arguments:
@@ -173,14 +300,14 @@ argument_groups:
         type: string
         required: false
         description: |
-          When specified, write the fraction of counts originating from mitochondrial genes 
+          When specified, write the fraction of counts originating from mitochondrial genes
           (based on --mitochondrial_gene_regex) to an .obs column with the specified name.
           Requires --var_name_mitochondrial_genes.
       - name: "--obs_name_ribosomal_fraction"
         type: string
         required: false
         description: |
-          When specified, write the fraction of counts originating from ribosomal genes 
+          When specified, write the fraction of counts originating from ribosomal genes
           (based on --ribosomal_gene_regex) to an .obs column with the specified name.
           Requires --var_name_ribosomal_genes.
       - name: --mitochondrial_gene_regex
@@ -204,7 +331,7 @@ argument_groups:
       - name: "--var_qc_metrics"
         description: |
           Keys to select a boolean (containing only True or False) column from .var.
-          For each cell, calculate the proportion of total values for genes which are labeled 'True', 
+          For each cell, calculate the proportion of total values for genes which are labeled 'True',
           compared to the total sum of the values for all genes. Defaults to the combined values specified for
           --var_name_mitochondrial_genes and --highly_variable_features_var_output.
         type: string
@@ -212,6 +339,81 @@ argument_groups:
         multiple_sep: ','
         required: false
         example: "ercc,highly_variable"
+      - name: "--top_n_vars"
+        type: integer
+        multiple: true
+        multiple_sep: ','
+        required: false
+        default: [50, 100, 200, 500]
+        description: |
+          Number of top vars to be used to calculate cumulative proportions.
+          If not specified, proportions are not calculated.
+
+  - name: "Pre-processing options: Highly variable features detection"
+    description: Pre-processing options for detecting highly variable features.
+    arguments:
+      - name: "--highly_variable_features_obs_batch_key"
+        type: string
+        default: sample_id
+        required: false
+        description: |
+          If specified, highly-variable genes are selected within each batch separately
+          and merged. This avoids the selection of batch-specific genes and acts as a
+          lightweight batch correction method.
+
+  - name: "Pre-processing options: CLR (protein normalization)"
+    description: Pre-processing options for the centered log-ratio transformation applied to the protein modality.
+    arguments:
+      - name: "--clr_axis"
+        type: integer
+        default: 0
+        required: false
+        description: Axis to perform the CLR transformation on.
+
+  - name: "Pre-processing options: RNA scaling"
+    description: |
+      Options for enabling scaling of the log-normalized RNA data to unit variance and
+      zero mean. The scaled data is written to a separate layer and an additional
+      dimensionality-reduced representation is created and stored alongside the
+      non-scaled data.
+    arguments:
+      - name: "--rna_enable_scaling"
+        type: boolean_true
+        description: Enable scaling for the RNA modality.
+      - name: "--rna_scaling_output_layer"
+        type: string
+        default: "scaled"
+        required: false
+        description: Output layer where the scaled log-normalized data will be stored.
+      - name: "--rna_scaling_max_value"
+        type: double
+        required: false
+        description: Clip (truncate) data to this value after scaling. If not specified, do not clip.
+      - name: "--rna_scaling_zero_center"
+        type: boolean_false
+        description: If set, omit zero-centering variables, which allows to handle sparse input efficiently.
+      - name: "--rna_scaling_pca_obsm_output"
+        type: string
+        default: "scaled_pca"
+        required: false
+        description: Name of the .obsm key where the PCA representation of the scaled data is stored.
+      - name: "--rna_scaling_pca_loadings_varm_output"
+        type: string
+        default: "scaled_pca_loadings"
+        required: false
+        description: Name of the .varm key where the PCA loadings of the scaled data are stored.
+      - name: "--rna_scaling_pca_variance_uns_output"
+        type: string
+        default: "scaled_pca_variance"
+        required: false
+        description: |
+          Name of the .uns key where the variance and variance ratio of the scaled data
+          are stored as a map (keys: variance and variance_ratio).
+      - name: "--rna_scaling_umap_obsm_output"
+        type: string
+        default: "scaled_umap"
+        required: false
+        description: Name of the .obsm key where the UMAP representation of the scaled data is stored.
 
   - name: Harmony integration options
     description: Specifications for harmony integration.
@@ -219,7 +421,7 @@ argument_groups:
       - name: "--harmony_theta"
         type: double
         description: |
-          Diversity clustering penalty parameter. Specify for each variable in group.by.vars. 
+          Diversity clustering penalty parameter. Specify for each variable in group.by.vars.
           theta=0 does not encourage any diversity. Larger values of theta
           result in more diverse clusters."
         default: 2
@@ -233,9 +435,52 @@ argument_groups:
         multiple: true
         default: "sample_id"
 
+  - name: Scanorama integration options
+    description: Specifications for Scanorama integration.
+    arguments:
+      - name: "--scanorama_knn"
+        type: integer
+        description: Number of nearest neighbors used for matching.
+        default: 20
+      - name: "--scanorama_batch_size"
+        type: integer
+        description: Batch size used in the alignment vector computation.
+        default: 5000
+      - name: "--scanorama_sigma"
+        type: double
+        description: Correction smoothing parameter on the Gaussian kernel.
+        default: 15
+      - name: "--scanorama_approx"
+        type: boolean
+        description: Use approximate nearest neighbors (annoy).
+        default: true
+      - name: "--scanorama_alpha"
+        type: double
+        description: Alignment score minimum cutoff.
+        default: 0.1
+
+  - name: BBKNN integration options
+    description: Specifications for BBKNN integration.
+    arguments:
+      - name: "--bbknn_n_neighbors_within_batch"
+        type: integer
+        description: Top neighbours to report for each batch.
+        default: 3
+      - name: "--bbknn_n_pcs"
+        type: integer
+        description: Number of dimensions to use from the input embedding.
+        default: 50
+      - name: "--bbknn_n_trim"
+        type: integer
+        description: |
+          Trim each cell's neighbours to these many top connectivities. Set to 0
+          to skip; leave unset to use the BBKNN default (10 * n_neighbors_within_batch
+          * n_batches).
+        required: false
+
   - name: scVI, scANVI and scArches training options
     # TODO - possibly provide separate training options for scVI, scANVI and scArches
-    description: Training arguments for scVI, scANVI and scArches. Relevant for --annotation_methods 'scvi_knn' and 'scanvi_scarches'.
+    description: Training arguments for scVI, scANVI and scArches. Relevant for --integration_methods 'scvi' and --annotation_methods 'scvi_knn' and 'scanvi_scarches'.
     arguments:
       - name: "--early_stopping"
         required: false
@@ -309,13 +554,80 @@ argument_groups:
       - name: "--celltypist_min_prop"
         type: double
         description: |
-          "For the dominant cell type within a subcluster, the minimum proportion of cells required to 
-          support naming of the subcluster by this cell type. Ignored if majority_voting is set to False. 
+          "For the dominant cell type within a subcluster, the minimum proportion of cells required to
+          support naming of the subcluster by this cell type. Ignored if majority_voting is set to False.
           Subcluster that fails to pass this proportion threshold will be assigned 'Heterogeneous'."
         default: 0
 
+  - name: harmony_knn annotation options
+    description: Specifications for Harmony integration followed by KNN label transfer.
+    arguments:
+      - name: "--harmony_knn_n_hvg"
+        type: integer
+        default: 2000
+        description: Number of highly-variable genes to keep for harmony_knn.
+      - name: "--harmony_knn_pca_num_components"
+        type: integer
+        required: false
+        description: Number of principal components to compute for harmony_knn.
+      - name: "--harmony_knn_theta"
+        type: double
+        default: [2]
+        multiple: true
+        description: Diversity clustering penalty for harmony.
+
+  - name: scvi_knn annotation options
+    description: Specifications for scVI integration followed by KNN label transfer.
+    arguments:
+      - name: "--scvi_knn_n_hvg"
+        type: integer
+        default: 2000
+        description: Number of highly-variable genes to keep for scvi_knn.
+
+  - name: SingleR annotation options
+    description: Specifications for SingleR annotation.
+    arguments:
+      - name: "--singler_input_obs_clusters"
+        type: string
+        required: false
+        description: |
+          .obs column with cluster identities. If provided, SingleR annotates the
+          aggregated cluster profiles; otherwise it annotates per observation.
+      - name: "--singler_de_method"
+        type: string
+        choices: [classic, t, wilcox]
+        default: "classic"
+        description: Method to detect differentially expressed genes between pairs of labels.
+      - name: "--singler_de_n_genes"
+        type: integer
+        min: 1
+        required: false
+        description: |
+          Number of differentially expressed genes per label pair to use as markers.
+          Defaults to a SingleR heuristic based on the number of labels.
+      - name: "--singler_quantile"
+        type: double
+        min: 0
+        max: 1
+        default: 0.8
+        description: Quantile of the correlation distribution used to score each label.
+      - name: "--singler_fine_tune"
+        type: boolean
+        default: true
+        description: Whether to fine-tune label assignment after the initial classification.
+      - name: "--singler_fine_tuning_threshold"
+        type: double
+        default: 0.05
+        description: Maximum difference from the maximum correlation to use in fine-tuning.
+      - name: "--singler_prune"
+        type: boolean
+        default: true
+        description: |
+          Whether to prune low-quality labels (replaced with NA in the pruned
+          predictions output).
+
   - name: Clustering options
-    description: Arguments for Leiden clustering. Only relevant for --annotation_methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.
+    description: Arguments for Leiden clustering. Only relevant for --integration_methods and the integration-based annotation methods `scvi_knn`, `scanvi_scarches` and `harmony_knn`.
     arguments:
       - name: "--leiden_resolution"
         type: double
@@ -332,7 +644,7 @@ argument_groups:
         choices: ["uniform", "distance"]
         description: |
           Weight function used in prediction. Possible values are:
-          `uniform` (all points in each neighborhood are weighted equally) or 
+          `uniform` (all points in each neighborhood are weighted equally) or
           `distance` (weight points by the inverse of their distance)
       - name: "--knn_n_neighbors"
         type: integer
@@ -340,8 +652,44 @@ argument_groups:
         min: 5
         required: false
         description: |
-          The number of neighbors to use in k-neighbor graph structure used for fast approximate nearest neighbor search with PyNNDescent. 
+          The number of neighbors to use in k-neighbor graph structure used for fast approximate nearest neighbor search with PyNNDescent.
           Larger values will result in more accurate search results at the cost of computation time.
+
+  - name: Consensus vote options
+    description: |
+      A final consensus_vote step combines the per-method predictions into a
+      single consensus label via a (probability-weighted) majority vote.
+    arguments:
+      - name: "--run_consensus"
+        type: boolean
+        default: true
+        description: |
+          Run a final consensus vote combining the per-method predictions. Only
+          takes effect when more than one --annotation_methods is selected; with a
+          single method there is nothing to combine and the step is skipped.
+      - name: "--consensus_obs_predictions"
+        type: string
+        default: "consensus_pred"
+        description: .obs slot in which to store the consensus predicted cell type.
+      - name: "--consensus_obs_score"
+        type: string
+        default: "consensus_score"
+        description: |
+          .obs slot in which to store the consensus score, defined as the fraction
+          of total weight assigned to the winning cell type.
+      - name: "--consensus_use_probabilities"
+        type: boolean
+        default: true
+        description: |
+          Scale each method's vote by its per-cell prediction probability. When
+          false, every method votes with equal weight regardless of confidence.
+      - name: "--consensus_tie_label"
+        type: string
+        description: |
+          Label to assign when two or more cell types receive equal votes. If not
+          provided, tied cells are assigned a missing value.
+        required: false
+        example: "Unknown"
 
   - name: Outputs
     description: The output file to write the annotated dataset to.
@@ -353,23 +701,37 @@ argument_groups:
       description: |
         The output file.
       example: output.h5mu
+    - name: "--output_compression"
+      type: string
+      choices: [gzip, lzf]
+      required: false
+      example: gzip
+      description: Compression format for the output h5mu file.
+    - name: "--output_scvi_model"
+      type: file
+      direction: output
+      required: false
+      description: |
+        Output folder with the trained scVI model. Only produced when scvi is
+        among the selected --integration_methods.
+      example: scvi_model/
+    - name: "--output_scanvi_model"
+      type: file
+      direction: output
+      required: false
+      description: |
+        Output folder with the trained scANVI/scArches model. Only produced when
+        scanvi_scarches is among the selected --annotation_methods.
+      example: scanvi_model/
 
 dependencies:
   - name: workflows/multiomics/process_samples
     alias: process_samples_workflow
     repository: openpipeline
-  - name: annotate/celltypist
-    repository: openpipeline
-    alias: celltypist_annotation
-  - name: workflows/annotation/scanvi_scarches
-    repository: openpipeline
-    alias: scanvi_scarches_annotation
-  - name: workflows/integration/harmony_leiden
-    repository: openpipeline
-    alias: harmony_integration
-  - name: workflows/integration/scvi_leiden
-    repository: openpipeline
-    alias: scvi_integration
+  - name: single_cell/parallel_integration
+    alias: parallel_integration
+  - name: single_cell/parallel_annotation
+    alias: parallel_annotation
 
 resources:
   - type: nextflow_script

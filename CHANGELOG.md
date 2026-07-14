@@ -4,6 +4,10 @@
 
 * `workflows/single_cell/parallel_annotation`: Add consensus voting based on per-method weighted probabilities via `--run_consensus` flag (default is true) (PR #22).
 
+* `workflows/single_cell/process_integrate_annotate`: Expose the consensus voting step from `parallel_annotation` via `--run_consensus` (default is true) (PR #21).
+
+* `workflows/single_cell/process_integrate_annotate`: Perform integration and annotation with multiple methods in parallel rather than sequentially using the `workflows/single_cell/parallel_annotation` and `workflows/single_cell/parallel_integration` workflows (PR #21).
+
 * `workflows/single_cell/parallel_subtyping`: Add a workflow that subtypes each major cell type independently via reference-based label projection, splitting the reference by matching major cell type (`--reference_obs_major_cell_type`) so each type is subtyped against its own reference cells. Query cell types absent from the reference raise an error by default, or are passed through unannotated when `--allow_missing_reference_cell_type` is set. The subtype labels are combined into a single output h5mu (PR #23).
 
 ## MINOR CHANGES
@@ -16,6 +20,10 @@
 * Bump `openpipeline` dependency version to `v4.2.0` (PR #25).
 
 # openpipeline_composed 0.2.1
+
+## MAJOR CHANGES
+
+* `workflows/single_cell/process_integrate_annotate`: Replace the inlined integration and annotation steps with the `single_cell/parallel_integration` and `single_cell/parallel_annotation` sub-workflows, so the selected methods run in parallel. This exposes the full set of methods: integration now also supports `scanorama` and `bbknn`, and annotation now also supports `harmony_knn`, `scvi_knn` and `singler`. The trained scVI and scANVI/scArches models are now emitted as optional outputs (`--output_scvi_model`, `--output_scanvi_model`).
 
 ## MINOR CHANGES
 
