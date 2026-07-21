@@ -4,9 +4,7 @@ scope: "private"
 description: "A pipeline for running Cell Ranger multi followed by QC."
 authors:
   - __merge__: /src/authors/jakub_majercik.yaml
-    roles: [ author, maintainer ]
-  - __merge__: /src/authors/weiwei_schultz.yaml
-    roles: [ contributor ]
+    roles: [ author ]
 __merge__: /src/single_cell/cellranger_multi_qc/cellranger_multi.yaml
 argument_groups:
   - name: Outputs

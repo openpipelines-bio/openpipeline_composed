@@ -19,9 +19,7 @@ description: |
 
 authors:
   - __merge__: /src/authors/dorien_roosen.yaml
-    roles: [ author, maintainer ]
-  - __merge__: /src/authors/weiwei_schultz.yaml
-    roles: [ contributor ]
+    roles: [ author ]
 
 argument_groups:
   - name: Input (query) data arguments
